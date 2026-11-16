@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="referrer" content="no-referrer">
-<meta name="app-version" content="2026.11-opponent-strength">
+<meta name="app-version" content="2026.11-club-balance">
 <title>Football Intelligence</title>
 <style>
 :root{--bg:#071019;--p:#0d1a27;--p2:#142433;--line:#294157;--t:#eef6ff;--m:#9eb1c3;--b:#4d8dff;--g:#3ac878;--r:#ef6e78}
@@ -191,8 +191,8 @@ function estimateGoals(home,away,results,neutral=false){
  const bound=n=>Math.max(.08,Math.min(6,n));
  return {homeGoals:bound(H.attack*A.defense/(neutral?leagueMean:leagueHome)),awayGoals:bound(A.attack*H.defense/(neutral?leagueMean:leagueAway)),H,A};
 }
-const MODEL_VERSION='2026.11-opponent-strength';
-const MODEL_CALIBRATION={"clubs":[{"n":170,"hits":74},{"n":571,"hits":273},{"n":383,"hits":215},{"n":205,"hits":132},{"n":73,"hits":53},{"n":23,"hits":21},{"n":2,"hits":0}],"national":[{"n":132,"hits":45},{"n":231,"hits":96},{"n":198,"hits":120},{"n":169,"hits":110},{"n":132,"hits":116},{"n":83,"hits":76},{"n":42,"hits":42}]};
+const MODEL_VERSION='2026.11-club-balance';
+const MODEL_CALIBRATION={"clubs":[{"n":168,"hits":78},{"n":554,"hits":260},{"n":382,"hits":225},{"n":220,"hits":133},{"n":73,"hits":55},{"n":27,"hits":24},{"n":3,"hits":0}],"national":[{"n":132,"hits":45},{"n":231,"hits":96},{"n":198,"hits":120},{"n":169,"hits":110},{"n":132,"hits":116},{"n":83,"hits":76},{"n":42,"hits":42}]};
 const ELO_START=1500;
 const ELO_HOME=65;
 function matchOutcome(home,away){return home>away?0:home===away?1:2}
@@ -266,7 +266,8 @@ function adjustedCandidate(base,homeRating,awayRating,model,fit,home,away,neutra
  const blendedAway=(1-model.team)*base.awayGoals+model.team*bound(rawAway);
  const total=blendedHome+blendedAway;
  const share=(1-model.elo)*blendedHome/total+model.elo*eloExpected(homeRating-awayRating);
- return [total*share,total*(1-share)];
+ const tilt=model.venueTilt&&!neutral?model.venueTilt:0;
+ return [total*share*Math.exp(tilt),total*(1-share)*Math.exp(-tilt)];
 }
 function resultDistribution(homeRate,awayRate){
  let ph=Math.exp(-homeRate),pa=Math.exp(-awayRate),cumH=0,cumA=0,home=0,draw=0,away=0;
@@ -295,7 +296,8 @@ function poissonDistribution(homeRate,awayRate){
 }
 const probabilityLabel=p=>percent(p*SIMULATIONS);
 function strongestOutcome(probabilities){return probabilities.indexOf(Math.max(...probabilities))}
-const RELEASE_MODELS={clubs:{decay:0,team:.75,elo:.2},national:{decay:0,team:1,elo:0}};
+const RELEASE_MODELS={clubs:{decay:0,team:.45,elo:.375,venueTilt:.035},national:{decay:0,team:1,elo:0}};
+const PREVIOUS_CLUB_MODEL={decay:0,team:.75,elo:.2};
 function forecastModel(home,away,rates,history,data,fixture){
  const ratings=eloRatings(history);
  const h=ratings.get(home)??ELO_START,a=ratings.get(away)??ELO_START;
@@ -306,11 +308,12 @@ function forecastModel(home,away,rates,history,data,fixture){
  const date=fixture?.date||new Date().toISOString().slice(0,10);
  const fit=scheduleStrength(history,config.decay,date);
  const [homeGoals,awayGoals]=adjustedCandidate(rates,h,a,config,fit,home,away,fixture?.neutral===true);
- const name=kind==='national'?'Rakip gücüne göre Poisson':'Poisson + Elo · rakip gücü';
- return {h,a,baseline,config,kind,rates:{...rates,homeGoals,awayGoals},name};
+ const name=kind==='national'?'Rakip gücüne göre Poisson':'Poisson + Elo · dengeli rakip gücü';
+ const alternative=kind==='clubs'?adjustedCandidate(rates,h,a,PREVIOUS_CLUB_MODEL,fit,home,away,fixture?.neutral===true):null;
+ return {h,a,baseline,config,kind,rates:{...rates,homeGoals,awayGoals},name,alternative};
 }
 function renderModel(home,away,base,model,neutral,probabilities){
- const {rates,h,a,baseline,config,kind,name}=model;
+ const {rates,h,a,baseline,config,kind,name,alternative}=model;
  const former=poissonDistribution(...baseline).outcomes;
  const labels=[home,'Beraberlik',away];
  const display=p=>p.map((v,i)=>labels[i]+' '+probabilityLabel(v)).join(' · ');
@@ -320,8 +323,12 @@ function renderModel(home,away,base,model,neutral,probabilities){
    s:'Atılan ve yenen goller, '+(neutral?'tarafsız saha':'iç saha ve deplasman')+(config?' ve karşılaşılan rakiplerin hücum ve savunma gücü.':'.')},
   {t:config?'Önceki Poisson + Elo':'Elo destekli alternatif',s:display(former)},
   {t:'Elo puanları · '+home+' '+Math.round(h)+' / '+away+' '+Math.round(a),
-   s:config?'Seçili modelde Elo payı %'+Math.round(config.elo*100)+'.':'Puanlar rakibin gücüne ve saha durumuna göre güncellenir.'}
+   s:config?'Seçili modelde Elo payı %'+fmt(config.elo*100,1).replace('.',',')+'.':'Puanlar rakibin gücüne ve saha durumuna göre güncellenir.'}
  ];
+ if(alternative){
+  const former=poissonDistribution(...alternative);
+  items.push({t:'Önceki rakip gücü modeli',s:display(former.outcomes)+' · En olası skor '+describeScore(former.scores[0][0],home,away)});
+ }
  if(config)items.splice(3,0,{t:'Yalnız Poisson karşılaştırması',s:display(poissonDistribution(base.homeGoals,base.awayGoals).outcomes)});
  list($('modelWhy'),items);
  const p=Math.max(...probabilities),band=Math.min(6,Math.max(0,Math.floor(p*10)-3));
