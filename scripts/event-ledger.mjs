@@ -16,7 +16,7 @@ async function text(url){
 }
 async function getFeed(name,today){
  const file=name+'_2627.csv';
- for(const base of app.BASES){
+ for(const base of app.BASES.slice().reverse()){
   try{
    const raw=await text(base+SCOPE+'/'+file);
    return app.cleanRows(app.parseClubFeed(raw,file,['date','home','away',...(name==='results'?['ft_home','ft_away']:[])]),today,name==='results');
@@ -34,11 +34,14 @@ function write(rows){
 }
 async function main(){
  const today=new Date().toISOString().slice(0,10);
- const [results,fixtures]=await Promise.all([getFeed('results',today),getFeed('fixtures',today)]);
+ const [results,fixtures]=await Promise.allSettled([getFeed('results',today),getFeed('fixtures',today)]);
+ if(results.status==='rejected')throw results.reason;
+ if(fixtures.status==='rejected')console.warn(fixtures.reason.message);
  const archive=parseArchive(fs.readFileSync(new URL('../event-model-state.json',import.meta.url),'utf8'));
  const prior=fs.existsSync(ledger)?JSON.parse(fs.readFileSync(ledger,'utf8')).records:[];
  const snapshot=fs.existsSync(market)?JSON.parse(fs.readFileSync(market,'utf8')):null;
- const records=await collectEventLedger({prior,results,fixtures,market:snapshot,app,prepare:buildInputs(results,today,app,archive),
+ const records=await collectEventLedger({prior,results:results.value,fixtures:fixtures.value??[],market:snapshot,app,
+  prepare:buildInputs(results.value,today,app,archive),
   simulate:({input,seed})=>runWorkers({input,seed,WorkerClass:Worker,workerCount:Math.min(availableParallelism(),8)}),onRecord:write});
  write(records);
  console.log(JSON.stringify({records:records.length,score:scoreLedger(records)}));

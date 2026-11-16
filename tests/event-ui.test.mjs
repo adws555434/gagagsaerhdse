@@ -49,10 +49,12 @@ test('new mode cancels, rejects insufficient data, runs 100 million, and reuses 
   displayTeamName:name=>name==='Besiktas'?'Beşiktaş':name,
   findTeam:(q,rows)=>rows.some(r=>r.home===q||r.away===q)?q:null,
   direct:()=>fixture,knownKickoff:()=>kickoff,findMarketQuote:()=>null,
+  EVENT_LEDGER_URLS:['https://ledger.example/event-forecast-ledger.json','./event-forecast-ledger.json'],
   MARKET_SNAPSHOT_URLS:[],dataTable:(headers,rows)=>{const t=document.createElement('div');t.textContent=rows.flat().join(' ');return t;},
-  getText:async url=>JSON.stringify(url.includes('model-state')?model:url.includes('validation')?validation:frozen)
+  getText:async url=>JSON.stringify(url.includes('model-state')?model:url.includes('validation')?validation:
+   url.startsWith('https:')?frozen:{version:VERSION,records:[]})
  };
- let frozen={records:[]};
+ let frozen={version:VERSION,records:[]};
  try{
   const run=connectEventMode(app);
   const match={...data,a:fixture.home,b:fixture.away};
@@ -74,11 +76,13 @@ test('new mode cancels, rejects insufficient data, runs 100 million, and reuses 
   assert.match($('eventCombined').textContent,/üç skordan/);
   await wait(()=>$('eventHistory').textContent.includes('%53,25'));
   const running=browserWorkers;
-  frozen={records:[{id:fixtureId(fixture,app),version:VERSION,kickoff,savedAt:before,result:{
+  frozen={version:VERSION,records:[{id:fixtureId(fixture,app),version:VERSION,kickoff,savedAt:before,result:{
    n:TRIALS,outcomes:[47_000_000,29_000_000,24_000_000],winner:0,pick:{home:2,away:1,count:10_000_000},
    top:[{home:1,away:1,count:15_000_000},{home:2,away:1,count:10_000_000},{home:0,away:1,count:9_000_000}]
   }}]};
+  delete globalThis.Worker;
   await run(match);
+  globalThis.Worker=BrowserWorker;
   assert.equal(browserWorkers,running);
   assert.equal($('eventAnswer').textContent,'Favori Beşiktaş');
   assert.equal($('eventPickCount').querySelector('strong').textContent,'Beşiktaş 2–1 kazanır');

@@ -5,8 +5,16 @@ on:
     branches: [main]
     paths:
       - index.html
+      - 'assets/matchday*'
       - 'sim/**'
       - 'tests/event-*.mjs'
+      - tests/forecast-learning-dom.cjs
+      - tests/package.json
+      - tests/package-lock.json
+      - primary-score-report.json
+      - tests/primary-score-replay.mjs
+      - scripts/event-ledger.mjs
+      - .github/workflows/event-forecast-ledger.yml
       - scripts/forecast-ledger.cjs
       - scripts/market-validation.cjs
       - tests/phase0-forecast-test.cjs
@@ -40,4 +48,6 @@ jobs:
       - run: node tests/phase2-market-test.cjs
       - run: node tests/phase2-timing-test.cjs
       - run: node tests/phase2-live-test.cjs
-      - run: node --test tests/event-simulation.test.mjs
+      - run: npm ci --prefix tests --ignore-scripts --no-audit --no-fund
+      - run: node --test tests/event-simulation.test.mjs tests/event-ui.test.mjs
+      - run: node tests/forecast-learning-dom.cjs

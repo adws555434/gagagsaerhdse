@@ -2788,6 +2788,7 @@ const PUBLIC_LEDGER_URLS=[
  'https://cdn.jsdelivr.net/gh/adws555434/gagagsaerhdse@main/forecast-ledger.json',
  './forecast-ledger.json'
 ];
+const EVENT_LEDGER_URLS=PUBLIC_LEDGER_URLS.map(url=>url.replace(/forecast-ledger\.json$/,'event-forecast-ledger.json'));
 function parsePublicLedger(text){
  const ledger=JSON.parse(text);
  if(!Array.isArray(ledger?.records)||!Number.isFinite(Date.parse(ledger.checked))||!ledger.records.every(validForecastRecord))throw Error('Invalid ledger');
@@ -3059,9 +3060,9 @@ $('scoreCalibrationAudit').addEventListener('toggle',()=>{if($('scoreCalibration
 for(const button of document.querySelectorAll('.example')){
  button.addEventListener('click',()=>selectMatch(button.dataset.home,button.dataset.away,button.hasAttribute('data-national')));
 }
-eventMode=import('./sim/event-ui.mjs?v=4').then(({connectEventMode})=>connectEventMode({
+eventMode=import('./sim/event-ui.mjs?v=5').then(({connectEventMode})=>connectEventMode({
  archiveRows,clubModelKey,csv,loadFolder,direct,knownKickoff,findMarketQuote,displayTeamName,
- MARKET_SNAPSHOT_URLS,MARKET_VERSION,marketTotalsDistribution,getText,dataTable
+ EVENT_LEDGER_URLS,MARKET_SNAPSHOT_URLS,MARKET_VERSION,marketTotalsDistribution,getText,dataTable
 })).catch(()=>null);
 selfTest();renderHistory();void renderAutoForecasts();void renderFixturePreview();void renderPerformanceSummary();
 

@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {Worker} from 'node:worker_threads';
+import {EventEmitter} from 'node:events';
 import {analyticMatrix,runSerial,verify,SIZE,emptyCounts,summarize,NO_EFFECTS} from '../sim/event-engine.mjs';
 import {runWorkers} from '../sim/event-parallel.mjs';
 import {historyRows,trainChronologically,TRIALS,VERSION,withMarket} from '../sim/super-lig-model.mjs';
@@ -45,6 +46,20 @@ test('parallel scheduling gives the exact same draws and supports cancellation',
  await assert.rejects(runWorkers({WorkerClass:Worker,workerCount:2,input,seed,signal:cancel.signal,
   onProgress:()=>cancel.abort()}),{name:'AbortError'});
 });
+test('worker shutdown or no reply fails the simulation instead of keeping it busy',async()=>{
+ class ClosedWorker extends EventEmitter {
+  postMessage(){queueMicrotask(()=>this.emit('exit',0));}
+  terminate(){}
+ }
+ class SilentWorker {
+  postMessage(){}
+  terminate(){}
+ }
+ const options={workerCount:1,input,seed:567,count:1000};
+ await assert.rejects(runWorkers({...options,WorkerClass:ClosedWorker}),/sonuç vermeden kapandı/);
+ await assert.rejects(runWorkers({...options,WorkerClass:SilentWorker,idleTimeout:20}),/yanıt vermedi/);
+ await assert.rejects(runWorkers({...options,workerCount:0,WorkerClass:SilentWorker}),/Geçersiz/);
+});
 test('chronological age weighting, five match gate, saved model state and market pooling',()=>{
  const rows=historyRows(Array.from({length:8},(_,i)=>({
   home:'H',away:'A',date:'2026-01-0'+(i+1),ft_home:i%3,ft_away:i%2
@@ -68,13 +83,19 @@ test('pre-match event records freeze once, settle automatically and reject unfin
  const fixture={home:'H',away:'A',date:'2026-11-16',kickoff:2000};
  const app={clubModelKey:s=>s,knownKickoff:r=>r.kickoff,validScore:r=>Number.isInteger(r.ft_home),findMarketQuote:()=>null};
  let now=1000,simulations=0;
- const simulate=async()=>{simulations++;return {n:TRIALS,winner:0,pick:{home:2,away:1},
+ const simulate=async()=>{simulations++;return {n:TRIALS,outcomes:[50_000_000,30_000_000,20_000_000],winner:0,pick:{home:2,away:1},
   top:[{home:1,away:1},{home:2,away:1},{home:1,away:0}]};};
  const common={fixtures:[fixture],app,clock:()=>now,prepare:async()=>({digest:'test',input:{}}),simulate};
  const first=await collectEventLedger({...common,prior:[],results:[]});
  assert.equal(first.length,1);assert.equal(first[0].version,VERSION);
  assert.deepEqual(await collectEventLedger({...common,prior:first,results:[]}),first);
  assert.equal(simulations,1);
+ const moved={...fixture,kickoff:3000};
+ const refrozen=await collectEventLedger({...common,fixtures:[moved],prior:first,results:[]});
+ assert.equal(refrozen.length,1);
+ assert.equal(refrozen[0].id,first[0].id);
+ assert.equal(refrozen[0].kickoff,3000);
+ assert.equal(simulations,2);
  now=4000;
  const scored=await collectEventLedger({...common,prior:first,results:[{...fixture,ft_home:2,ft_away:1}]});
  assert.deepEqual(scoreLedger(scored),{n:1,winner:1,score:1,globalScore:0,top3:1});

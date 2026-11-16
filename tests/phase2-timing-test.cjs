@@ -1,10 +1,17 @@
 'use strict';
 
 const assert=require('node:assert/strict');
+const {spawnSync}=require('node:child_process');
+const path=require('node:path');
 const {app,promotionCheck}=require('./phase2-backtest.cjs');
-const {attachTrackTimes,requestPlan,inspectHistorical,collectHistorical,licensedOdds}=require('./phase2-timing.cjs');
+const {attachTrackTimes,requestPlan,inspectHistorical,collectHistorical,licensedOdds,earlyCoverage}=require('./phase2-timing.cjs');
 
 async function main(){
+ const blocked=spawnSync(process.execPath,[path.join(__dirname,'phase2-fetch-history.cjs'),'capture','unused','unused','TUR_1_super-lig'],{
+  encoding:'utf8',env:{...process.env,HISTORICAL_CAPTURE_APPROVAL:'onaylıyorum',HISTORICAL_REPOSITORY_PRIVATE:'false'}
+ });
+ assert.equal(blocked.status,1);
+ assert.match(blocked.stderr,/özel GitHub deposu gerekli/);
  const scope='TUR_1_super-lig',kickoff='2026-10-16T17:00:00.000Z',stamp='2026-10-16T11:00:00.000Z';
  const odds={id:'match-id',sport_key:'soccer_turkey_super_league',commence_time:kickoff,home_team:'Beşiktaş',away_team:'Galatasaray',
   bookmakers:[{key:'example',last_update:'2026-10-16T10:50:00Z',markets:[
@@ -34,11 +41,11 @@ async function main(){
  assert.equal(plan.creditCeiling,80);
  assert.equal(plan.fixtures,3);
  assert.equal(plan.requests[0].asOf,'2026-04-16T11:00:00.000Z');
- const dayBefore=requestPlan(app,csv,{dayBefore:true});
- assert.equal(dayBefore.calls,4);
- assert.equal(dayBefore.requests[0].kind,'dayBefore');
- assert.equal(dayBefore.requests[0].asOf,'2026-04-15T17:00:00.000Z');
- assert.equal(dayBefore.requests[1].asOf,'2026-04-16T16:59:59.000Z');
+ const reused=requestPlan(app,csv,{reuseEarly:true});
+ assert.equal(reused.leagues[scope].calls,2);
+ assert.equal(reused.leagues[scope].creditCeiling,40);
+ assert.equal(reused.requests[0].kind,'reuseEarly');
+ assert.equal(reused.requests[0].asOf,'2026-04-16T16:59:59.000Z');
  assert.equal(promotionCheck([],new Set(['2024-25']),0).eligible,false);
 
  const early={scope,kind:'early',kickoff,asOf:stamp};
@@ -63,6 +70,35 @@ async function main(){
  const twoHorizons=licensedOdds(app,[records.snapshots[0],daySnapshot]).rows[0];
  assert.deepEqual(twoHorizons.dayBefore,twoHorizons.early);
  assert.throws(()=>licensedOdds(app,[{...daySnapshot,asOf:stamp}]),/doğrulanamadı/);
+ const anchor={scope,kind:'reuseEarly',kickoff,asOf:'2026-10-16T16:59:59.000Z'};
+ const later={...odds,id:'later',commence_time:'2026-10-17T17:00:00.000Z'};
+ const earlier={...odds,id:'earlier',commence_time:'2026-10-16T16:50:00.000Z'};
+ const wide={timestamp:'2026-10-16T16:55:00Z',data:[odds,later,earlier]};
+ const wideCapture=await collectHistorical([anchor],{key:'fixture-key',budget:20,fetcher:async url=>{
+  assert.equal(url.searchParams.has('commenceTimeTo'),false);
+  return {ok:true,text:async()=>JSON.stringify(wide)};
+ }});
+ const [snapshot]=wideCapture.snapshots;
+ assert.deepEqual(snapshot.rows.map(row=>row.window),['close','early']);
+ assert.equal(snapshot.rows[1].leadHours,24+5/60);
+ const withEarly=licensedOdds(app,[snapshot]).rows;
+ assert.equal(withEarly[1].dayBefore.leadHours,24+5/60);
+ const cover=earlyCoverage(app,[
+  {kickoff,home:odds.home_team,away:odds.away_team},
+  {kickoff:later.commence_time,home:later.home_team,away:later.away_team}
+ ],[snapshot]);
+ assert.equal(cover.withEarly,1);
+ assert.equal(cover.withoutEarly[0].kickoff,kickoff);
+ const reserved=await collectHistorical([anchor,anchor],{key:'fixture-key',budget:40,minimumReserve:3000,fetcher:async url=>({
+  ok:true,text:async()=>JSON.stringify(wide),headers:new Headers({
+   'x-requests-remaining':url.pathname==='/v4/sports/'?'3039':'3019'
+  })
+ })});
+ assert.equal(reserved.calls,1);
+ await assert.rejects(collectHistorical([anchor],{key:'fixture-key',budget:20,minimumReserve:3000,fetcher:async url=>{
+  assert.equal(url.pathname,'/v4/sports/');
+  return {ok:true,headers:new Headers({'x-requests-remaining':'3019'})};
+ }}),/yedek yetersiz/);
  assert.throws(()=>licensedOdds(app,[records.snapshots[0],records.snapshots[0]]),/mükerrer/);
  await assert.rejects(collectHistorical([early],{key:'fixture-key',budget:19}),/kredi sınırı/);
  await assert.rejects(collectHistorical([early],{key:'fixture-key',budget:20,fetcher:async()=>{throw Error('fixture-key');}}),

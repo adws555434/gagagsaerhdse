@@ -1,7 +1,7 @@
 import {SCOPE,TRIALS,VERSION} from './super-lig-model.mjs';
 import {buildInputs,parseArchive} from './forecast-input.mjs';
-import {fixtureId} from './event-ledger.mjs';
-import {runWorkers} from './event-parallel.mjs';
+import {frozenEventFor} from './event-ledger.mjs?v=2';
+import {runWorkers} from './event-parallel.mjs?v=2';
 import {analyticMatrix,outcomeOf,summarize} from './event-engine.mjs';
 
 const number=new Intl.NumberFormat('tr-TR');
@@ -40,11 +40,11 @@ export function connectEventMode(app){
   .flatMap(x=>x.status==='fulfilled'&&x.value.version===app.MARKET_VERSION?[x.value]:[]);
  const oddsFor=(quotes,fixture,now)=>quotes.map(feed=>app.findMarketQuote(feed,SCOPE,fixture,now))
   .filter(quote=>quote?.over25!=null).sort((x,y)=>Date.parse(y.capturedAt)-Date.parse(x.capturedAt))[0];
- const ledger=()=>app.getText('./event-forecast-ledger.json').then(JSON.parse).catch(()=>null);
- function frozenFor(saved,fixture){
-  return saved?.records?.find(row=>row.id===fixtureId(fixture,app)&&row.version===VERSION&&
-   row.kickoff===app.knownKickoff(fixture)&&row.savedAt<row.kickoff&&row.result.n===TRIALS&&row.result.pick);
- }
+ const ledger=async()=>{
+  const feeds=await Promise.allSettled(app.EVENT_LEDGER_URLS.map(url=>app.getText(url).then(JSON.parse)));
+  return feeds.flatMap(feed=>feed.status==='fulfilled'&&feed.value?.version===VERSION&&Array.isArray(feed.value.records)
+   ?feed.value.records:[]);
+ };
  function finish(result,fixture,market,frozen,seconds){
   const top=result.pick;
   const labels=outcomes(fixture);
@@ -104,7 +104,7 @@ export function connectEventMode(app){
    let chunkStarted=performance.now();
    for(const fixture of data.fixtures){
     if(!(app.knownKickoff(fixture)>now))continue;
-    const frozen=frozenFor(saved,fixture);
+    const frozen=frozenEventFor(saved,fixture,app,now);
     if(frozen){
      const {top,n}=frozen.result;
      rows.push({fixture,top:top.map(row=>({...row,count:row.count/n}))});
@@ -143,16 +143,16 @@ export function connectEventMode(app){
   $('eventProgressRow').classList.remove('hidden');
   status.textContent='Süper Lig fikstürü ve geçmiş maçlar kontrol ediliyor…';
   try{
-   if(!globalThis.Worker)throw Error('Bu tarayıcı paralel simülasyonu desteklemiyor.');
    if(partial||cached)throw Error('Veri yetersiz. Güncel Süper Lig kaynağına ulaşılamadı.');
    const scheduled=app.direct(home,away,fixtures.filter(fixture=>app.knownKickoff(fixture)>Date.now()));
    const fixture=scheduled??{home,away,date:new Date().toISOString().slice(0,10)};
    if(scheduled){
     const saved=await ledger();
     abort.signal.throwIfAborted();
-    const frozen=frozenFor(saved,fixture);
+    const frozen=frozenEventFor(saved,fixture,app);
     if(frozen){finish(frozen.result,fixture,frozen.market,true);return;}
    }
+   if(!globalThis.Worker)throw Error('Bu tarayıcı paralel simülasyonu desteklemiyor.');
    const [state,quotes]=await Promise.all([archive(),scheduled?markets():[]]);
    abort.signal.throwIfAborted();
    const price=scheduled?oddsFor(quotes,fixture,Date.now()):null;

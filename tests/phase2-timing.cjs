@@ -73,43 +73,60 @@ function inspectHistorical(scope,payload,requested,maxLag){
  return accepted;
 }
 
-function requestPlan(app,text,{dayBefore=false}={}){
+function requestPlan(app,text,{reuseEarly=false}={}){
  const rows=app.checkedCsv(text,['league','season','kickoff_utc','home_team','away_team','home_goals','away_goals']);
  const kickoffGroups=new Map();
  const counts={};
+ const fixtureRows=[];
  for(const row of rows){
   const scope=fixtures[row.league];
   if(!scope||!['2023-2024','2024-2025','2025-2026'].includes(row.season))continue;
   const kickoff=Date.parse(row.kickoff_utc);
   assert.ok(Number.isFinite(kickoff)&&row.kickoff_utc.endsWith('Z')&&row.home_team&&row.away_team);
   const group=scope+'|'+row.season;
+  if(reuseEarly&&scope===fixtures.turkey1)fixtureRows.push({
+   season:row.season,kickoff:iso(kickoff),home:row.home_team,away:row.away_team
+  });
   counts[group]=(counts[group]??0)+1;
   const key=scope+'|'+kickoff;
   if(!kickoffGroups.has(key))kickoffGroups.set(key,{scope,kickoff,fixtures:0});
   kickoffGroups.get(key).fixtures++;
  }
  const groups=[...kickoffGroups.values()].sort((a,b)=>a.kickoff-b.kickoff||a.scope.localeCompare(b.scope));
- const windows=dayBefore?[['dayBefore',captureWindows.dayBefore],['preKickoff',captureWindows.preKickoff]]:
-  [['early',captureWindows.early],['preKickoff',60000]];
- const requests=groups.flatMap(({scope,kickoff,fixtures})=>windows.map(([kind,lead])=>
-  ({scope,kind,kickoff:iso(kickoff),asOf:iso(kickoff-lead),fixtures})));
+ const requests=groups.flatMap(({scope,kickoff,fixtures:count})=>{
+  const reuse=reuseEarly&&scope===fixtures.turkey1;
+  const windows=reuse?[['reuseEarly',1000]]:[['early',captureWindows.early],['preKickoff',60000]];
+  return windows.map(([kind,lead])=>({scope,kind,kickoff:iso(kickoff),asOf:iso(kickoff-lead),fixtures:count}));
+ });
  const leagues=Object.fromEntries(Object.keys(SPORTS).map(scope=>{
   const teamGroups=groups.filter(g=>g.scope===scope);
   const count=teamGroups.reduce((sum,g)=>sum+g.fixtures,0);
-  const calls=2*teamGroups.length;
+  const calls=requests.filter(r=>r.scope===scope).length;
   return [scope,{fixtures:count,kickoffGroups:teamGroups.length,calls,creditCeiling:calls*20}];
  }));
  return {counts,leagues,fixtures:groups.reduce((sum,g)=>sum+g.fixtures,0),kickoffGroups:groups.length,
-  calls:requests.length,creditCeiling:requests.length*20,requests};
+  calls:requests.length,creditCeiling:requests.length*20,requests,fixtureRows};
 }
 
 function validWindow(kind,lead){
+ if(kind==='reuseEarly')return lead===1000;
  return Object.hasOwn(captureWindows,kind)&&(lead===captureWindows[kind]||(kind==='preKickoff'&&lead===60000));
 }
 
-async function collectHistorical(plan,{key,budget,fetcher=fetch,onSnapshot=()=>{}}){
+async function collectHistorical(plan,{key,budget,minimumReserve=0,fetcher=fetch,onSnapshot=()=>{}}){
  if(!key)throw Error('Tarihsel API anahtarı tanımlı değil');
  if(!Number.isInteger(budget)||budget<20)throw Error('Tarihsel çağrılar için geçerli kredi sınırı gerekiyor');
+ if(minimumReserve){
+  const endpoint=new URL('https://api.the-odds-api.com/v4/sports/');
+  endpoint.search=new URLSearchParams({apiKey:key});
+  let response;
+  try{response=await fetcher(endpoint,{signal:AbortSignal.timeout(15000)});}
+  catch{throw Error('Kredi bakiyesi kontrol edilemedi');}
+  const remaining=response.headers?.get('x-requests-remaining');
+  if(!response.ok||remaining==null||!/^\d+$/.test(remaining)||Number(remaining)<minimumReserve+20)
+   throw Error('Arşiv alımı için kredi bakiyesi doğrulanamadı veya yedek yetersiz');
+  budget=Math.min(budget,Number(remaining)-minimumReserve);
+ }
  const selected=[];
  let reserved=0;
  for(const request of plan){
@@ -119,8 +136,10 @@ async function collectHistorical(plan,{key,budget,fetcher=fetch,onSnapshot=()=>{
    throw Error('Tarihsel sorgu planı geçersiz');
   }
   const endpoint=new URL('https://api.the-odds-api.com/v4/historical/sports/'+SPORTS[request.scope]+'/odds');
-  endpoint.search=new URLSearchParams({apiKey:key,regions:'eu',markets:'h2h,totals',oddsFormat:'decimal',
-   date:request.asOf,commenceTimeFrom:request.kickoff,commenceTimeTo:iso(kickoff+1000)});
+  endpoint.search=new URLSearchParams({apiKey:key,regions:'eu',markets:'h2h,totals',oddsFormat:'decimal',date:request.asOf,
+   commenceTimeFrom:request.kickoff});
+  const reuseEarly=request.kind==='reuseEarly';
+  if(!reuseEarly)endpoint.searchParams.set('commenceTimeTo',iso(kickoff+1000));
   reserved+=20;
   let response;
   try{response=await fetcher(endpoint,{signal:AbortSignal.timeout(15000)});}
@@ -130,12 +149,16 @@ async function collectHistorical(plan,{key,budget,fetcher=fetch,onSnapshot=()=>{
   try{raw=await response.text();payload=JSON.parse(raw);}
   catch{throw Error('Tarihsel oran yanıtı JSON biçiminde değil');}
   const rows=inspectHistorical(request.scope,payload,asOf,15*60000)
-   .filter(row=>row.kickoff===request.kickoff);
-  const snapshot={...request,sourceSha256:sha256(raw),capturedAt:payload.timestamp,rows};
-  await onSnapshot(snapshot);
+   .filter(row=>reuseEarly?row.kickoff>=request.kickoff:row.kickoff===request.kickoff);
+  const captured=Date.parse(payload.timestamp);
+  const snapshot={...request,sourceSha256:sha256(raw),capturedAt:iso(captured),
+   rows:reuseEarly?rows.map(row=>({...row,window:row.kickoff===request.kickoff?'close':'early',
+    leadHours:(Date.parse(row.kickoff)-captured)/hour})):rows};
+  await onSnapshot(snapshot,raw);
   selected.push(snapshot);
   const remaining=response.headers?.get('x-requests-remaining');
-  if(remaining!=null&&/^\d+$/.test(remaining)&&Number(remaining)<20)break;
+  if(minimumReserve&&(remaining==null||!/^\d+$/.test(remaining)))break;
+  if(remaining!=null&&/^\d+$/.test(remaining)&&Number(remaining)<minimumReserve+20)break;
  }
  return {requests:plan.length,calls:selected.length,creditCeiling:reserved,snapshots:selected};
 }
@@ -150,7 +173,11 @@ function licensedOdds(app,snapshots){
    !validWindow(snapshot.kind,kickoff-cutoff)||
    !Array.isArray(snapshot.rows))throw Error('Sabit tarihsel görüntü doğrulanamadı');
   for(const row of snapshot.rows){
-   if(row.scope!==snapshot.scope||row.kickoff!==snapshot.kickoff||row.capturedAt!==snapshot.capturedAt||
+   const rowKickoff=Date.parse(row.kickoff);
+   const reused=snapshot.kind==='reuseEarly';
+   if(row.scope!==snapshot.scope||row.capturedAt!==snapshot.capturedAt||
+    (reused?!(rowKickoff>=kickoff&&row.window===(rowKickoff===kickoff?'close':'early')&&
+     row.leadHours===(rowKickoff-captured)/hour):row.kickoff!==snapshot.kickoff)||
     !row.home||!row.away||!Array.isArray(row.power)||!row.power.every(p=>Number.isFinite(p)&&p>0&&p<1)||row.power.length!==3||
     Math.abs(row.power.reduce((a,b)=>a+b,0)-1)>1e-8||!(Date.parse(row.quotedAt)<=captured&&captured-Date.parse(row.quotedAt)<=24*hour)||
     (row.over25!=null&&(!(row.over25>0&&row.over25<1)||!(Date.parse(row.totalQuotedAt)<=captured&&captured-Date.parse(row.totalQuotedAt)<=24*hour))))continue;
@@ -160,7 +187,14 @@ function licensedOdds(app,snapshots){
    const season=year+'-'+String(year+1).slice(-2);
    const key=[league,row.kickoff,app.marketTeamKey(row.home),app.marketTeamKey(row.away)].join('|');
    const result=events.get(key)??{league,season,date,home:row.home,away:row.away,
-    kickoff,verified:true,early:null,close:null};
+    kickoff:rowKickoff,verified:true,early:null,close:null};
+   if(reused&&row.window==='early'){
+    const price={p:row.power,over25:row.over25,capturedAt:snapshot.capturedAt,leadHours:row.leadHours};
+    if(!result.early||price.leadHours<result.early.leadHours)result.early=price;
+    if(price.leadHours>=24&&(!result.dayBefore||price.leadHours<result.dayBefore.leadHours))result.dayBefore=price;
+    events.set(key,result);
+    continue;
+   }
    const label=snapshot.kind==='early'?'early':snapshot.kind==='dayBefore'?'dayBefore':'close';
    if(result[label])throw Error('Aynı maç ve zamanda mükerrer oran');
    result[label]={p:row.power,over25:row.over25};
@@ -170,4 +204,27 @@ function licensedOdds(app,snapshots){
  return {source:metadata,rows:[...events.values()]};
 }
 
-module.exports={manifest,pinnedInput,attachTrackTimes,requestPlan,inspectHistorical,collectHistorical,licensedOdds};
+function earlyCoverage(app,fixtures,snapshots){
+ const key=row=>[row.kickoff,app.marketTeamKey(row.home),app.marketTeamKey(row.away)].join('|');
+ const byMatch=new Map(fixtures.map(row=>[key(row),{...row,early:[],closing:false}]));
+ assert.equal(byMatch.size,fixtures.length,'Fikstürde mükerrer maç');
+ for(const snapshot of snapshots){
+  for(const row of snapshot.rows){
+   const match=byMatch.get(key(row));
+   if(!match)continue;
+   if(row.window==='close')match.closing=true;
+   if(row.window==='early'&&row.leadHours>0)match.early.push({
+    capturedAt:snapshot.capturedAt,leadHours:row.leadHours,hasTotals:row.over25!=null
+   });
+  }
+ }
+ const matches=[...byMatch.values()];
+ return {
+  matches:matches.length,withEarly:matches.filter(row=>row.early.length).length,
+  withoutEarly:matches.filter(row=>!row.early.length),
+  withoutEarlyTotals:matches.filter(row=>!row.early.some(quote=>quote.hasTotals)).length,
+  withoutClosing:matches.filter(row=>!row.closing).length
+ };
+}
+
+module.exports={manifest,pinnedInput,attachTrackTimes,requestPlan,inspectHistorical,collectHistorical,licensedOdds,earlyCoverage};
