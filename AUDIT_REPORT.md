@@ -4,22 +4,24 @@
 
 Güncel oran akışının kapsamı `soccer_turkey_super_league`, bölgesi `eu`, piyasaları `h2h,totals`. GitHub Actions alım kaydı sağlayıcının `x-requests-last`, `x-requests-used` ve `x-requests-remaining` başlıklarını gösterir. Eksik başlık için bilinmeyen değer kullanılır. Anahtar yapılandırılmadığında işin tüketimi sıfırdır. Sağlayıcı hesabındaki bakiye bu durumda doğrulanamaz.
 
-SHA-256 ile sabit [Football Charts fikstür arşivinden](tests/phase2-timing-inputs.json) aynı UTC başlama saatindeki maçlar birleştirildi. İki hedef an maç başlangıcından 24 saat ve 1 saniye öncedir. API hedef an veya öncesindeki en yakın arşiv görüntüsünü döndürür. Arşivdeki son maç önü görüntüsü, bahis sağlayıcısının yayımladığı son fiyat için yaklaşık ölçüdür. Arşiv anı, maç ve fiyat zamanları ayrıca doğrulanır.
+SHA-256 ile sabit [Football Charts fikstür arşivinden](tests/phase2-timing-inputs.json) aynı UTC başlama saatindeki maçlar birleştirildi. Her grup için hedef an, maçların başlangıcından 1 saniye öncedir. API hedef an veya öncesindeki en yakın arşiv görüntüsünü döndürür. O gruptaki fiyatlar kapanışa yakın gözlem, aynı yanıtta daha geç başlayacak maçların fiyatları erken gözlemdir. Erken gözlemin maç başlangıcına kaç saat kaldığı dönen görüntü zamanından hesaplanır. Ayrı bir 24 saat çağrısı yok. 24 saat önce bilinebilen karşılaştırma için yalnızca en az 24 saat önceden gelen gözlemler kullanılabilir.
 
 | Sezon | Maç | Başlama saati grubu | Çağrı | Kredi tavanı |
 | --- | ---: | ---: | ---: | ---: |
-| 2023/24 | 380 | 254 | 508 | 10.160 |
-| 2024/25 | 342 | 257 | 514 | 10.280 |
-| 2025/26 | 306 | 227 | 454 | 9.080 |
-| Toplam | 1.028 | 738 | 1.476 | 29.520 |
+| 2023/24 | 380 | 254 | 254 | 5.080 |
+| 2024/25 | 342 | 257 | 257 | 5.140 |
+| 2025/26 | 306 | 227 | 227 | 4.540 |
+| Toplam | 1.028 | 738 | 738 | 14.760 |
 
-Tek bölge ve iki piyasa ile tarihsel çağrı başına 20 kredi bütçelenir. Üç sezonun tamamı için 20.000 kredinin 9.520 kredi üzerinde bir tavan var. Boş tarihsel yanıtlar ücret kotasına sayılmayabilir. Bu hesap planlanan çağrıları kapsar. Yeniden denemeler ve zaman uyuşmazlığı araştırması bu sayıya dahil değildir. [API tarihsel belgeleri](https://the-odds-api.com/liveapi/guides/v4/#historical-odds)
+Tek bölge ve iki piyasa ile tarihsel çağrı başına 20 kredi bütçelenir. Kullanılabilir bakiye 20.000 ise plan 5.240 kredi bırakır. Boş tarihsel yanıtlar ücret kotasına sayılmayabilir. Bu hesap planlanan çağrıları kapsar. Yeniden denemeler ve zaman uyuşmazlığı araştırması bu sayıya dahil değildir. [API tarihsel belgeleri](https://the-odds-api.com/liveapi/guides/v4/#historical-odds)
+
+Fikstür zamanlarına göre üç sezonun tek kronolojisinde daha erken hiçbir planlı görüntüsü olmayan bir maç var. Trabzonspor–Antalyaspor, 11 Ağustos 2023. Başlamadan önceki 24 saat içinde daha erken ayrı bir görüntü talebi 739 maç için planlıdır. Son 24 saatte böyle bir talebi olmayan 289 maç daha eski bir görüntüden kapsanabilir. Bunlar sorgu zamanlarına ait sayılardır. Gerçek oran kapsamı, maç başına eksik erken 1X2 ve 2,5 alt/üst verileri ve fiilen alınan zaman farkları özel alım dosyaları birleştirildiğinde ölçülür.
 
 ```sh
 node tests/phase2-fetch-history.cjs plan /veri/girdi /veri/plan.json TUR_1_super-lig
 ```
 
-Ücretli çağrı kullanıcı onayı bekliyor. Arşiv edinilince SHA-256 ile sabitlenecek. Yayın modeli, kapanış piyasası, 24 saat öncesi piyasa ve yalnızca daha önceki maçlarda öğrenilen harman aynı eşleşmelerde ileri yürüyen testle ölçülecek. 1X2 log loss ve RPS için haftalık eşleştirilmiş bootstrap, isabet için Wilson %95 aralıkları raporlanacak. Ham geçmiş arşiv özel tutulur. Açık depoya toplu metrik, kapsam ve veri özetleri girer. [The Odds API kullanım şartları](https://the-odds-api.com/terms-and-conditions.html#restrictions)
+Ücretli çağrı kullanıcı onayı bekliyor. Ham görüntüler SHA-256 dosya adıyla özel depodaki Actions artifact'ına yazılır. Açık depoya toplu metrik, kapsam ve veri özetleri girer. Yayın modeli, kapanış piyasası, erken piyasa ve yalnızca daha önceki maçlarda öğrenilen harman aynı eşleşmelerde ileri yürüyen testle ölçülür. 24 saatten önce bilinen fiyatlar için zaman kapsamı ayrıca raporlanır. 1X2 log loss ve RPS için haftalık eşleştirilmiş bootstrap, isabet için Wilson %95 aralıkları kullanılır. [The Odds API kullanım şartları](https://the-odds-api.com/terms-and-conditions.html#restrictions)
 
 ## Faz 2 · Arşiv genişletme ve erken oran denetimi
 
