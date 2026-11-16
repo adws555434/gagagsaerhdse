@@ -1,5 +1,36 @@
 # Football Intelligence · Sürüm denetimi
 
+## Süper Lig · Skor olasılığı ve tahmin edilebilirlik
+
+Aynı 929 maç yeniden ölçüldü. 2023/24, 2024/25, 2025/26 ve 2026/27 sezon başından sırasıyla 327, 290, 258 ve 54 maç var. Takım gol beklentisi o sezonda maç gününden önce oynanan maçlardan gelir. Adayların lig parametreleri ilk 40 uygun tahminde Poisson değerinde başlar ve yalnızca önceki günlerde sonuçlanmış tahminlerin tam skor log loss'u ile güncellenir. Üç aday için 31, 48 ve 9 yapılandırma denendi. Adayların ve yayın modelinin tüm sonuçları aynı 929 maçta ölçüldü.
+
+| Skor seçimi | Modelin ortalama olasılığı [%95 GA] | Gerçek isabet [%95 GA] |
+| --- | --- | --- |
+| Genel en olası tek skor | %12,27 [%12,18–%12,35] | 115/929 · %12,38 [%10,41–%14,65] |
+| İlk üç skor | %32,99 [%32,78–%33,20] | 298/929 · %32,08 [%29,16–%35,15] |
+| İlk beş skor | %49,66 [%49,37–%49,96] | 432/929 · %46,50 [%43,32–%49,72] |
+| Sonuç seçimiyle tutarlı tek skor | %11,58 [%11,48–%11,68] | 91/929 · %9,80 [%8,05–%11,88] |
+
+Tam skor log loss'u, gerçekleşen skor hücresine verilen olasılığın eksi doğal logaritmasıdır. Aday eksi yayın modeli farkları için sezon katmanlı, haftalık 2.000 eşleştirilmiş bootstrap kullanıldı. Üç adayın %95 fark aralığı sıfırı kapsıyor. İlk üç skor için iyileşme de kanıtlanmadı. Varsayılan skor dağılımı Poisson olarak kaldı.
+
+| Model | Tam skor log loss | Farkın %95 aralığı | İlk üç skor |
+| --- | ---: | --- | ---: |
+| Yayın modeli | 2,98906 | — | 298/929 |
+| Dixon–Coles | 2,98641 | -0,00768 – +0,00212 | 290/929 |
+| Beraberlik ağırlıklı bivariate Poisson | 2,98843 | -0,00895 – +0,00749 | 293/929 |
+| Negatif binom | 2,98937 | -0,00037 – +0,00106 | 298/929 |
+
+Arşiv alt/üstü küçük bir araştırma örneğinde ölçüldü. OddsIntel kapanış arşiviyle eşleşen 13 maçta mevcut skor matrisi, kendi kazanma ve beraberlik olasılıklarını koruyarak 2,5 üst olasılığına uyarlandı. İlk üç isabet 5/13'ten 6/13'e, tam skor 0/13'ten 2/13'e çıktı. Skor log loss 2,83826'dan 2,83102'ye indi. Yeterli hafta bloğu olmadığı için eşleştirilmiş belirsizlik aralığı raporlanmadı. Canlı The Odds API testi ve 929 maçın tamamında piyasa karşılaştırması çalıştırılmadı.
+
+[Ham olmayan ölçüm çıktısı ve bütün kalibrasyon tabloları](score-calibration.json) · [Test komutu](tests/score-calibration.cjs)
+
+929 maçın tek tek ilk üç skor tahmini ve toplam olasılığı yalnızca özel çıktı yoluna yazılabilir. Bu çıktı için `SCORE_CALIBRATION_PRIVATE_MATCHES` değişkenine depo dışındaki dosyanın yolu verilir.
+
+```sh
+node tests/score-calibration.cjs /veri/sabit-fikstur /veri/tff-results.json score-calibration.json /veri/oddsintel.csv
+node tests/score-calibration.cjs /veri/sabit-fikstur /veri/tff-results.json score-calibration.json --captures /ozel/2023-24.json /ozel/2024-25.json /ozel/2025-26.json
+```
+
 ## Süper Lig · The Odds API alım planı
 
 Güncel oran akışının kapsamı `soccer_turkey_super_league`, bölgesi `eu`, piyasaları `h2h,totals`. GitHub Actions alım kaydı sağlayıcının `x-requests-last`, `x-requests-used` ve `x-requests-remaining` başlıklarını gösterir. Eksik başlık için bilinmeyen değer kullanılır. Anahtar yapılandırılmadığında işin tüketimi sıfırdır. Sağlayıcı hesabındaki bakiye bu durumda doğrulanamaz.

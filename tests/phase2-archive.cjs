@@ -136,4 +136,4 @@ function joinArchive(app,inputs,files){
  return {matches,exclusions,coverage};
 }
 
-module.exports={loadOdds,joinArchive,manifest,probabilities};
+module.exports={loadOdds,joinArchive,manifest,probabilities,readOne};

@@ -293,6 +293,7 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
     <a class="brand" href="./" aria-label="Football Intelligence ana sayfa"><span class="brand-mark" aria-hidden="true"></span>Football Intelligence</a>
     <nav class="site-nav" aria-label="Ana menü">
       <a href="#matchSearch">Maç analizi</a>
+      <a href="#predictableMatches" id="predictableLink">Tahmin edilebilir maçlar</a>
       <a href="#historyPanel" id="historyLink">Tahmin geçmişi</a>
     </nav>
   </div>
@@ -334,6 +335,15 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       </div>
     </div>
   </section>
+  <details class="card" id="predictableMatches">
+    <summary>Skoru en tahmin edilebilir maçlar · Süper Lig</summary>
+    <p class="muted tiny" id="predictableStatus" role="status"></p>
+    <div id="predictableList"></div>
+  </details>
+  <details class="card" id="scoreCalibrationAudit">
+    <summary>Skor tahmini geçmiş testi · Süper Lig</summary>
+    <div id="scoreCalibrationAuditContent"></div>
+  </details>
   <div id="err" role="alert" class="card hidden"><div id="errText" class="err"></div></div>
   <div id="out" class="grid hidden">
     <section class="card full match-heading" aria-labelledby="title">
@@ -355,6 +365,11 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       <p id="activeForecastMethod" class="muted tiny"></p>
       <p id="simulationAudit" class="muted tiny"></p>
       <div id="scorelines"></div>
+      <details id="scoreTopFive" class="hidden">
+        <summary>En olası beş skoru göster</summary>
+        <div id="scoreTopFiveContent"></div>
+        <p class="muted tiny" id="scoreTopFiveHistory"></p>
+      </details>
       <p id="firstGoal" class="muted"></p>
       <details id="marketPanel">
         <summary>Piyasa ve harman karşılaştırması</summary>
@@ -362,6 +377,7 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
         <div id="marketComparison" class="tablewrap"></div>
         <p id="marketTotals" class="muted tiny"></p>
         <div id="marketScorelines"></div>
+        <div id="marketScoreCalibration" class="tablewrap"></div>
       </details>
       <details id="modelPanel" class="hidden">
         <summary>Tahminin gerekçesi ve model karşılaştırması</summary>
@@ -881,10 +897,10 @@ function marketGoalFit(probabilities,over25){
  const grid=prepareForecastDistribution(...rates);
  return {rates,total,difference:rates[0]-rates[1],drawResidual:grid.outcomes[1]-probabilities[1],poisson:grid};
 }
-function marketTotalsDistribution(probabilities,over25){
+function marketTotalsDistribution(probabilities,over25,reference=null){
  const fit=marketGoalFit(probabilities,over25);
  if(!fit)return null;
- const {grid,size}=fit.poisson;
+ const {grid,size}=reference??fit.poisson;
  const masses=Array.from({length:3},()=>[0,0]);
  const cells=grid.map((p,i)=>{
   const h=Math.floor(i/size),a=i%size,result=matchOutcome(h,a),over=Number(h+a>=3);
@@ -912,7 +928,7 @@ function marketTotalsDistribution(probabilities,over25){
   expectedAway+=a*weight;
   return weight;
  });
- return {...scoreGridDistribution(adjusted,size),grid:adjusted,size,tail:fit.poisson.tail,
+ return {...scoreGridDistribution(adjusted,size),grid:adjusted,size,tail:reference?.tail??fit.poisson.tail,
   rates:fit.rates,expectedHome,expectedAway,expectedTotal:expectedHome+expectedAway,expectedDifference:expectedHome-expectedAway,
   drawResidual:fit.drawResidual};
 }
@@ -1047,6 +1063,10 @@ function forecastDecision(distribution){
  const outcome=strongestOutcome(distribution.outcomes);
  return {outcome,score:distribution.scores.find(([key])=>matchOutcome(...key.split('–').map(Number))===outcome),
   top:distribution.scores.slice(0,5)};
+}
+function scoreSet(distribution,n){
+ const choices=distribution.scores.slice(0,n);
+ return {choices,total:choices.reduce((sum,[,p])=>sum+p,0)};
 }
 function confidenceTier(probabilities){
  const p=Math.max(...probabilities);
@@ -1298,6 +1318,10 @@ async function renderForecast(home,away,results,fixture,contextData){
  renderMarketForecast(null,null);
  panel.textContent='';
  scores.textContent='';
+ $('scoreTopFive').classList.add('hidden');
+ $('scoreTopFive').open=false;
+ $('scoreTopFiveContent').replaceChildren();
+ $('scoreTopFiveHistory').textContent='';
  $('simulationAudit').textContent='';
  $('scoreGrid').classList.add('hidden');
  $('firstGoal').textContent='';
@@ -1332,21 +1356,13 @@ async function renderForecast(home,away,results,fixture,contextData){
  showScenarios(home,away,rates);
  const decision=forecastDecision(fixed),probabilities=fixed.outcomes;
  const resultDecision=strongestOutcome(chosen.probabilities);
- const [score,prob]=forecastDecision(chosen.score).score;
- const resultCard=chosen.method==='market'?
-  metric('Maç sonucu · Piyasa',[home,'Beraberlik',away][resultDecision],probabilityLabel(chosen.probabilities[resultDecision])+
-   ' · '+confidenceTier(chosen.probabilities)):
-  metric('1X2 ile tutarlı skor',score,'Bu skorun olasılığı '+probabilityLabel(prob));
- resultCard.classList.add('score-primary');
- const scoreValue=resultCard.querySelector('b');
- scoreValue.className='score-value';
- const winner=document.createElement('div');
- winner.className='score-winner';
- winner.textContent=chosen.method==='market'?
-  (chosen.scoreMethod==='marketScore'?'Piyasa skoru ':'Yayın modeli skoru ')+describeScore(score,home,away):
-  describeScore(score,home,away).slice(score.length+1);
- scoreValue.after(winner);
- panel.append(resultCard,
+ const [score,prob]=chosen.score.scores[0];
+ const scoreCard=metric('En olası skor',score,probabilityLabel(prob)+' · '+(chosen.scoreMethod==='marketScore'?'Piyasa':'Yayın modeli'));
+ scoreCard.classList.add('score-primary');
+ scoreCard.querySelector('b').className='score-value';
+ panel.append(metric('Kim kazanır?', [home,'Beraberlik',away][resultDecision],
+  probabilityLabel(chosen.probabilities[resultDecision])+' · '+(chosen.method==='market'?'Piyasa':'Yayın modeli')),
+  scoreCard,
   ...[home+' kazanır','Beraberlik',away+' kazanır'].map((label,i)=>
    outcomeMetric(label,chosen.probabilities[i],chosen.method==='market'?'Yayın modeli '+probabilityLabel(probabilities[i]):
     i===1?'':neutral?'Tarafsız saha':i===0?'Ev sahibi':'Deplasman')));
@@ -1370,7 +1386,24 @@ async function renderForecast(home,away,results,fixture,contextData){
  const share=probabilityLabel;
  $('firstGoal').textContent='İlk gol modeli (sabit gol hızı varsayımı) · '+home+' '+share((1-noGoal)*homeGoals/totalRate)+
   ' · '+away+' '+share((1-noGoal)*awayGoals/totalRate)+' · golsüz '+share(noGoal);
- list(scores,forecastDecision(chosen.score).top.slice(0,3).map(([scoreline,p],i)=>({t:(i===0?(chosen.scoreMethod==='marketScore'?'Piyasa':'Yayın modeli')+' · Genel en olası skor · ':'')+describeScore(scoreline,home,away)+' · '+probabilityLabel(p)})));
+ renderScoreChoices(scores,chosen.score,3,home,away);
+ renderScoreChoices($('scoreTopFiveContent'),chosen.score,5,home,away);
+ $('scoreTopFiveHistory').textContent='Bu lig ve yöntem için geçmiş ölçüm yok.';
+ $('scoreTopFive').classList.remove('hidden');
+ if(contextData.folder==='TUR_1_super-lig'&&chosen.scoreMethod==='release'){
+  try{
+   const report=await loadScoreCalibration();
+   const past=report.base.scores[5].actual;
+   const firstThree=report.base.scores[3].actual;
+   if(past?.n)$('scoreTopFiveHistory').textContent='Süper Lig geçmiş testi · '+accuracyLabel(past.hits,past.n);
+   if(firstThree?.n){
+    const label=document.createElement('p');
+    label.className='muted tiny';
+    label.textContent='Süper Lig geçmiş testi · '+accuracyLabel(firstThree.hits,firstThree.n);
+    scores.append(label);
+   }
+  }catch{}
+ }
  renderModel(home,away,base,model,neutral,probabilities);
  renderHalves(home,away,rates,results);
  const shots=shotEstimate(home,away,results.filter(row=>row.date<forecastDate),neutral,forecastDate);
@@ -1924,6 +1957,101 @@ function outcomeMetric(label,probability,caption){
 }
 function list(el,arr,empty='Veri yok'){el.textContent='';const box=document.createElement('div');box.className='list';(arr.length?arr:[{t:empty,s:''}]).forEach(x=>{const d=document.createElement('div');d.className='item';const t=document.createElement('div');t.textContent=x.t;d.append(t);if(x.s){const s=document.createElement('div');s.className='muted tiny';s.textContent=x.s;d.append(s)}box.append(d)});el.append(box)}
 function fmt(v,d=2){return v==null?'—':Number(v).toFixed(d)}
+function renderScoreChoices(output,distribution,n,home,away){
+ const {choices,total}=scoreSet(distribution,n);
+ list(output,choices.map(([score,p])=>({t:describeScore(score,home,away),s:probabilityLabel(p)})));
+ const footer=document.createElement('p');
+ const totalLabel=document.createElement('strong');
+ totalLabel.textContent='Bu '+(n===3?'üç':'beş')+' skordan biri · '+probabilityLabel(total);
+ footer.append(totalLabel);
+ output.append(footer);
+}
+let scoreCalibrationRequest=null;
+function loadScoreCalibration(){
+ if(!scoreCalibrationRequest)scoreCalibrationRequest=getText('./score-calibration.json').then(text=>{
+  const report=JSON.parse(text);
+  if(report.model!==MODEL_VERSION||report.engine!==ENGINE_VERSION||!report.base?.scores)throw Error('Skor raporu sürümü farklı');
+  return report;
+ }).catch(error=>{scoreCalibrationRequest=null;throw error;});
+ return scoreCalibrationRequest;
+}
+async function showScoreCalibrationAudit(){
+ const output=$('scoreCalibrationAuditContent');
+  const section=(title,table)=>{
+  const details=document.createElement('details');
+  const heading=document.createElement('summary');
+  heading.textContent=title;
+  const scroll=document.createElement('div');
+  scroll.className='tablewrap';
+  scroll.append(table);
+  details.append(heading,scroll);
+  return details;
+ };
+ output.textContent='Ölçümler yükleniyor…';
+ try{
+  const r=await loadScoreCalibration();
+  const frequency=(title,rows)=>section(title,dataTable(['Değer','Model bekledi','Gerçekte','Fark (yüzde puan)'],
+   rows.map(row=>[row.label,probabilityLabel(row.expected),accuracyLabel(row.hits,row.n),
+    (row.difference>=0?'+':'')+fmt(row.difference*100,2)]),true));
+  const hits=(title,report)=>section(title,dataTable(['Skor sayısı','Model bekledi','Geçmişte tuttu'],
+   [1,3,5].map(k=>[String(k),probabilityLabel(report.scores[k].expected.estimate),
+    accuracyLabel(report.scores[k].actual.hits,report.scores[k].actual.n)]),true));
+  const bands=(title,report)=>section(title,dataTable(['İlk üç skorun toplamı','Maç','Gerçekte ilk üçte'],
+   report.bands.map(row=>[row.label,String(row.n),accuracyLabel(row.hits,row.n)]),true));
+  const markets=r.market.n?[
+   hits('Alt/üst örneği · önce ('+r.market.n+' maç)',r.market.before),
+   hits('Alt/üst örneği · sonra ('+r.market.n+' maç)',r.market.after),
+   bands('Alt/üst · önce, geçmiş isabet dilimleri',r.market.before),
+   bands('Alt/üst · sonra, geçmiş isabet dilimleri',r.market.after),
+   section('Arşiv alt/üstü · skor modelleri önce ve sonra',dataTable(['Model','Skor olasılığı hatası · önce / sonra','İlk üç isabeti · önce / sonra'],
+    [{name:'Yayın modeli',before:r.market.before,after:r.market.after},...r.market.candidates].map(row=>[
+     row.name,fmt(row.before.scoreLogLoss.estimate,4)+' / '+fmt(row.after.scoreLogLoss.estimate,4),
+     row.before.scores[3].actual.hits+'/'+r.market.n+' / '+row.after.scores[3].actual.hits+'/'+r.market.n
+    ]),true)),
+   ...[['Skor','scores'],['Toplam gol','totalGoals'],['Gol farkı','goalDifference']].flatMap(([name,key])=>[
+    frequency('Arşiv alt/üstü · '+name+' · önce',r.market.calibrationBefore[key]),
+    frequency('Arşiv alt/üstü · '+name+' · sonra',r.market.calibrationAfter[key])
+   ])
+  ]:[];
+  output.replaceChildren(hits('Bir, üç veya beş skorun geçmiş isabeti',r.base),
+   bands('Maçları tahmin edilebilirliğe göre ayır',r.base),
+   frequency('0–0 ile 4–4 arası skorlar',r.calibration.scores),
+   frequency('Toplam gol dağılımı',r.calibration.totalGoals),
+   frequency('Gol farkı · ev sahibi eksi deplasman',r.calibration.goalDifference),
+   section('Skor modelleri',dataTable(['Model','Skor olasılığı hatası','İlk üç skor isabeti'],
+    [['Yayın modeli',fmt(r.base.scoreLogLoss.estimate,4),accuracyLabel(r.base.scores[3].actual.hits,r.n)],
+     ...r.comparison.map(row=>[row.name,fmt(row.scoreLogLoss.estimate,4),accuracyLabel(row.scores[3].actual.hits,r.n)])],true)),
+   ...markets);
+ }catch{
+  output.textContent='Skor ölçümleri yüklenemedi.';
+ }
+}
+async function showPredictableMatches(){
+ const status=$('predictableStatus'),out=$('predictableList');
+ status.textContent='Güncel Süper Lig maçları yükleniyor…';
+ out.replaceChildren();
+ try{
+  const folder='TUR_1_super-lig',data=await loadFolder(folder);
+  if(data.partial||data.cached)throw Error('Güncel Süper Lig verisi yetersiz.');
+  const today=new Date().toISOString().slice(0,10);
+  const history=data.results.filter(row=>row.date<today);
+  const matches=data.fixtures.filter(fixture=>knownKickoff(fixture)>Date.now()).map(fixture=>{
+   const {home,away}=fixture;
+   const base=estimateGoals(home,away,history,fixture.neutral===true);
+   if(!base)return null;
+   const {rates}=forecastModel(home,away,base,history,{folder},fixture);
+   const scores=scoreSet(prepareForecastDistribution(rates.homeGoals,rates.awayGoals),3);
+   return {fixture,...scores};
+  }).filter(Boolean).sort((a,b)=>b.total-a.total||knownKickoff(a.fixture)-knownKickoff(b.fixture));
+  status.textContent=matches.length?'Sıralama ilk üç skorun toplam model olasılığına göre.':'Yeterli verisi olan yaklaşan maç yok.';
+  if(matches.length)list(out,matches.map(({fixture,total,choices})=>({
+   t:fixture.home+' – '+fixture.away+' · '+probabilityLabel(total),
+   s:fixture.date+' · '+choices.map(([score,p])=>score+' '+probabilityLabel(p)).join(' / ')
+  })));
+ }catch{
+  status.textContent='Güncel Süper Lig verisi yetersiz.';
+ }
+}
 function validHalf(row){
  const h=num(row.ht_home),a=num(row.ht_away);
  return Number.isInteger(h)&&Number.isInteger(a)&&h>=0&&a>=0&&h<=num(row.ft_home)&&a<=num(row.ft_away);
@@ -2293,6 +2421,8 @@ function renderMarketForecast(fixture,base,data={}){
  const panel=$('marketPanel'),status=$('marketStatus'),table=$('marketComparison'),totals=$('marketTotals'),scores=$('marketScorelines');
  panel.open=false;
  table.replaceChildren();totals.textContent='';scores.replaceChildren();
+ const scoreCalibration=$('marketScoreCalibration');
+ scoreCalibration.replaceChildren();
  const {row,comparison,scorePolicy}=data;
  const captured=row?new Date(row.capturedAt).toLocaleString('tr-TR'):'';
  $('activeForecastMethod').textContent=row?'Ana 1X2 · Piyasa · Alınma '+captured:
@@ -2315,6 +2445,20 @@ function renderMarketForecast(fixture,base,data={}){
  if(structural)list(scores,forecastDecision(structural).top.slice(0,3).map(([score,p],i)=>({
   t:(i===0?'Piyasanın en olası skoru · ':'')+describeScore(score,fixture.home,fixture.away),s:probabilityLabel(p)
  })));
+ if(row.over25!=null){
+  const adjusted=marketTotalsDistribution(base.outcomes,row.over25,base);
+  if(adjusted){
+   const expected=base.grid.reduce((sum,p,i)=>sum+p*(Math.floor(i/base.size)+i%base.size),0);
+   const setText=(d,n)=>{
+    const {choices,total}=scoreSet(d,n);
+    return choices.map(([score,p])=>score+' '+probabilityLabel(p)).join(' / ')+' · Toplam '+probabilityLabel(total);
+   };
+   scoreCalibration.replaceChildren(dataTable(['Skor tahmini','Beklenen toplam gol','İlk üç skor','İlk beş skor'],[
+    ['Yayın modeli',fmt(expected),setText(base,3),setText(base,5)],
+    ['Piyasa alt/üstüyle · deney',fmt(adjusted.expectedTotal),setText(adjusted,3),setText(adjusted,5)]
+   ],true));
+  }
+ }
 }
 async function renderMarketAudit(){
  const status=$('marketAuditStatus'),select=$('marketAuditLeague');
@@ -2691,6 +2835,9 @@ $('marketAuditLeague').addEventListener('change',()=>void renderMarketAudit());
 $('phase1Audit').addEventListener('toggle',()=>{if($('phase1Audit').open)void renderPhase1Audit();});
 $('phase1League').addEventListener('change',()=>void renderPhase1Audit());
 $('historyLink').addEventListener('click',()=>{$('historyPanel').open=true;});
+$('predictableLink').addEventListener('click',()=>{$('predictableMatches').open=true;});
+$('predictableMatches').addEventListener('toggle',()=>{if($('predictableMatches').open)void showPredictableMatches();});
+$('scoreCalibrationAudit').addEventListener('toggle',()=>{if($('scoreCalibrationAudit').open)void showScoreCalibrationAudit();});
 for(const button of document.querySelectorAll('.example')){
  button.addEventListener('click',()=>{
   if($('go').disabled)return;

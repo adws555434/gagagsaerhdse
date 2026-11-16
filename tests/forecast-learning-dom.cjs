@@ -13,6 +13,7 @@ const signalAudit=JSON.parse(fs.readFileSync(path.join(root,signalPath),'utf8'))
 const phase2Report=fs.readFileSync(path.join(root,'phase2-market-report.json'),'utf8');
 const marketSnapshot=fs.readFileSync(path.join(root,'market-snapshot.json'),'utf8');
 const phase1Summary=JSON.parse(fs.readFileSync(path.join(root,'phase1-summary.json'),'utf8'));
+const scoreCalibration=fs.readFileSync(path.join(root,'score-calibration.json'),'utf8');
 const lineupArchive=fs.readFileSync(path.join(root,'lineup-samples.json'),'utf8');
 const errors=[];
 const consoleSink=new VirtualConsole();
@@ -48,6 +49,7 @@ async function mock(url){
    }]}));
  }
  if(url.includes('phase1-summary.json'))return response(JSON.stringify(phase1Summary));
+ if(url.includes('score-calibration.json'))return response(scoreCalibration);
  if(url.includes('lineup-samples.json'))return response(lineupArchive);
  if(url.includes('super-lig-data/results'))return response(JSON.stringify(signalAudit));
  if(url.includes('super-lig-research/results'))return response(JSON.stringify(turkeyReport));
@@ -102,7 +104,19 @@ async function run(){
   assert.match($('matchHistoryScope').textContent,/Süper Lig maçları/);
   assert.match($('longForecast').textContent,/Uzun dönem tahmini · deneme/);
   assert.match($('forecast').querySelector('.score-value').textContent,/^\d+–\d+$/);
-  assert.match($('forecast').querySelector('.score-winner').textContent,/kazanır|beraberlik/);
+  assert.match($('forecast').textContent,/Kim kazanır\?/);
+  assert.match($('forecast').textContent,/En olası skor/);
+  assert.match($('scorelines').textContent,/Bu üç skordan biri · %/);
+  assert.equal($('scorelines').querySelectorAll('.item').length,3);
+  $('scoreTopFive').open=true;
+  assert.equal($('scoreTopFiveContent').querySelectorAll('.item').length,5);
+  assert.match($('scoreTopFiveContent').textContent,/Bu beş skordan biri · %/);
+  assert.match($('scoreTopFiveHistory').textContent,/432\/929/);
+  $('predictableMatches').open=true;
+  await until(()=>$('predictableList').textContent.includes('Besiktas'));
+  $('scoreCalibrationAudit').open=true;
+  await until(()=>$('scoreCalibrationAuditContent').textContent.includes('Toplam gol dağılımı'));
+  assert.match($('scoreCalibrationAuditContent').textContent,/Dixon–Coles/);
   const bars=[...$('forecast').querySelectorAll('.outcome-meter span')].map(node=>parseFloat(node.style.width));
   assert.equal(bars.length,3);
   assert.ok(Math.abs(bars.reduce((a,b)=>a+b,0)-100)<0.001);
@@ -233,9 +247,11 @@ async function run(){
    assert.equal($('marketComparison').querySelectorAll('tbody tr').length,3);
    assert.match($('marketComparison').textContent,/Piyasa skoru · test edilmedi/);
    assert.match($('marketTotals').textContent,/Piyasanın beklenen toplam golü/);
+   assert.equal($('marketScoreCalibration').querySelectorAll('tbody tr').length,2);
+   assert.match($('marketScoreCalibration').textContent,/Piyasa alt\/üstüyle/);
    assert.match($('activeForecastMethod').textContent,/Ana 1X2 · Piyasa · Alınma/);
-   assert.match($('forecast').textContent,/Maç sonucu · PiyasaGalatasaray/);
-   assert.match($('forecast').textContent,/Yayın modeli skoru/);
+   assert.match($('forecast').textContent,/Kim kazanır\?Galatasaray%52,0 · Piyasa/);
+   assert.match($('forecast').textContent,/En olası skor\d+–\d+%[\d,]+ · Yayın modeli/);
    oddsMode='unconfigured';
    clearNetworkCache();
    await submit('Beşiktaş','Galatasaray');
