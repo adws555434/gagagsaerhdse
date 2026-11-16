@@ -4,7 +4,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const root=fs.existsSync(path.join(__dirname,'index.html'))?__dirname:path.resolve(__dirname,'..');
 const code=fs.readFileSync(path.join(root,'index.html'),'utf8').match(/<script>([\s\S]*?)<\/script>/)[1].split("$('go').addEventListener")[0];
-const model=new Function(code+';return {LEARNING_VERSION,learningDecision,shotEstimate,forecastSnapshot,shotCandidates,parseEvidence,evidenceForm,validLearningCandidates,workload,reliabilityBand};')();
+const model=new Function(code+';return {LEARNING_VERSION,learningDecision,shotEstimate,forecastSnapshot,shotCandidates,parseEvidence,evidenceForm,validLearningCandidates,workload,reliabilityBand,createLineupTrial,validLineupTrial,lineupArchiveEntries,settleHistory,candidateMetrics};')();
 const {buildLeague}=require(root===__dirname?'./forecast-ledger.cjs':'../scripts/forecast-ledger.cjs');
 let n=0;
 function test(name,fn){fn();n++;console.log('PASS '+name);}
@@ -63,6 +63,40 @@ test('verified format, date and duplicated imports',()=>{
  assert.match(model.evidenceForm(clean.players,5),/90 dk başına gol 1.00|90 dk başına gol 1.0/);
  assert.throws(()=>parsing({xg:[{...xg,source:'javascript:alert(1)'}]}));
  assert.throws(()=>parsing({lineups:[{...lineup,starters:['A']}]}));
+});
+const lineupArchive=fs.readFileSync(path.join(root,'lineup-samples.json'),'utf8');
+test('three published lineup pairs match kickoff before kickoff and retain both teams',()=>{
+ const archive=model.lineupArchiveEntries(lineupArchive,Date.parse('2026-11-16T00:00:00Z'));
+ assert.deepEqual(archive.map(row=>(row.kickoff-row.published)/60000),[65,19,63]);
+ assert.ok(archive.every(row=>row.home.starters.length===11&&row.away.starters.length===11));
+ assert.equal(model.lineupArchiveEntries(lineupArchive,Date.parse('2026-11-01T00:00:00Z')).length,0);
+ const altered=JSON.parse(lineupArchive);
+ altered.lineups[0].publishedAt=altered.lineups[0].kickoff;
+ assert.equal(model.lineupArchiveEntries(JSON.stringify(altered),Date.parse('2026-11-16T00:00:00Z')).length,2);
+});
+test('lineup trial compares the original frozen rates and settles both arms on the same result',()=>{
+ const fixture={date:'2026-11-16',time:'19:00',zone:'UTC',home:'Besiktas',away:'Galatasaray'};
+ const at=when=>Date.parse(fixture.date+'T'+when+':00Z');
+ const row={...fixture,scope,savedAt:at('17:00'),kickoff:at('19:00'),rates:[1.45,1.3]};
+ const lineups=[fixture.home,fixture.away].map((team,i,teams)=>({team,opponent:teams[1-i],date:fixture.date,
+  kickoff:'2026-11-16T22:00:00+03:00',publishedAt:'2026-11-16T18:00:00Z',source:'https://example.com/lineup',
+  starters:Array.from({length:11},(_,i)=>'Oyuncu '+i)}));
+ const trial=model.createLineupTrial(row,fixture,lineups,[20,-15],at('18:15'));
+ assert.equal(model.validLineupTrial({...row,lineupTrial:trial}),true);
+ assert.deepEqual(trial.candidates[0],model.forecastSnapshot(row.rates));
+ assert.ok(trial.candidates[1].probabilities[0]>trial.candidates[0].probabilities[0]);
+ const [settled]=model.settleHistory([{...row,lineupTrial:trial}],scope,[{...fixture,ft_home:'2',ft_away:'0'}]);
+ const paired=[{...settled,candidates:trial.candidates}];
+ assert.deepEqual(settled.actual,[2,0]);
+ assert.equal(model.candidateMetrics(paired,0).n,1);
+ assert.equal(model.candidateMetrics(paired,1).n,1);
+ assert.equal(model.validLineupTrial({...row,lineupTrial:{...trial,savedAt:at('19:00')}}),false);
+ assert.throws(()=>model.createLineupTrial(row,fixture,lineups,[20,-15],at('19:00')),/başlamamış/);
+ assert.throws(()=>model.createLineupTrial(row,fixture,lineups,[20,-15],at('17:59')),/yayın saati/);
+ assert.throws(()=>model.createLineupTrial({...row,savedAt:at('18:00')},fixture,lineups,[20,-15],at('18:15')),/yayın saati/);
+ assert.throws(()=>model.createLineupTrial(row,fixture,[lineups[0],{...lineups[1],opponent:'Rakip'}],[20,-15],at('18:15')),/doğru rakip/);
+ assert.throws(()=>model.createLineupTrial(row,fixture,lineups,[0,0],at('18:15')),/değişiklik yok/);
+ assert.throws(()=>model.createLineupTrial({...row,lineupTrial:trial},fixture,lineups,[20,-15],at('18:15')),/zaten/);
 });
 test('workload window and reliability use settled fixtures',()=>{
  const counts=model.workload('Besiktas',[{date:'2026-11-16',home:'Besiktas'},{date:'2026-11-09',away:'Besiktas'},{date:'2026-11-02',home:'Besiktas'}],asOf,1);

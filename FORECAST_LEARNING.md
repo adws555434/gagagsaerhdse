@@ -54,6 +54,7 @@ Analizden sonra **Kadro senaryosu → Kaynaklı ilk 11, oyuncu formu ve xG yükl
   "lineups": [
     {
       "team": "Beşiktaş",
+      "opponent": "Galatasaray",
       "date": "2026-11-16",
       "kickoff": "2026-11-16T20:00:00+03:00",
       "publishedAt": "2026-11-16T19:00:00+03:00",
@@ -66,6 +67,10 @@ Analizden sonra **Kadro senaryosu → Kaynaklı ilk 11, oyuncu formu ve xG yükl
 ```
 
 İlk 11, uygulamanın bulduğu fikstür saatiyle eşleşir ve başlama saatinden önce yayımlanmış olmalıdır. `attackChange` isteğe bağlı bir senaryo varsayımıdır. xG senaryosu, iki takım için en az beşer maç varsa gösterilir. Oyuncu formu dosyada bulunan son beş ve on maç, toplam dakika, gol, asist ve 90 dakika başına üretimi gösterir. Resmî ilk 11, sakatlık, canlı kart ve güncel xG için otomatik kapsam mevcut ücretsiz veri sağlayıcısında bulunmuyor. StatsBomb açık arşivi seçili geçmiş maçları içerir ve ayrı kaynak koşullarına tabidir.
+
+**İlk 11 deneyi ve kaynak arşivi** bölümünde üç Süper Lig maçı için iki takımın da 11 oyuncusu ve maçtan önceki yayın saati bulunur. Saatleri [arşiv dosyasındaki](lineup-samples.json) duyurulardan, başlama saatlerini sabit Süper Lig test verisinden ve bağımsız maç kayıtlarından kontrol ettik. Canlı anlatımlarda genel makale giriş saati yerine ilk 11 bölümünün saati kaydedildi. Geçmiş örnekler gözlem arşividir ve deney başarı oranına girmez.
+
+Yeni bir maç için önce kadrolar açıklanmadan ana tahmin kaydedilir. Ardından iki takımın da `opponent` bilgisi, 11 oyuncusu ve kaynak zamanı dosyaya eklenip **Kadro denemesini kaydet** seçilir. Başlama saatinden önce yalnızca bir deney eklenebilir. Karşılaştırma, ilk tahminin gol beklentilerini sabitleyerek bunların değiştirilmemiş ve hücum etkisi uygulanmış Poisson dağılımlarını puanlar. Hücum etkisi kullanıcı varsayımıdır. Maç sonucu geldiğinde eşleşen iki tahmin için 1X2, tam skor, ilk üç skor, log loss ve Brier hesaplanır. Deney tarayıcıda tutulur ve ana tahminin algoritmasını değiştirmez.
 
 Tek kırmızı kart senaryosunda eksik takımın gol hızı ×0,72, rakibinki ×1,20 kabul edilir. İki takımın da birer oyuncu eksik olduğu durumda iki gol hızı ×0,90 kabul edilir. Bu katsayılar senaryo girdileridir.
 

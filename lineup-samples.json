@@ -1,0 +1,136 @@
+{
+  "lineups": [
+    {
+      "side": "home",
+      "team": "Beşiktaş",
+      "opponent": "Gençlerbirliği",
+      "date": "2026-11-08",
+      "kickoff": "2026-11-08T21:00:00+03:00",
+      "publishedAt": "2026-11-08T19:55:00+03:00",
+      "source": "https://www.haberturk.com/spor/besiktas-genclerbirligi-maci-canli-anlatim-bjk-genclerbirligi-maci-ne-zaman-saat-kacta-ve-hangi-kanalda-iste-muhtemel-11-ler-ve-tum-detaylar-3925734",
+      "starters": [
+        "Nübel",
+        "Murillo",
+        "Agbadou",
+        "Emirhan",
+        "Rıdvan",
+        "Ndidi",
+        "Orkun",
+        "Salih",
+        "İlhan",
+        "Trossard",
+        "Vlahovic"
+      ]
+    },
+    {
+      "side": "away",
+      "team": "Gençlerbirliği",
+      "opponent": "Beşiktaş",
+      "date": "2026-11-08",
+      "kickoff": "2026-11-08T21:00:00+03:00",
+      "publishedAt": "2026-11-08T19:55:00+03:00",
+      "source": "https://www.haberturk.com/spor/besiktas-genclerbirligi-maci-canli-anlatim-bjk-genclerbirligi-maci-ne-zaman-saat-kacta-ve-hangi-kanalda-iste-muhtemel-11-ler-ve-tum-detaylar-3925734",
+      "starters": [
+        "İrfan Can",
+        "Arda",
+        "Metehan",
+        "Thalisson",
+        "Yiğit Hamza",
+        "Niasse",
+        "Oğulcan",
+        "Tongya",
+        "Traore",
+        "Tiago Gouveia",
+        "Mendes"
+      ]
+    },
+    {
+      "side": "home",
+      "team": "Çorum FK",
+      "opponent": "Fenerbahçe",
+      "date": "2026-11-08",
+      "kickoff": "2026-11-08T16:00:00+03:00",
+      "publishedAt": "2026-11-08T15:41:00+03:00",
+      "source": "https://www.karar.com/spor-haberleri/corum-fk-fenerbahce-macinin-ilk-11leri-aciklandi-belozoglunun-tercihleri-2082990",
+      "starters": [
+        "Felipe",
+        "Penetra",
+        "Çağlar",
+        "Smolcic",
+        "Borza",
+        "Ramadani",
+        "Diomande",
+        "Cengiz",
+        "Kyziridis",
+        "Mahmic",
+        "Ramirez"
+      ]
+    },
+    {
+      "side": "away",
+      "team": "Fenerbahçe",
+      "opponent": "Çorum FK",
+      "date": "2026-11-08",
+      "kickoff": "2026-11-08T16:00:00+03:00",
+      "publishedAt": "2026-11-08T15:41:00+03:00",
+      "source": "https://www.karar.com/spor-haberleri/corum-fk-fenerbahce-macinin-ilk-11leri-aciklandi-belozoglunun-tercihleri-2082990",
+      "starters": [
+        "Ederson",
+        "Nelson Semedo",
+        "Kojo Oppong",
+        "Milan Skriniar",
+        "Levent Mercan",
+        "İsmail Yüksek",
+        "Matteo Guendouzi",
+        "İrfan Can Kahveci",
+        "Oğuz Aydın",
+        "Mason Greenwood",
+        "Romelu Lukaku"
+      ]
+    },
+    {
+      "side": "home",
+      "team": "Kasımpaşa",
+      "opponent": "Beşiktaş",
+      "date": "2026-11-01",
+      "kickoff": "2026-11-01T19:00:00+03:00",
+      "publishedAt": "2026-11-01T17:57:00+03:00",
+      "source": "https://www.haberturk.com/spor/kasimpasa-besiktas-maci-canli-anlatim-kasimpasa-bjk-maci-ne-zaman-saat-kacta-ve-hangi-kanalda-iste-ilk-11-ler-ve-mac-kadrosu-3924056",
+      "starters": [
+        "Gianniotis",
+        "Arous",
+        "Ilie",
+        "Winck",
+        "Ayberk",
+        "Kerem",
+        "Mendes",
+        "Hajradinovic",
+        "Rak-Sakyi",
+        "Ali Yavuz",
+        "Benedyczak"
+      ]
+    },
+    {
+      "side": "away",
+      "team": "Beşiktaş",
+      "opponent": "Kasımpaşa",
+      "date": "2026-11-01",
+      "kickoff": "2026-11-01T19:00:00+03:00",
+      "publishedAt": "2026-11-01T17:57:00+03:00",
+      "source": "https://www.haberturk.com/spor/kasimpasa-besiktas-maci-canli-anlatim-kasimpasa-bjk-maci-ne-zaman-saat-kacta-ve-hangi-kanalda-iste-ilk-11-ler-ve-mac-kadrosu-3924056",
+      "starters": [
+        "Nübel",
+        "Murillo",
+        "Agbadou",
+        "Emirhan",
+        "Rıdvan",
+        "Salih",
+        "Ndidi",
+        "Olaitan",
+        "Cerny",
+        "Trossard",
+        "Vlahovic"
+      ]
+    }
+  ]
+}
