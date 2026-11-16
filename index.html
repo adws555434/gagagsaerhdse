@@ -31,6 +31,12 @@
   <div id="err" class="card hidden"><div id="errText" class="err"></div></div>
   <div id="out" class="grid hidden">
     <section class="card full"><h2 id="title" style="margin:0 0 5px"></h2><div id="meta" class="muted"></div><div id="source" class="source" style="margin-top:7px"></div></section>
+    <section class="card full" aria-labelledby="forecastTitle">
+      <h3 id="forecastTitle">Skor tahmini</h3>
+      <div id="forecast" class="metrics"></div>
+      <p id="forecastNote" class="muted"></p>
+      <div id="scorelines"></div>
+    </section>
     <section class="card full"><h3>Genel karşılaştırma</h3><div id="metrics" class="metrics"></div><div id="narrative" style="line-height:1.6;margin-top:12px"></div></section>
     <section class="card half"><h3>Form</h3><div id="form"></div></section>
     <section class="card half"><h3>İç saha / deplasman</h3><div id="split"></div></section>
@@ -62,8 +68,9 @@ const cache=new Map();
 function norm(s){return String(s||'').toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i').replace(/[^a-z0-9]/g,'')}
 function qnorm(s){let n=norm(s);return aliases[n]||n}
 function csv(text){const rows=[];let row=[],field='',q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'&&text[i+1]==='"'){field+='"';i++}else if(c==='"')q=false;else field+=c}else if(c==='"')q=true;else if(c===','){row.push(field);field=''}else if(c==='\n'){row.push(field.replace(/\r$/,''));rows.push(row);row=[];field=''}else field+=c}if(field||row.length){row.push(field);rows.push(row)}if(rows.length<2)return[];const h=rows[0];return rows.slice(1).filter(r=>r.some(Boolean)).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]??''])))}
-function num(v){return v===''||v==null?null:Number(v)}
-function findTeam(q,rows){const target=qnorm(q), names=[...new Set(rows.flatMap(r=>[r.home,r.away]).filter(Boolean))];let best=names.find(n=>qnorm(n)===target);if(best)return best;best=names.find(n=>qnorm(n).includes(target)||target.includes(qnorm(n)));return best||null}
+function num(v){if(v==null||String(v).trim()==='')return null;const n=Number(v);return Number.isFinite(n)?n:null}
+function validScore(r){return [r.ft_home,r.ft_away].map(num).every(n=>Number.isInteger(n)&&n>=0)}
+function findTeam(q,rows){const target=qnorm(q);if(!target)return null;const names=[...new Set(rows.flatMap(r=>[r.home,r.away]).filter(Boolean))];const exact=names.find(n=>qnorm(n)===target);if(exact)return exact;const matches=names.filter(n=>qnorm(n).includes(target)||target.includes(qnorm(n)));return matches.length===1?matches[0]:null}
 function games(team,rows){return rows.filter(r=>r.home===team||r.away===team).sort((x,y)=>String(x.date).localeCompare(String(y.date)))}
 function summary(team,rows,n=20){const g=games(team,rows).slice(-n);let w=0,d=0,l=0,gf=0,ga=0;const vals={shots:[],target:[],corners:[],yellow:[],fouls:[],htgf:[],htga:[]};for(const r of g){const home=r.home===team,H=num(r.ft_home),A=num(r.ft_away);if(H==null||A==null)continue;const f=home?H:A,ag=home?A:H;gf+=f;ga+=ag;if(f>ag)w++;else if(f===ag)d++;else l++;for(const [k,hk,ak] of [['shots','home_shots','away_shots'],['target','home_target','away_target'],['corners','home_corners','away_corners'],['yellow','home_yellow','away_yellow'],['fouls','home_fouls','away_fouls']]){const v=num(home?r[hk]:r[ak]);if(v!=null)vals[k].push(v)}const hh=num(r.ht_home),ha=num(r.ht_away);if(hh!=null&&ha!=null){vals.htgf.push(home?hh:ha);vals.htga.push(home?ha:hh)}}const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;return{played:g.length,w,d,l,gf,ga,ppm:g.length?(w*3+d)/g.length:0,gfpm:g.length?gf/g.length:0,gapm:g.length?ga/g.length:0,avg:Object.fromEntries(['shots','target','corners','yellow','fouls'].map(k=>[k,avg(vals[k])])),htgf:avg(vals.htgf),htga:avg(vals.htga),last:g[g.length-1]||null}}
 function split(team,rows,home){return summary(team,rows.filter(r=>(home?r.home:r.away)===team),99)}
@@ -72,16 +79,95 @@ function h2h(a,b,rows){return rows.filter(r=>(r.home===a&&r.away===b)||(r.home==
 function nextFor(team,fx){return fx.filter(r=>r.home===team||r.away===team).sort((x,y)=>String(x.date).localeCompare(String(y.date)))[0]||null}
 function direct(a,b,fx){return fx.filter(r=>(r.home===a&&r.away===b)||(r.home===b&&r.away===a)).sort((x,y)=>String(x.date).localeCompare(String(y.date)))[0]||null}
 function daysBetween(a,b){if(!a||!b)return null;return Math.max(0,Math.round((new Date(b+'T12:00:00Z')-new Date(a+'T12:00:00Z'))/86400000))}
+const SIMULATIONS=100000;
+const MIN_TEAM_MATCHES=5;
+function estimateGoals(home,away,results){
+ const homeGames=games(home,results).slice(-20);
+ const awayGames=games(away,results).slice(-20);
+ if(Math.min(homeGames.length,awayGames.length)<MIN_TEAM_MATCHES)return null;
+
+ const meanGoals=key=>results.reduce((sum,match)=>sum+num(match[key]),0)/results.length;
+ const leagueHome=Math.max(0.1,meanGoals('ft_home'));
+ const leagueAway=Math.max(0.1,meanGoals('ft_away'));
+ const leagueMean=(leagueHome+leagueAway)/2;
+ const teamRates=(team,recent,atHome)=>{
+  let scored=0,allowed=0,weight=0,venueScored=0,venueAllowed=0,venueWeight=0,venueMatches=0;
+  recent.forEach((match,i)=>{
+   const isHome=match.home===team;
+   const gf=num(isHome?match.ft_home:match.ft_away);
+   const ga=num(isHome?match.ft_away:match.ft_home);
+   const w=Math.pow(.5,(recent.length-1-i)/10);
+   scored+=w*gf;
+   allowed+=w*ga;
+   weight+=w;
+   if(isHome===atHome){venueScored+=w*gf;venueAllowed+=w*ga;venueWeight+=w;venueMatches++}
+  });
+  // Shrink the recent averages to the league, then shrink venue form to team form.
+  const attack=(scored+5*leagueMean)/(weight+5);
+  const defense=(allowed+5*leagueMean)/(weight+5);
+  const venueFor=atHome?leagueHome:leagueAway;
+  const venueAgainst=atHome?leagueAway:leagueHome;
+  return {attack:(venueScored+6*attack*venueFor/leagueMean)/(venueWeight+6),
+    defense:(venueAllowed+6*defense*venueAgainst/leagueMean)/(venueWeight+6),
+    matches:recent.length,venueMatches};
+ };
+ const H=teamRates(home,homeGames,true),A=teamRates(away,awayGames,false);
+ const bound=n=>Math.max(.08,Math.min(6,n));
+ return {homeGoals:bound(H.attack*A.defense/leagueHome),awayGoals:bound(A.attack*H.defense/leagueAway),H,A};
+}
+function poissonDraw(lambda,random){
+ const stop=Math.exp(-lambda);
+ let product=random(),goals=0;
+ while(product>stop){product*=random();goals++}
+ return goals;
+}
+function simulateScore(homeGoals,awayGoals,count=SIMULATIONS,random=Math.random){
+ const outcomes={home:0,draw:0,away:0};
+ const scores=new Map();
+ for(let i=0;i<count;i++){
+  const home=poissonDraw(homeGoals,random),away=poissonDraw(awayGoals,random);
+  outcomes[home>away?'home':home<away?'away':'draw']++;
+  const score=home+'–'+away;
+  scores.set(score,(scores.get(score)||0)+1);
+ }
+ return {outcomes,scores:[...scores].sort((a,b)=>b[1]-a[1])};
+}
+function renderForecast(home,away,results,fixture){
+ const panel=$('forecast'),note=$('forecastNote'),scores=$('scorelines');
+ panel.textContent='';
+ scores.textContent='';
+ const rates=estimateGoals(home,away,results);
+ if(!rates){note.textContent='Tahmin için her iki takımın da bu organizasyonda en az '+MIN_TEAM_MATCHES+' tamamlanmış maçı gerekiyor.';return}
+ const {homeGoals,awayGoals,H,A}=rates;
+ const sim=simulateScore(homeGoals,awayGoals);
+ const pct=count=>'%'+(count*100/SIMULATIONS).toLocaleString('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1});
+ const [score,count]=sim.scores[0];
+ panel.append(metric('En olası skor',score,pct(count)+' · '+home+' – '+away),
+  metric(home+' kazanır',pct(sim.outcomes.home),'Ev sahibi'),
+  metric('Beraberlik',pct(sim.outcomes.draw)),
+  metric(away+' kazanır',pct(sim.outcomes.away),'Deplasman'));
+ const context=fixture?'Fikstürdeki ev sahibi '+home+'.':'Fikstürde eşleşme bulunamadı. Senaryoda '+home+' ev sahibi.';
+ note.textContent=context+' Poisson modeli · 100.000 simülasyon · Son maç örneklemi '+H.matches+' / '+A.matches+
+  ' (ilgili saha '+H.venueMatches+' / '+A.venueMatches+'). Model gol ortalaması '+fmt(homeGoals)+' / '+fmt(awayGoals)+
+  '. Olasılıklar geçmiş skorlardan hesaplanır. Modelin tahmin başarısı henüz ölçülmedi.';
+ list(scores,sim.scores.slice(1,4).map(([scoreline,total])=>({t:scoreline+' · '+pct(total)})));
+}
 async function getText(url){if(cache.has(url))return cache.get(url);const c=new AbortController(),t=setTimeout(()=>c.abort(),9000);try{const r=await fetch(url,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const s=await r.text();cache.set(url,s);return s}finally{clearTimeout(t)}}
-async function loadFolder(folder){let last;for(const base of BASES){try{const [r,f]=await Promise.all([getText(base+folder+'/results_2627.csv'),getText(base+folder+'/fixtures_2627.csv')]);return{results:csv(r),fixtures:csv(f)}}catch(e){last=e}}throw last||new Error('Veri alınamadı')}
+async function loadFolder(folder){let last;for(const base of BASES){try{const [r,f]=await Promise.all([getText(base+folder+'/results_2627.csv'),getText(base+folder+'/fixtures_2627.csv')]);const today=new Date().toISOString().slice(0,10);return{results:csv(r).filter(row=>row.date&&row.date<=today&&validScore(row)),fixtures:csv(f).filter(row=>row.date>=today)}}catch(e){last=e}}throw last||new Error('Veri alınamadı')}
 function setStep(p,s){$('bar').style.width=p+'%';$('step').textContent=s}
 function setStatus(s,c){$('status').textContent=s;$('status').className='badge '+c}
-async function resolve(qa,qb){for(let i=0;i<LEAGUES.length;i++){const [folder,name]=LEAGUES[i];setStep(8+Math.round(i/LEAGUES.length*52),name+' kontrol ediliyor…');try{const d=await loadFolder(folder),all=d.results.concat(d.fixtures),a=findTeam(qa,all),b=findTeam(qb,all);if(a&&b)return{...d,a,b,league:name,folder}}catch(e){console.warn(name,e)}}throw new Error('İki takımı aynı desteklenen lig/kupa içinde bulamadım. Takım adlarını tam yazmayı dene.')}
+async function resolve(qa,qb){let loaded=false;for(let i=0;i<LEAGUES.length;i++){const [folder,name]=LEAGUES[i];setStep(8+Math.round(i/LEAGUES.length*52),name+' kontrol ediliyor…');try{const d=await loadFolder(folder),all=d.results.concat(d.fixtures),a=findTeam(qa,all),b=findTeam(qb,all);loaded=loaded||all.length>0;if(a&&b&&a!==b)return{...d,a,b,league:name,folder}}catch(e){console.warn(name,e)}}throw new Error(loaded?'İki farklı takımı aynı desteklenen lig veya kupada bulamadım. Takım adlarını tam yazmayı dene.':'Maç verisine şu anda ulaşılamıyor. Biraz sonra tekrar dene.')}
 function metric(label,val,sub=''){const d=document.createElement('div');d.className='metric';d.innerHTML='<div class="muted tiny"></div><b></b><div class="muted tiny"></div>';d.children[0].textContent=label;d.children[1].textContent=val;d.children[2].textContent=sub;return d}
 function list(el,arr,empty='Veri yok'){el.textContent='';const box=document.createElement('div');box.className='list';(arr.length?arr:[{t:empty,s:''}]).forEach(x=>{const d=document.createElement('div');d.className='item';const t=document.createElement('div');t.textContent=x.t;d.append(t);if(x.s){const s=document.createElement('div');s.className='muted tiny';s.textContent=x.s;d.append(s)}box.append(d)});el.append(box)}
 function fmt(v,d=2){return v==null?'—':Number(v).toFixed(d)}
 function renderTable(rows,a,b){const out=$('table');out.textContent='';const t=document.createElement('table');t.className='tbl';t.innerHTML='<thead><tr><th># / Takım</th><th>O</th><th>G</th><th>B</th><th>M</th><th>AV</th><th>P</th></tr></thead>';const tb=document.createElement('tbody');rows.forEach((r,i)=>{const tr=document.createElement('tr');if(r.team===a||r.team===b)tr.className='hi';[i+1+'. '+r.team,r.p,r.w,r.d,r.l,r.gd,r.pts].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});tb.append(tr)});t.append(tb);out.append(t)}
-function render(R){const {a,b,results,fixtures}=R,A=summary(a,results),B=summary(b,results),AH=split(a,results,true),AA=split(a,results,false),BH=split(b,results,true),BA=split(b,results,false),T=table(results),P1=T.findIndex(x=>x.team===a)+1,P2=T.findIndex(x=>x.team===b)+1,H=h2h(a,b,results),N=direct(a,b,fixtures),NA=nextFor(a,fixtures),NB=nextFor(b,fixtures),restA=NA&&A.last?daysBetween(A.last.date,NA.date):null,restB=NB&&B.last?daysBetween(B.last.date,NB.date):null;$('out').classList.remove('hidden');$('title').textContent=N?N.home+' — '+N.away:a+' — '+b;$('meta').textContent=(N?N.date+' '+(N.time||'')+' · ':'')+R.league;$('source').textContent='Kaynak: open-matchday · anahtarsız açık veri';
+function render(R){const {a,b,results,fixtures}=R,A=summary(a,results),B=summary(b,results),AH=split(a,results,true),AA=split(a,results,false),BH=split(b,results,true),BA=split(b,results,false),T=table(results),P1=T.findIndex(x=>x.team===a)+1,P2=T.findIndex(x=>x.team===b)+1,H=h2h(a,b,results),N=direct(a,b,fixtures),NA=nextFor(a,fixtures),NB=nextFor(b,fixtures),restA=NA&&A.last?daysBetween(A.last.date,NA.date):null,restB=NB&&B.last?daysBetween(B.last.date,NB.date):null;$('out').classList.remove('hidden');$('title').textContent=N?N.home+' — '+N.away:a+' — '+b;$('meta').textContent=(N?N.date+(N.time?' '+N.time+' (UTC+1)':'')+' · ':'')+R.league;
+ const sourceLink=document.createElement('a');
+ sourceLink.href='https://github.com/oladeeayo/open-matchday';
+ sourceLink.textContent='Veri kaynağı: open-matchday';
+ sourceLink.style.color='inherit';
+ $('source').replaceChildren(sourceLink);
+ renderForecast(N?N.home:a,N?N.away:b,results,N);
  const m=$('metrics');m.textContent='';m.append(metric(a+' form',A.w+'G '+A.d+'B '+A.l+'M','PPM '+fmt(A.ppm)),metric(b+' form',B.w+'G '+B.d+'B '+B.l+'M','PPM '+fmt(B.ppm)),metric('Lig sırası',P1+' / '+P2,a+' / '+b),metric('Gol / maç',fmt(A.gfpm)+' / '+fmt(B.gfpm),a+' / '+b));
  const notes=[];if(A.ppm>B.ppm+.2)notes.push(a+' son dönem puan ortalamasında önde.');else if(B.ppm>A.ppm+.2)notes.push(b+' son dönem puan ortalamasında önde.');else notes.push('Son dönem puan formu birbirine yakın.');if(A.gfpm>B.gfpm+.25)notes.push(a+' maç başına daha fazla gol üretmiş.');else if(B.gfpm>A.gfpm+.25)notes.push(b+' maç başına daha fazla gol üretmiş.');if(N)notes.push('Doğrudan eşleşme '+N.date+' tarihinde.');$('narrative').textContent=notes.join(' ');
  list($('form'),[{t:a,s:A.played+' maç · '+A.w+'G '+A.d+'B '+A.l+'M · '+A.gf+'-'+A.ga+' gol · PPM '+fmt(A.ppm)},{t:b,s:B.played+' maç · '+B.w+'G '+B.d+'B '+B.l+'M · '+B.gf+'-'+B.ga+' gol · PPM '+fmt(B.ppm)}]);
@@ -91,7 +177,7 @@ function render(R){const {a,b,results,fixtures}=R,A=summary(a,results),B=summary
  const st=$('stats');st.textContent='';[['Şut','shots'],['İsabetli şut','target'],['Korner','corners'],['Sarı kart','yellow'],['Faul','fouls']].forEach(([lab,k])=>{const d=document.createElement('div');d.className='item';d.textContent=lab+': '+a+' '+fmt(A.avg[k],1)+' · '+b+' '+fmt(B.avg[k],1);st.append(d)});
  list($('half'),[{t:a,s:'İY gol '+fmt(A.htgf)+' · İY yenen '+fmt(A.htga)},{t:b,s:'İY gol '+fmt(B.htgf)+' · İY yenen '+fmt(B.htga)}]);renderTable(T,a,b)
 }
-async function analyze(){const btn=$('go');btn.disabled=true;$('err').classList.add('hidden');$('out').classList.add('hidden');const qa=$('a').value.trim(),qb=$('b').value.trim();if(qa.length<2||qb.length<2){$('errText').textContent='İki takımın da adını yaz.';$('err').classList.remove('hidden');btn.disabled=false;return}try{setStatus('Analiz ediliyor…','warn');setStep(4,'Takımlar aranıyor…');const R=await resolve(qa,qb);setStep(75,'İstatistikler hesaplanıyor…');render(R);setStep(100,'Analiz tamamlandı.');setStatus('Tamamlandı ✓','ok')}catch(e){console.error(e);$('errText').textContent=e.message||String(e);$('err').classList.remove('hidden');setStatus('Hata','bad');setStep(0,'Analiz tamamlanamadı.')}finally{btn.disabled=false}}
+async function analyze(){const btn=$('go');if(btn.disabled)return;$('err').classList.add('hidden');$('out').classList.add('hidden');const qa=$('a').value.trim(),qb=$('b').value.trim();if(qa.length<2||qb.length<2||qnorm(qa)===qnorm(qb)){$('errText').textContent='İki farklı takımın adını yaz.';$('err').classList.remove('hidden');setStatus('Motor hazır ✓','ok');setStep(0,'Takım adlarını kontrol et.');return}btn.disabled=true;try{setStatus('Analiz ediliyor…','warn');setStep(4,'Takımlar aranıyor…');const R=await resolve(qa,qb);setStep(75,'İstatistikler hesaplanıyor…');render(R);setStep(100,'Analiz tamamlandı.');setStatus('Tamamlandı ✓','ok')}catch(e){console.error(e);$('errText').textContent=e.message||String(e);$('err').classList.remove('hidden');setStatus('Hata','bad');setStep(0,'Analiz tamamlanamadı.')}finally{btn.disabled=false}}
 function selfTest(){try{const t=csv('date,home,away,ft_home,ft_away\n2026-01-01,Besiktas,Galatasaray,1,0\n');if(t.length!==1||findTeam('Beşiktaş',t)!=='Besiktas')throw new Error('motor testi');setStatus('Motor hazır ✓','ok');setStep(0,'Motor hazır. İki takım yazıp butona bas.')}catch(e){setStatus('Motor hatası','bad');setStep(0,'Motor başlatılamadı: '+e.message)}}
 $('go').addEventListener('click',analyze);$('a').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});$('b').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});window.addEventListener('error',e=>{setStatus('JavaScript hatası','bad');$('step').textContent=e.message});selfTest();
 </script>
