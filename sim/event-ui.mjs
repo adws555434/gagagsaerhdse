@@ -2,7 +2,7 @@ import {SCOPE,TRIALS,VERSION} from './super-lig-model.mjs';
 import {buildInputs,parseArchive} from './forecast-input.mjs';
 import {fixtureId} from './event-ledger.mjs';
 import {runWorkers} from './event-parallel.mjs';
-import {analyticMatrix,summarize} from './event-engine.mjs';
+import {analyticMatrix,outcomeOf,summarize} from './event-engine.mjs';
 
 const number=new Intl.NumberFormat('tr-TR');
 const percent=new Intl.NumberFormat('tr-TR',{style:'percent',maximumFractionDigits:3});
@@ -47,13 +47,13 @@ export function connectEventMode(app){
  }
  function finish(result,fixture,market,frozen,seconds){
   const top=result.pick;
-  const score=top.home+'–'+top.away;
   const labels=outcomes(fixture);
+  const scoreLabel=(home,away)=>home+'–'+away+' · '+labels[outcomeOf(home,away)];
   answer.textContent=result.winner===1?'En olası sonuç beraberlik':'Favori '+name(result.winner===0?fixture.home:fixture.away);
   const scoreMark=document.createElement('strong');
-  scoreMark.textContent=score;
+  scoreMark.textContent=scoreLabel(top.home,top.away);
   $('eventPickCount').replaceChildren('Skor tahmini ',scoreMark,' · '+displayPercent.format(top.count/result.n)+' ihtimal');
-  const scores=result.top.map(({home,away,count})=>({label:home+'–'+away,count}));
+  const scores=result.top.map(({home,away,count})=>({label:scoreLabel(home,away),count}));
   const results=labels.map((label,i)=>({label,count:result.outcomes[i],highlight:i===result.winner}));
   const show=({label,count,highlight})=>({label,value:displayPercent.format(count/result.n),highlight,probability:count/result.n});
   $('eventScores').replaceChildren(...resultRows(scores.map(show)));

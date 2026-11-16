@@ -81,8 +81,9 @@ test('new mode cancels, rejects insufficient data, runs 100 million, and reuses 
   await run(match);
   assert.equal(browserWorkers,running);
   assert.equal($('eventAnswer').textContent,'Favori Beşiktaş');
-  assert.equal($('eventPickCount').querySelector('strong').textContent,'2–1');
-  assert.match($('eventScores').textContent,/^1–1/);
+  assert.equal($('eventPickCount').querySelector('strong').textContent,'2–1 · Beşiktaş kazanır');
+  assert.match($('eventScores').textContent,/^1–1 · Beraberlik/);
+  assert.match($('eventScores').textContent,/2–1 · Beşiktaş kazanır/);
   assert.equal($('eventOutcomes').querySelector('.is-favorite').textContent,'Beşiktaş kazanır%47,0');
   assert.match($('eventCombined').textContent,/%34,0$/);
   assert.match($('eventCounts').textContent,/47\.000\.000 kez/);
