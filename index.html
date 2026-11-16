@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="referrer" content="no-referrer">
-<meta name="app-version" content="2026.11-data-resilience">
+<meta name="app-version" content="2026.11-last-100-matches">
 <meta name="theme-color" content="#0c1013">
 <title>Football Intelligence — Maç analizi</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&amp;family=Instrument+Sans:wght@400..700&amp;display=swap">
@@ -195,6 +195,9 @@ button[disabled]#saveLineupTrial { cursor: default; }
 .item .tiny { margin-top: 4px; }
 #stats { display: grid; gap: 7px; }
 .tablewrap { max-width: 100%; overflow: auto; }
+.match-history-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 390px), 1fr)); gap: 12px; margin-top: 14px; }
+.match-history-columns section { min-width: 0; }
+.match-history-columns h4 { margin-bottom: 8px; }
 .tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; font-variant-numeric: tabular-nums; }
 .tbl th, .tbl td { padding: 9px 10px; border-bottom: 1px solid #2d363e; text-align: right; white-space: nowrap; }
 .tbl th { color: #d6dedf; background: #20272d; }
@@ -339,6 +342,7 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       <nav class="result-links" aria-label="Analiz bölümleri">
         <a href="#forecastPanel">Skor tahmini</a>
         <a href="#analysisOverview">Takım karşılaştırması</a>
+        <a href="#matchHistory">Son 100 maç</a>
         <a href="#lineupPanel">Kadro senaryosu</a>
         <a href="#dataQuality">Veri kapsamı</a>
       </nav>
@@ -374,6 +378,12 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       </details>
     </section>
     <section id="analysisOverview" class="card full"><h3>Genel karşılaştırma</h3><div id="metrics" class="metrics"></div><div id="narrative"></div></section>
+    <section id="matchHistory" class="card full" aria-labelledby="matchHistoryTitle">
+      <h3 id="matchHistoryTitle">Son 100 maç</h3>
+      <p id="matchHistoryScope" class="muted tiny" role="status"></p>
+      <div id="archiveForm" class="match-history-columns"></div>
+      <div id="longForecast" class="submetric"></div>
+    </section>
     <section class="card half"><h3>Form</h3><div id="form"></div></section>
     <section class="card half"><h3>İç saha / deplasman</h3><div id="split"></div></section>
     <section class="card half"><h3>Geçmiş karşılaşmalar</h3><div id="h2h"></div></section>
@@ -404,7 +414,7 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
     </section>
     <section id="playerGoalsPanel" class="card full hidden"><h3>Oyuncuların son maçlardaki golleri</h3><div id="playerGoals"></div></section>
     <section id="leagueTable" class="card full"><h3>Maç sonuçlarından hesaplanan tablo</h3><p class="muted tiny">Puan cezaları, resmi eşitlik kuralları ve kupa grup ayrımları hesaba katılmaz.</p><div id="table" class="tablewrap"></div></section>
-    <section id="dataQuality" class="card full"><h3>Veri kapsamı</h3><p id="quality" class="muted"></p><p id="archiveStatus" class="muted"></p><div id="archiveForm"></div></section>
+    <section id="dataQuality" class="card full"><h3>Veri kapsamı</h3><p id="quality" class="muted"></p><p id="archiveStatus" class="muted"></p></section>
   </div>
 
   <details class="card" id="historyPanel">
@@ -524,9 +534,9 @@ const SIMULATIONS=100000000;
 const SIMULATION_BATCH=100000;
 const simulationLabel=SIMULATIONS.toLocaleString('tr-TR')+' simülasyon';
 const MIN_TEAM_MATCHES=5;
-function estimateGoals(home,away,results,neutral=false){
- const homeGames=games(home,results).slice(-20);
- const awayGames=games(away,results).slice(-20);
+function estimateGoals(home,away,results,neutral=false,window=20){
+ const homeGames=games(home,results).slice(-window);
+ const awayGames=games(away,results).slice(-window);
  if(Math.min(homeGames.length,awayGames.length)<MIN_TEAM_MATCHES)return null;
 
  const meanGoals=key=>results.reduce((sum,match)=>sum+num(match[key]),0)/results.length;
@@ -1330,42 +1340,113 @@ async function resolveNational(qa,qb){
   cached:scores.value.state==='cached',partial:!schedule.checked,feedStatus:[feedNotice(scores.value)].filter(Boolean)};
  return null;
 }
-async function renderArchive({folder,a,b,results}){
+function archiveHistoryRows(results,historical,cutoff,key){
+ const unique=new Map();
+ for(const row of [...historical,...results]){
+  if(!validDate(row.date)||row.date>=cutoff||!validScore(row))continue;
+  const home=key(row.home),away=key(row.away);
+  if(!home||!away||home===away)continue;
+  unique.set([row.date,home,away].join('|'),row);
+ }
+ return [...unique.values()].sort(compareDate);
+}
+function longHistory(team,rows,key){
+ const id=key(team);
+ return rows.filter(row=>[key(row.home),key(row.away)].includes(id)).slice(-100);
+}
+function renderMatchHistory(teams,rows,key,scope){
+ const target=$('archiveForm');
+ $('matchHistoryScope').textContent=scope;
+ target.replaceChildren();
+ for(const team of teams){
+  const series=longHistory(team,rows,key),id=key(team);
+  const normalized=series.map(row=>({...row,home:key(row.home),away:key(row.away)}));
+  const section=document.createElement('section'),title=document.createElement('h4');
+  title.textContent=team+' · '+series.length+'/100 maç';
+  section.append(title);
+  if(!series.length){
+   const empty=document.createElement('p');
+   empty.className='tiny muted';
+   empty.textContent='Bu takım için tamamlanmış maç kaydı yok.';
+   section.append(empty);
+  }else{
+   const windows=[10,20,50,100].filter(limit=>limit===100||limit<series.length);
+   const formTable=document.createElement('div');
+   formTable.className='tablewrap';
+   formTable.append(dataTable(['Dönem','Maç','G–B–M','Gol','Puan / maç'],windows.map(limit=>{
+    const form=summary(id,normalized,limit);
+    return ['Son '+limit,form.played,[form.w,form.d,form.l].join('–'),form.gf+'–'+form.ga,fmt(form.ppm)];
+   }),true));
+   section.append(formTable);
+   const details=document.createElement('details'),caption=document.createElement('summary'),table=document.createElement('div');
+   caption.textContent='Maçları göster · '+series[0].date+' – '+series.at(-1).date;
+   table.className='tablewrap';
+   table.append(dataTable(['Tarih','Rakip','Saha','Skor','Sonuç'],series.slice().reverse().map(row=>{
+    const home=key(row.home)===id;
+    const [goals,conceded]=[home?row.ft_home:row.ft_away,home?row.ft_away:row.ft_home].map(Number);
+    return [row.date,home?row.away:row.home,row.neutral?'Tarafsız':home?'İç saha':'Deplasman',
+     goals+'–'+conceded,goals>conceded?'G':goals<conceded?'M':'B'];
+   }),true));
+   details.append(caption,table);
+   section.append(details);
+  }
+  target.append(section);
+ }
+}
+async function renderArchive({folder,a,b,results},cutoff){
  const status=$('archiveStatus');
  const code=ARCHIVE_LEAGUES[folder];
- $('archiveForm').textContent='';
- if(!code){status.textContent='Bu organizasyon için mevcut sezonun sonuçları kullanılıyor.';return}
+ $('archiveForm').replaceChildren();
+ $('matchHistoryScope').textContent='Geçmiş sezonlar kontrol ediliyor…';
+ if(!code){
+  status.textContent='Bu organizasyon için mevcut sezonun sonuçları kullanılıyor.';
+  renderMatchHistory([a,b],archiveHistoryRows(results,[],cutoff,archiveName),archiveName,'Seçili organizasyon · Mevcut sezon');
+  return [];
+ }
  status.textContent='Geçmiş sezonlar kontrol ediliyor…';
- const seasons=['2025-26','2024-25','2023-24'];
+ const year=Number(cutoff.slice(0,4))-(cutoff.slice(5,7)<'07'?1:0);
+ const seasons=Array.from({length:3},(_,i)=>[year-i-1,String(year-i).slice(2)].join('-'));
  const data=await Promise.allSettled(seasons.map(async season=>{
-  const text=await getText(ARCHIVE_BASE+season+'/'+code+'.json');
-  return archiveRows(text,new Date().toISOString().slice(0,10),{includeFlatScores:true});
+  const url=folder==='TUR_1_super-lig'&&season==='2023-24'?'./assets/super-lig-2023-24.json':ARCHIVE_BASE+season+'/'+code+'.json';
+  return archiveRows(await getText(url),cutoff,{includeFlatScores:true});
  }));
- const historical=data.flatMap(item=>item.status==='fulfilled'?item.value.rows:[]);
+ const snapshots=data.map((item,i)=>({season:seasons[i],rows:item.status==='fulfilled'?item.value.rows:[]}));
+ const historical=snapshots.flatMap(item=>item.rows);
  const dates=data.map((item,i)=>seasons[i]+' '+(item.status==='fulfilled'?item.value.rows.length+'/'+item.value.total:'erişilemedi'));
  const link=document.createElement('a');
  link.href='https://github.com/openfootball/football.json';
  link.textContent='openfootball';
- link.style.color='inherit';
- status.replaceChildren('Geçmiş sezon arşivi · ',link,' · '+dates.join(' · ')+'. Arşiv, geçmiş karşılaşmalar ve uzun dönem formu için kullanılır.');
+ status.replaceChildren('Geçmiş sezon arşivi · ',link,' · '+dates.join(' · ')+'.');
+ const all=archiveHistoryRows(results,historical,cutoff,archiveName);
  const aKey=archiveName(a),bKey=archiveName(b);
- const both=[...results,...historical].filter(row=>{
+ const matches=all.filter(row=>{
   const home=archiveName(row.home),away=archiveName(row.away);
   return (home===aKey&&away===bKey)||(home===bKey&&away===aKey);
- });
- const unique=new Map(both.map(row=>[row.date+'|'+archiveName(row.home)+'|'+archiveName(row.away),row]));
- const matches=[...unique.values()].sort(compareDate).slice(-10).reverse();
+ }).slice(-10).reverse();
  list($('h2h'),matches.map(row=>({t:row.home+' '+row.ft_home+'–'+row.ft_away+' '+row.away,s:row.date})),'Erişilen arşivde geçmiş karşılaşma bulunamadı.');
- if(!historical.length)return;
- const normalized=[...historical,...results].map(row=>({...row,home:archiveName(row.home),away:archiveName(row.away)}));
- const all=[...new Map(normalized.map(row=>[rowKey(row),row])).values()];
- const describeRecent=(name,key)=>{
-  const series=summary(key,all,100);
-  return {t:name+' · uzun dönem formu',s:series.played+' kayıt · '+series.w+'G '+series.d+'B '+series.l+'M · '+series.gf+'–'+series.ga+' gol'};
- };
- list($('archiveForm'),[describeRecent(a,aKey),describeRecent(b,bKey)]);
- return data.map((item,i)=>({season:seasons[i],rows:item.status==='fulfilled'?item.value.rows:[]}));
-
+ const scope=folder==='TUR_1_super-lig'?'Süper Lig maçları':'Seçili ligdeki maçlar';
+ renderMatchHistory([a,b],all,archiveName,scope+' · Mevcut sezon ve erişilebilen önceki üç sezon. Skorlar seçili takımın açısından gösterilir.');
+ return snapshots;
+}
+function longHistoryForecast(home,away,rows,fixture){
+ const neutral=fixture?.neutral===true;
+ const base=estimateGoals(home,away,rows,neutral,100);
+ if(!base)return null;
+ const {rates}=forecastModel(home,away,base,rows,{folder:'TUR_1_super-lig'},fixture);
+ return {...forecastSnapshot([rates.homeGoals,rates.awayGoals]),counts:[base.H.matches,base.A.matches]};
+}
+function renderLongHistoryForecast(data,archive,cutoff){
+ const out=$('longForecast');
+ out.replaceChildren();
+ if(data.folder!=='TUR_1_super-lig'||!archive.some(season=>season.rows.length))return;
+ const fixture=direct(data.a,data.b,data.fixtures);
+ const [home,away]=fixture?[fixture.home,fixture.away]:[data.a,data.b];
+ const rows=canonicalClubRows(archiveHistoryRows(data.results,archive.flatMap(season=>season.rows),cutoff,archiveName));
+ const prediction=longHistoryForecast(archiveName(home),archiveName(away),rows,fixture||{date:cutoff});
+ if(!prediction)return;
+ list(out,[{t:'Uzun dönem tahmini · deneme',s:home+' '+prediction.counts[0]+' / '+away+' '+prediction.counts[1]+
+  ' maç · '+[home,'Beraberlik',away].map((label,i)=>label+' '+probabilityLabel(prediction.probabilities[i])).join(' · ')},
+  {t:'En olası skor · '+describeScore(prediction.scores[0],home,away),s:'Son maçlar daha ağırlıklı. Uzun dönem tahmini kendi başına değerlendirilir.'}]);
 }
 function renderArchiveModel(data,forecast,archive){
  if(data.national||!ARCHIVE_LEAGUES[data.folder]||!forecast)return;
@@ -1411,13 +1492,11 @@ function renderArchiveModel(data,forecast,archive){
   {t:'En olası üç skor',s:options(d)}
  ]);
 }
-function renderNationalArchive({results,a,b,fixtureChecked}){
+function renderNationalArchive({results,a,b,fixtureChecked},cutoff){
  $('archiveStatus').textContent='Sonuç arşivi 2018’den başlar. Son kayıt '+(results[results.length-1]?.date||'—')+'. Skorlar varsa uzatmayı içerir. Seri penaltılar dahil değildir.'+
   (fixtureChecked?' Fikstür kapsamı UEFA Uluslar Ligi · '+fixtureChecked+' tarihli kayıt.':' Fikstür bilgisi alınamadı.');
- list($('archiveForm'),[a,b].map(team=>{
-  const form=summary(team,results,100);
-  return {t:team+' · uzun dönem formu',s:form.played+' maç · '+form.w+'G '+form.d+'B '+form.l+'M'};
- }));
+ renderMatchHistory([a,b],archiveHistoryRows(results,[],cutoff,nationalKey),nationalKey,
+  'Erkek A milli maçları · 2018’den itibaren. Skorlar seçili takımın açısından gösterilir.');
 }
 function setStep(p,s){$('bar').style.width=p+'%';$('step').textContent=s;$('resultJump').classList.toggle('hidden',p!==100)}
 function setStatus(s,c){$('status').textContent=s;$('status').className='badge '+c}
@@ -2012,7 +2091,7 @@ function render(R){const {a,b,results,fixtures,national}=R,A=summary(a,results),
  if(!national)renderTable(T,a,b);
  return Promise.all([renderForecast(N?N.home:a,N?N.away:b,forecastRows,N,R),renderPlayerGoals(R,cutoff),renderWorkload(R,cutoff)]);
 }
-async function analyze(){const btn=$('go');if(btn.disabled)return;scenarioController?.abort();$('err').classList.add('hidden');$('out').classList.add('hidden');const qa=$('a').value.trim(),qb=$('b').value.trim();if(qa.length<2||qb.length<2||qnorm(qa)===qnorm(qb)){$('errText').textContent='İki farklı takımın adını yaz.';$('err').classList.remove('hidden');setStatus('Motor hazır ✓','ok');setStep(0,'Takım adlarını kontrol et.');return}btn.disabled=true;try{setStatus('Analiz ediliyor…','warn');setStep(4,'Takımlar aranıyor…');const R=await resolve(qa,qb,$('nationalOnly').checked);setStep(75,'İstatistikler hesaplanıyor…');const [[forecast],archive]=await Promise.all([render(R),R.national?renderNationalArchive(R):renderArchive(R)]);renderArchiveModel(R,forecast,archive);setStep(100,'Analiz tamamlandı.');setStatus('Tamamlandı ✓','ok')}catch(e){console.error(e);$('errText').textContent=e.message||String(e);$('err').classList.remove('hidden');setStatus('Hata','bad');setStep(0,'Analiz tamamlanamadı.')}finally{btn.disabled=false}}
+async function analyze(){const btn=$('go');if(btn.disabled)return;scenarioController?.abort();$('err').classList.add('hidden');$('out').classList.add('hidden');const qa=$('a').value.trim(),qb=$('b').value.trim();if(qa.length<2||qb.length<2||qnorm(qa)===qnorm(qb)){$('errText').textContent='İki farklı takımın adını yaz.';$('err').classList.remove('hidden');setStatus('Motor hazır ✓','ok');setStep(0,'Takım adlarını kontrol et.');return}btn.disabled=true;try{setStatus('Analiz ediliyor…','warn');setStep(4,'Takımlar aranıyor…');const R=await resolve(qa,qb,$('nationalOnly').checked);setStep(75,'İstatistikler hesaplanıyor…');const cutoff=new Date().toISOString().slice(0,10);$('longForecast').replaceChildren();const [[forecast],archive]=await Promise.all([render(R),R.national?renderNationalArchive(R,cutoff):renderArchive(R,cutoff)]);renderArchiveModel(R,forecast,archive);renderLongHistoryForecast(R,archive||[],cutoff);setStep(100,'Analiz tamamlandı.');setStatus('Tamamlandı ✓','ok')}catch(e){console.error(e);$('errText').textContent=e.message||String(e);$('err').classList.remove('hidden');setStatus('Hata','bad');setStep(0,'Analiz tamamlanamadı.')}finally{btn.disabled=false}}
 function selfTest(){try{const t=csv('date,home,away,ft_home,ft_away\n2026-01-01,Besiktas,Galatasaray,1,0\n');if(t.length!==1||findTeam('Beşiktaş',t)!=='Besiktas')throw new Error('motor testi');setStatus('Motor hazır ✓','ok');setStep(0,'Motor hazır. İki takım yazıp butona bas.')}catch(e){setStatus('Motor hatası','bad');setStep(0,'Motor başlatılamadı: '+e.message)}}
 $('go').addEventListener('click',analyze);$('a').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});$('b').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('historyPanel').open){void refreshHistory();void renderAutoForecasts();}});$('historyPanel').addEventListener('toggle',()=>{if($('historyPanel').open){void renderLeagueAudit();void renderAutoForecasts();if(readHistory().rows.some(row=>!row.actual))void refreshHistory();}});window.addEventListener('error',e=>{setStatus('JavaScript hatası','bad');$('step').textContent=e.message});$('refreshHistory').addEventListener('click',refreshHistory);$('turkeyAudit').addEventListener('toggle',()=>{if($('turkeyAudit').open){void renderTurkeyAudit();void renderTurkeySignals();}});$('shotAudit').addEventListener('toggle',()=>{if($('shotAudit').open)void renderShotAudit();});
 $('lineupAudit').addEventListener('toggle',()=>{if($('lineupAudit').open)void renderLineupArchive();});

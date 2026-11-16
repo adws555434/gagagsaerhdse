@@ -76,6 +76,12 @@ Yeni bir maç için önce kadrolar açıklanmadan ana tahmin kaydedilir. Ardınd
 
 Tek kırmızı kart senaryosunda eksik takımın gol hızı ×0,72, rakibinki ×1,20 kabul edilir. İki takımın da birer oyuncu eksik olduğu durumda iki gol hızı ×0,90 kabul edilir. Bu katsayılar senaryo girdileridir.
 
+## Son 100 maç
+
+**Son 100 maç** paneli lig kapsamındaki sonuçları kronolojik birleştirir, aynı eşleşmenin yinelenen satırlarını atar ve takım başına 100 kayıtla sınırlar. Milli takımlarda 2018’den sonraki A milli maçları kullanılır. Altı kulüp liginde güncel sezon ile erişilebilen önceki üç sezon kullanılır. Diğer organizasyonlarda mevcut sonuç kaynağının kapsamı gösterilir. Süper Lig 2023/24 dosyası [openfootball Football.TXT](https://github.com/openfootball/europe/blob/master/turkey/2023-24_tr1.txt) arşivinin 380 tamamlanmış maçının JSON dönüşümüdür. Geçmiş sezonların kapsaması ekranda görülür.
+
+Süper Lig’de uzun dönem adayı, takım başına son 100’e kadar olan maçları kullanır. Yakın maçlar gol oranı tahmininde daha ağırlıklıdır. 2025/26 ve 2026/27 başında mevcut modelin tahmin verebildiği aynı 312 maçta, güncel model ve uzun dönem adayı sırasıyla 165 ve 170 maç sonucu, 36 ve 31 tam skor, 94 ve 94 ilk üç skor isabeti elde etti. Ortalama 1X2 log loss 0,9998’den 0,9836’ya indi. Her aday için yalnızca daha önceki tarihli skorlar kullanıldı. Bu tarihsel karşılaştırma sonrası uzun dönem adayı ayrı gösterilir.
+
 ## Yeniden üretim
 
 - `node tests/forecast-learning-test.cjs`

@@ -80,6 +80,9 @@ async function run(){
   assert.equal($('nationalOnly').checked,false);
   assert.equal(window.document.activeElement,$('go'));
   await submit('Beşiktaş','Galatasaray');
+  assert.equal($('archiveForm').querySelectorAll('section').length,2);
+  assert.match($('matchHistoryScope').textContent,/Süper Lig maçları/);
+  assert.match($('longForecast').textContent,/Uzun dönem tahmini · deneme/);
   assert.match($('forecast').querySelector('.score-value').textContent,/^\d+–\d+$/);
   assert.match($('forecast').querySelector('.score-winner').textContent,/kazanır|beraberlik/);
   const bars=[...$('forecast').querySelectorAll('.outcome-meter span')].map(node=>parseFloat(node.style.width));
@@ -158,6 +161,8 @@ async function run(){
    assert.match($('lineupAuditHistory').textContent,/Gerçek 2–0/);
   }
   await submit('Türkiye','Almanya',true);
+  assert.match($('matchHistoryScope').textContent,/Erkek A milli maçları/);
+  assert.equal($('longForecast').textContent,'');
   assert.equal($('balancedModel').textContent,'');
   assert.match($('learningModel').textContent,/yeterli isabetli şut kaydı/);
   if(!live){

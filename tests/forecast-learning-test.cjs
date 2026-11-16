@@ -4,7 +4,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const root=fs.existsSync(path.join(__dirname,'index.html'))?__dirname:path.resolve(__dirname,'..');
 const code=fs.readFileSync(path.join(root,'index.html'),'utf8').match(/<script>([\s\S]*?)<\/script>/)[1].split("$('go').addEventListener")[0];
-const model=new Function(code+';return {LEARNING_VERSION,learningDecision,shotEstimate,forecastSnapshot,shotCandidates,parseEvidence,evidenceForm,validLearningCandidates,workload,reliabilityBand,createLineupTrial,validLineupTrial,lineupArchiveEntries,settleHistory,candidateMetrics};')();
+const model=new Function(code+';return {LEARNING_VERSION,learningDecision,shotEstimate,forecastSnapshot,shotCandidates,parseEvidence,evidenceForm,validLearningCandidates,workload,reliabilityBand,createLineupTrial,validLineupTrial,lineupArchiveEntries,settleHistory,candidateMetrics,archiveRows,archiveHistoryRows,longHistory,longHistoryForecast,archiveName,canonicalClubRows};')();
 const {buildLeague,collectLedger}=require(root===__dirname?'./forecast-ledger.cjs':'../scripts/forecast-ledger.cjs');
 let n=0;
 function test(name,fn){fn();n++;console.log('PASS '+name);}
@@ -103,6 +103,24 @@ test('workload window and reliability use settled fixtures',()=>{
  assert.deepEqual(counts,{seven:1,fourteen:2,away:1,europe:1});
  const band=model.reliabilityBand([{probabilities:[.61,.2,.19],actual:[2,0]},{probabilities:[.62,.2,.18],actual:[0,0]},{probabilities:[.61,.2,.19]}],[.61,.2,.19]);
  assert.deepEqual(band,{n:2,hits:1,band:6});
+});
+test('100 match window uses dated scores, deduplicates aliases and prefers current source scores',()=>{
+ const archive=fs.readFileSync(path.join(root,'assets','super-lig-2023-24.json'),'utf8');
+ const parsed=model.archiveRows(archive,'2026-11-16');
+ assert.equal(parsed.rows.length,380);
+ assert.equal(model.longHistory('Beşiktaş',parsed.rows,model.archiveName).length,38);
+ const rows=Array.from({length:121},(_,i)=>({date:new Date(Date.parse('2026-01-01')+i*86400000).toISOString().slice(0,10),
+  home:'Beşiktaş',away:'Kasımpaşa SK',ft_home:1,ft_away:0}));
+ const replacement={...rows[119],home:'Besiktas',away:'Kasimpasa',ft_home:3};
+ const merged=model.archiveHistoryRows([replacement,{...rows[118],ft_home:null}],rows,rows[120].date,model.archiveName);
+ assert.equal(merged.length,120);
+ const span=model.longHistory('Besiktas',merged,model.archiveName);
+ assert.equal(span.length,100);
+ assert.equal(span[0].date,rows[20].date);
+ assert.equal(span.at(-1).ft_home,3);
+ const prediction=model.longHistoryForecast('besiktas','kasimpasa',model.canonicalClubRows(merged),{date:rows[120].date});
+ assert.deepEqual(prediction.counts,[100,100]);
+ assert.ok(Math.abs(prediction.probabilities.reduce((sum,p)=>sum+p,0)-1)<1e-6);
 });
 test('scheduled ledger deduplicates and settles, rejects unknown or late kickoffs',()=>{
  const now=new Date('2026-11-16T12:00:00Z');
