@@ -1,0 +1,175 @@
+{
+  "all": {
+    "n": 4719,
+    "hits": 2459,
+    "exact": 535,
+    "logLoss": 4732.206528650225,
+    "brier": 2824.0261668521734,
+    "baselineHits": 2073,
+    "baselineLogLoss": 5056.959433999905,
+    "baselineBrier": 3059.997380597825
+  },
+  "leagues": {
+    "tr.1": {
+      "coverage": [
+        {
+          "season": "2023-24",
+          "unavailable": true
+        },
+        {
+          "season": "2024-25",
+          "available": 338,
+          "scheduled": 342
+        },
+        {
+          "season": "2025-26",
+          "available": 90,
+          "scheduled": 306
+        }
+      ],
+      "n": 331,
+      "hits": 189,
+      "exact": 34,
+      "logLoss": 318.316277811398,
+      "brier": 187.30784858378394,
+      "baselineHits": 163,
+      "baselineLogLoss": 347.7284937492969,
+      "baselineBrier": 209.51260766502583
+    },
+    "en.1": {
+      "coverage": [
+        {
+          "season": "2023-24",
+          "available": 380,
+          "scheduled": 380
+        },
+        {
+          "season": "2024-25",
+          "available": 380,
+          "scheduled": 380
+        },
+        {
+          "season": "2025-26",
+          "available": 353,
+          "scheduled": 380
+        }
+      ],
+      "n": 957,
+      "hits": 503,
+      "exact": 95,
+      "logLoss": 958.0844154307736,
+      "brier": 571.5147650687123,
+      "baselineHits": 423,
+      "baselineLogLoss": 1024.0857873943642,
+      "baselineBrier": 619.8449385521003
+    },
+    "es.1": {
+      "coverage": [
+        {
+          "season": "2023-24",
+          "available": 380,
+          "scheduled": 380
+        },
+        {
+          "season": "2024-25",
+          "available": 370,
+          "scheduled": 380
+        },
+        {
+          "season": "2025-26",
+          "available": 365,
+          "scheduled": 380
+        }
+      ],
+      "n": 963,
+      "hits": 489,
+      "exact": 129,
+      "logLoss": 966.2700888096809,
+      "brier": 577.8199942149366,
+      "baselineHits": 446,
+      "baselineLogLoss": 1026.1025444491722,
+      "baselineBrier": 619.4175693600737
+    },
+    "de.1": {
+      "coverage": [
+        {
+          "season": "2023-24",
+          "available": 306,
+          "scheduled": 306
+        },
+        {
+          "season": "2024-25",
+          "available": 306,
+          "scheduled": 306
+        },
+        {
+          "season": "2025-26",
+          "available": 294,
+          "scheduled": 306
+        }
+      ],
+      "n": 769,
+      "hits": 393,
+      "exact": 71,
+      "logLoss": 786.5009420744634,
+      "brier": 469.74916143457597,
+      "baselineHits": 320,
+      "baselineLogLoss": 835.2448351960013,
+      "baselineBrier": 505.72208033302724
+    },
+    "it.1": {
+      "coverage": [
+        {
+          "season": "2023-24",
+          "available": 380,
+          "scheduled": 380
+        },
+        {
+          "season": "2024-25",
+          "available": 370,
+          "scheduled": 380
+        },
+        {
+          "season": "2025-26",
+          "available": 344,
+          "scheduled": 380
+        }
+      ],
+      "n": 940,
+      "hits": 501,
+      "exact": 131,
+      "logLoss": 933.1069947409363,
+      "brier": 556.5474369970713,
+      "baselineHits": 389,
+      "baselineLogLoss": 1013.1978492228972,
+      "baselineBrier": 614.4146218206239
+    },
+    "fr.1": {
+      "coverage": [
+        {
+          "season": "2023-24",
+          "available": 306,
+          "scheduled": 306
+        },
+        {
+          "season": "2024-25",
+          "available": 306,
+          "scheduled": 306
+        },
+        {
+          "season": "2025-26",
+          "available": 282,
+          "scheduled": 306
+        }
+      ],
+      "n": 759,
+      "hits": 384,
+      "exact": 75,
+      "logLoss": 769.9278097829698,
+      "brier": 461.08696055309593,
+      "baselineHits": 332,
+      "baselineLogLoss": 810.5999239881521,
+      "baselineBrier": 491.0855628669685
+    }
+  }
+}
