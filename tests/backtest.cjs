@@ -6,10 +6,12 @@ const assert = require('node:assert/strict');
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 const main = script.slice(0, script.indexOf("$('go').addEventListener"));
-const core = new Function(main + "return {archiveRows, estimateGoals, simulateScore, SIMULATIONS};")();
+const core = new Function(main + "return {archiveRows, estimateGoals, simulateScore};")();
 const codes = ['tr.1', 'en.1', 'es.1', 'de.1', 'it.1', 'fr.1'];
 const seasons = ['2023-24', '2024-25', '2025-26'];
 const root = process.argv[2] || path.join(__dirname, 'audit-data');
+const count = Number(process.argv[3] || 500000);
+assert.ok(Number.isSafeInteger(count) && count > 0, 'A positive simulation count is required');
 const cutoff = '2026-07-01';
 const order = ['home','draw','away'];
 
@@ -45,10 +47,10 @@ function evaluate(leagues) {
         assert.ok(history.every(row => row.date < match.date));
         const rates = core.estimateGoals(match.home, match.away, history);
         if (!rates) continue;
-        const sim = core.simulateScore(rates.homeGoals, rates.awayGoals);
+        const sim = core.simulateScore(rates.homeGoals, rates.awayGoals, count);
         const baseline = {home: 0, draw: 0, away: 0};
         for (const previous of history) baseline[matchOutcome(+previous.ft_home, +previous.ft_away)]++;
-        const forecasts = Object.fromEntries(order.map(key => [key, sim.outcomes[key] / core.SIMULATIONS]));
+        const forecasts = Object.fromEntries(order.map(key => [key, sim.outcomes[key] / count]));
         const naive = Object.fromEntries(order.map(key => [key, (baseline[key]+1)/(history.length+3)]));
         const truth = matchOutcome(+match.ft_home, +match.ft_away);
         const model = score(forecasts, truth), basic = score(naive, truth);
