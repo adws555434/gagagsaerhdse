@@ -8,7 +8,32 @@
 
 Yayındaki maç analizi ve gol senaryosu 100.000.000 deneme yapar. Hesap kısa parçalar halinde yürür ve ilerleme görünür. Yeni analiz başlatıldığında önceki gol senaryosu iptal edilir.
 
-Aşağıdaki tarihsel isabet oranları 100.000 ve 500.000 denemeli ölçümlere aittir. 100 milyon deneme, modelin tahmin başarısında kanıtlanmış bir artış olarak yorumlanmaz.
+### 100 milyon denemeli geçmiş maç denetimi
+
+Kulüp liglerinden sekizer maç (48) ve milli maçlardan tarih sırasına yayılmış 48 maç seçildi. Seçim puan veya gerçekleşen skor kullanılmadan, örneklemdeki sıralı konumlara göre yapıldı. Model yalnızca tahmin gününden önce tamamlanmış sonuçları gördü. 96 maçta toplam 9,6 milyar deneme yapıldı. [Maç bazında sayaçlar](tests/audit-100m/results.json).
+
+| Veri grubu | Maç sonucu | Tam skor |
+|---|---:|---:|
+| Kulüp, 100 milyon | 25/48 (%52,08) | 3/48 (%6,25) |
+| Milli, 100 milyon | 28/48 (%58,33) | 6/48 (%12,50) |
+| Toplam | 53/96 (%55,21) | 9/96 (%9,38) |
+
+Aynı 96 maç, 500 bin simülasyonda da aynı isabet sayılarını verdi. Poisson hesabıyla karşılaştırıldığında simülasyonun en büyük ev sahibi/beraberlik/deplasman farkı 0,0115 yüzde puandı. Bu örneklemde en olası skor ve maç sonucu seçimleri Poisson hesabıyla 96/96 aynı çıktı.
+
+| Tüm arşiv · doğrudan Poisson hesabı | Maç sonucu | Tam skor |
+|---|---:|---:|
+| 4.719 kulüp maçı | 2.459/4.719 (%52,11) | 535/4.719 (%11,34) |
+| 3.238 milli maç | 1.799/3.238 (%55,56) | 385/3.238 (%11,89) |
+
+Tam arşivde olasılıklar bağımsız Poisson dağılımından doğrudan hesaplandı. Her takım için 0–40 gol olasılıkları birleştirildi; yayındaki en yüksek gol beklentisi 6 olduğunda kesilen kuyruk ihmal edilebilir düzeydedir. 96 maçlık doğrudan simülasyon ölçümü ve 7.957 maçlık model ölçümü farklı testlerdir.
+
+Tekrar üretmek için [işlemci testi](tests/audit-100m/replay.c) aynı rastgele sayı dizisini, eşit skor sayılarındaki ilk görünme sırasını ve tarayıcının Poisson eşiklerini kullanır. [Denetim komutu](tests/audit-100m/audit.cjs) yayımdaki HTML’den model kodunu alır. Üç ayrı 100 milyonluk kontrol vakasında tarayıcı JavaScript kodu ile işlemci çıktısı birebir karşılaştırıldı. Aşağıdaki arşiv indirme adımlarını tamamladıktan sonra:
+
+```bash
+gcc -O3 -std=c11 -ffp-contract=off tests/audit-100m/replay.c -o /tmp/football-replay
+node tests/audit-100m/audit.cjs results.csv /tmp/football-replay audit-data
+```
+
 
 ## Özelliklerin durumu
 
@@ -63,7 +88,11 @@ Milli takım testi için [sabit kaynak CSV](https://raw.githubusercontent.com/ma
 
 Daha fazla simülasyon aynı modelin olasılık hesabındaki örnekleme farkını azaltır. Kulüp ve milli maç yüzdeleri farklı test gruplarına aittir.
 
-## Uygulama doğrulaması
+## Son uygulama denetimi · 100 milyonluk sürüm
+
+Bu denetimde Firefox ile canlı sitede 12, WebKit ile kontrollü veri ortamında 19 tarayıcı senaryosu geçti. Ayrıca 17 organizasyonun veri bağlantısı kontrol edildi. 14 organizasyonda örnek fikstür skor üretti. Üç UEFA kupası için örneklem yetersizliği doğrulandı. 17 arşiv dosyasının SHA-256 eşleşmesi, canlı HTML ve 404 içeriği kontrol edildi. Firefox ve WebKit sonuçları gerçek iPhone cihaz testini kapsamaz.
+
+## Önceki uygulama doğrulaması
 
 - Firefox ve WebKit'te 38 yerel otomatik senaryo. Motor açılışı, iki takım girişi, boş giriş, aynı takım, bilinmeyen takım, Türkçe karakter ve kısaltma, 320 px görünüm, tekrar üretim, önceki maç arşivi, çift kayıt ve ileri tarih filtresi, bozuk kaynak yedeği, eksik fikstür, yetersiz örneklem, internet kesilmesi, gol senaryosu, tarayıcı JavaScript hataları.
 - Canlı veriyle 17 kulüp organizasyonu kontrolü. 14'ünde skor simülasyonu, üçünde veri yetersizliği davranışı doğrulandı.
