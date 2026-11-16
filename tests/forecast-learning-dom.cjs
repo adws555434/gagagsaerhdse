@@ -17,7 +17,6 @@ consoleSink.on('jsdomError',e=>errors.push(e.message));
 consoleSink.on('error',e=>errors.push(String(e)));
 const max=60000;
 const live=Boolean(process.env.FOOTBALL_LIVE_TEST);
-const fullSimulations=Boolean(process.env.FOOTBALL_FULL_SIMULATIONS);
 const site='https://adws555434.github.io/gagagsaerhdse/';
 const stem='date,time,home,away,ft_home,ft_away,home_shots,away_shots,home_target,away_target,home_corners,away_corners,home_yellow,away_yellow,ht_home,ht_away,goal_minutes';
 const past=Array.from({length:35},(_,i)=>{
@@ -57,9 +56,11 @@ async function until(fn){
  }
 }
 async function run(){
- const app=live?await (await fetch(site)).text():fullSimulations?html:html.replace('const SIMULATIONS=100000000;','const SIMULATIONS=10000;');
+ const app=live?await (await fetch(site)).text():html;
  if(live)assert.match(app,/id="lineupAudit"/);
  const dom=new JSDOM(app,{url:site,runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:consoleSink,beforeParse(w){
+  w.TextEncoder=TextEncoder;
+  Object.defineProperty(w.crypto,'subtle',{value:globalThis.crypto.subtle});
   w.fetch=(url,options)=>live?fetch(new URL(url,site),{cache:options?.cache,signal:AbortSignal.timeout(12000)}):mock(String(url));
  }});
  const {window}=dom,$=id=>window.document.getElementById(id);
@@ -88,7 +89,7 @@ async function run(){
   const bars=[...$('forecast').querySelectorAll('.outcome-meter span')].map(node=>parseFloat(node.style.width));
   assert.equal(bars.length,3);
   assert.ok(Math.abs(bars.reduce((a,b)=>a+b,0)-100)<0.001);
-  assert.equal($('scoreGridContent').querySelectorAll('tbody tr').length,7);
+  assert.equal($('scoreGridContent').querySelectorAll('tbody tr').length,11);
   assert.ok($('scoreGridContent').querySelector('.score-peak'));
   assert.match($('balancedModel').textContent,/Dengeli model/);
   assert.match($('workload').textContent,/son 7 \/ 14 gün/);
@@ -99,6 +100,11 @@ async function run(){
   $('scenarioMinute').value='90';$('scenarioHome').value='2';$('scenarioAway').value='1';$('scenarioRed').value='away';$('scenarioRun').click();
   await until(()=>!$('scenarioRun').disabled);
   assert.match($('scenarioResult').textContent,/kırmızı kart varsayımı.*2–1 Besiktas kazanır/);
+  $('scenarioMinute').value='30';
+  $('scenarioRun').click();
+  $('scenarioCancel').click();
+  await until(()=>!$('scenarioRun').disabled);
+  assert.equal($('scenarioResult').textContent,'Senaryo iptal edildi.');
   $('historyLink').click();
   assert.equal($('historyPanel').open,true);
   await until(()=>$('leagueAudit').querySelectorAll('tbody tr').length===6);
@@ -139,6 +145,7 @@ async function run(){
    const storageKey='football-intelligence-forecasts-v1';
    const records=JSON.parse(window.localStorage.getItem(storageKey));
    assert.equal(records.length,1);assert.equal(records[0].candidates.length,4);
+   assert.match(records[0].dataSha256,/^[a-f0-9]{64}$/);assert.equal(records[0].simulationCount,100000);
    $('saveLineupTrial').click();
    assert.match($('lineupTrialStatus').textContent,/ilk tahminden sonraki yayın saati/);
    const publishedAt=new Date(Date.now()-60_000).toISOString();
@@ -182,6 +189,8 @@ async function run(){
    window.localStorage.removeItem('football-intelligence-forecasts-v1');
    await submit('Beşiktaş','Galatasaray');
    assert.match($('quality').textContent,/tarayıcı kopyası/);
+   assert.match($('forecastNote').textContent,/Veri yetersiz/);
+   assert.equal($('forecast').children.length,0);
    assert.equal(window.localStorage.getItem('football-intelligence-forecasts-v1'),null);
    window.localStorage.setItem(key,JSON.stringify({...snapshot,at:Date.now()-8*86400000}));
    const expired=await window.loadFolder(folder);

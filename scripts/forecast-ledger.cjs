@@ -1,10 +1,11 @@
 'use strict';
 const fs=require('node:fs');
 const path=require('node:path');
+const {createHash}=require('node:crypto');
 const root=fs.existsSync(path.join(__dirname,'index.html'))?__dirname:path.resolve(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const core=html.match(/<script>([\s\S]*?)<\/script>/)[1].split("$('go').addEventListener")[0];
-const model=new Function(core+';return {BASES,NATIONAL_RESULTS,NATIONAL_MIRROR,LEAGUES,ARCHIVE_LEAGUES,MODEL_VERSION,LEARNING_VERSION,parseClubFeed,cleanRows,knownKickoff,rowKey,estimateGoals,forecastModel,shotEstimate,shotCandidates,settleHistory,validForecastRecord,nationalRows,nationalFixtures};')();
+const model=new Function(core+';return {BASES,NATIONAL_RESULTS,NATIONAL_MIRROR,LEAGUES,ARCHIVE_LEAGUES,MODEL_VERSION,ENGINE_VERSION,LEARNING_VERSION,parseClubFeed,cleanRows,knownKickoff,rowKey,estimateGoals,forecastModel,shotEstimate,shotCandidates,settleHistory,validForecastRecord,nationalRows,nationalFixtures,forecastInputPayload,prepareForecastDistribution,forecastDecision};')();
 const ledgerPath=path.join(root,'forecast-ledger.json');
 const competitions=model.LEAGUES.filter(([folder])=>model.ARCHIVE_LEAGUES[folder]);
 const nationalCompetition=['national','Erkek A milli takımları'];
@@ -62,8 +63,12 @@ function buildLeague(saved,folder,league,results,fixtures,now){
   const rates=[forecast.rates.homeGoals,forecast.rates.awayGoals];
   const shots=national?null:model.shotEstimate(fixture.home,fixture.away,eligible,neutral,today);
   const candidates=model.shotCandidates(rates,shots);
+  const decision=model.forecastDecision(model.prepareForecastDistribution(...rates));
+  const inputs=model.forecastInputPayload(eligible,fixture.home,fixture.away,fixture,folder,today);
+  const dataSha256=createHash('sha256').update(inputs).digest('hex');
   updated.push({id,scope:folder,league,date:fixture.date,home:fixture.home,away:fixture.away,savedAt:now.getTime(),kickoff,
-   model:forecast.name+' · '+model.MODEL_VERSION,...candidates[0],rates,candidates,learningVersion:model.LEARNING_VERSION,actual:null});
+   model:forecast.name+' · '+model.MODEL_VERSION,...candidates[0],rates,candidates,learningVersion:model.LEARNING_VERSION,
+   modelVersion:model.MODEL_VERSION,engineVersion:model.ENGINE_VERSION,dataSha256,simulationCount:0,consistentScore:decision.score[0],actual:null});
   known.add(id);
  }
  return updated;

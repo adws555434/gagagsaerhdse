@@ -1,0 +1,23 @@
+name: Forecast integrity
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - scripts/forecast-ledger.cjs
+      - tests/phase0-forecast-test.cjs
+      - tests/forecast-learning-test.cjs
+      - .github/workflows/forecast-integrity.yml
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tests/phase0-forecast-test.cjs
+      - run: node tests/forecast-learning-test.cjs

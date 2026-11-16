@@ -1,0 +1,101 @@
+{
+  "engineVersion": "2026.11-phase-0",
+  "modelVersion": "2026.11-club-balance",
+  "seed": 260127,
+  "browserTrials": 100000,
+  "validationTrials": 1000000,
+  "tolerance": 0.0025,
+  "validationInputSha256": "d03cac4526f6bfc11b7b4ff8ac214c2c8a7a6ea74f3f213b455e4eef481d8671",
+  "cases": [
+    {
+      "name": "Poisson",
+      "tail": 4.191123838506569e-43,
+      "outcomeDelta": 0.0005268251705415339,
+      "scoreDelta": 0.0005560070145367996,
+      "sameOutcome": true,
+      "sameScore": true,
+      "sameTop3": true,
+      "analyticScore": "1–0",
+      "simulatedScore": "1–0"
+    },
+    {
+      "name": "Dixon–Coles",
+      "tail": 1.5980952332138204e-41,
+      "outcomeDelta": 0.00020492238789449058,
+      "scoreDelta": 0.00023678146064939898,
+      "sameOutcome": true,
+      "sameScore": true,
+      "sameTop3": true,
+      "analyticScore": "2–1",
+      "simulatedScore": "2–1"
+    },
+    {
+      "name": "Belirsizlikli Dixon–Coles",
+      "tail": 4.5841447726312955e-33,
+      "outcomeDelta": 0.0004763428541398884,
+      "scoreDelta": 0.00040904318292483977,
+      "sameOutcome": true,
+      "sameScore": true,
+      "sameTop3": true,
+      "analyticScore": "2–0",
+      "simulatedScore": "2–0"
+    },
+    {
+      "name": "Nötr ve eşit güç",
+      "tail": 6.702732470459241e-41,
+      "outcomeDelta": 0.00028241714588506106,
+      "scoreDelta": 0.0003668924450773575,
+      "sameOutcome": false,
+      "sameScore": false,
+      "sameTop3": true,
+      "analyticScore": "1–0",
+      "simulatedScore": "0–1"
+    },
+    {
+      "name": "Sıfır gol beklentisi",
+      "tail": 0,
+      "outcomeDelta": 0,
+      "scoreDelta": 0,
+      "sameOutcome": true,
+      "sameScore": true,
+      "sameTop3": true,
+      "analyticScore": "0–0",
+      "simulatedScore": "0–0"
+    },
+    {
+      "name": "Çok düşük gol beklentisi",
+      "tail": 8.40407204433017e-238,
+      "outcomeDelta": 0.000003000414278709616,
+      "scoreDelta": 0.0000030006285611858258,
+      "sameOutcome": true,
+      "sameScore": true,
+      "sameTop3": true,
+      "analyticScore": "0–0",
+      "simulatedScore": "0–0"
+    },
+    {
+      "name": "Çok yüksek gol beklentisi",
+      "tail": 3.478425960023353e-31,
+      "outcomeDelta": 0.00021397572546077992,
+      "scoreDelta": 0.000023056637876777526,
+      "sameOutcome": true,
+      "sameScore": false,
+      "sameTop3": false,
+      "analyticScore": "100–85",
+      "simulatedScore": "98–85"
+    },
+    {
+      "name": "Kalan süre ve mevcut skor",
+      "tail": 5.497677325448879e-54,
+      "outcomeDelta": 0.00023103254231876535,
+      "scoreDelta": 0.0005010314201602806,
+      "sameOutcome": true,
+      "sameScore": true,
+      "sameTop3": true,
+      "analyticScore": "1–2",
+      "simulatedScore": "1–2"
+    }
+  ],
+  "elapsedMs": 1297,
+  "independentSettled": 0
+}
