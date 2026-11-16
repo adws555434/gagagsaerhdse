@@ -1,0 +1,34 @@
+name: Football forecast ledger
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/forecast-ledger.yml'
+      - 'scripts/forecast-ledger.cjs'
+  schedule:
+    - cron: '17 6,12,18 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: football-forecast-ledger
+  cancel-in-progress: false
+jobs:
+  forecasts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/forecast-ledger.cjs
+      - name: Save pre-match forecasts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add forecast-ledger.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Record pre-match forecasts and settle results"
+          git pull --rebase origin main
+          git push origin HEAD:main
