@@ -13,6 +13,8 @@ on:
       - 'tests/phase2-*.cjs'
       - tests/phase2-inputs.json
       - tests/phase2-archive-inputs.json
+      - tests/phase2-timing-inputs.json
+      - .github/workflows/market-history.yml
       - phase2-market-report.json
       - scripts/market-snapshot.cjs
       - .github/workflows/market-snapshot.yml
@@ -33,3 +35,4 @@ jobs:
       - run: node tests/phase1-backtest.cjs --self-test
       - run: node tests/phase2-backtest.cjs --self-test
       - run: node tests/phase2-market-test.cjs
+      - run: node tests/phase2-timing-test.cjs

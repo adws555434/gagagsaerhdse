@@ -141,6 +141,8 @@ async function run(){
   assert.match($('marketAuditStatus').textContent,/ortak Pinnacle kapanış kaydı/);
   assert.equal($('marketAuditBlend').querySelectorAll('tbody tr').length,3);
   assert.equal($('marketAuditTiming').querySelectorAll('tbody tr').length,3);
+  assert.equal($('marketAuditTimed').querySelectorAll('tbody tr').length,3);
+  assert.match($('marketTimedCoverage').textContent,/48 saat ve üzeri/);
   assert.ok($('marketAuditTiers').querySelectorAll('tbody tr').length>=8);
   assert.equal($('marketAuditTotals').querySelectorAll('tbody tr').length,3);
   assert.equal($('marketResearchAttribution').hidden,false);

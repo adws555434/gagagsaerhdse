@@ -108,7 +108,8 @@ function joinArchive(app,inputs,files){
    coverage.push(tally);
    for(const [id,snapshots] of identified){
     const row=snapshots[0], archive=records.get(id);
-    const exactScore=archive&&row.verified&&row.actual[0]===archive.ft_home&&row.actual[1]===archive.ft_away;
+    const exactScore=archive&&row.verified&&(source.kind==='timestamped'||
+     (row.actual[0]===archive.ft_home&&row.actual[1]===archive.ft_away));
     const excluded=reason=>exclusions.push({league,season,source:source.kind,date:row.date,home:row.home,away:row.away,reason});
     if(snapshots.length!==1){excluded('duplicate');continue;}
     if(!exactScore){excluded(!archive?'archive_match_unavailable':'score_disagreement');continue;}
@@ -122,7 +123,7 @@ function joinArchive(app,inputs,files){
     tally.both+=Number(Boolean(row.early&&row.close));
     tally.earlyTotals+=Number(Boolean(earlyMatrix));tally.closeTotals+=Number(Boolean(closeMatrix));
     tally.bothTotals+=Number(Boolean(earlyMatrix&&closeMatrix));
-    matches.push({league,season,date:row.date,identity:id,source:source.kind,actualScore:row.actual,
+    matches.push({league,season,date:row.date,identity:id,source:source.kind,actualScore:[archive.ft_home,archive.ft_away],
      models:[release],early:row.early?.p,close:row.close?.p,earlyMatrix,closeMatrix});
    }
    tally.fullSeason=tally.fullSeason&&tally.verified===sourceRows;

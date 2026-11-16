@@ -470,6 +470,9 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       <div id="marketAuditBlend" class="tablewrap"></div>
       <h4>Erken oran ve kapanış · aynı maçlar</h4>
       <div id="marketAuditTiming" class="tablewrap"></div>
+      <h4>Zamanı doğrulanan ilk fiyat ve kapanış</h4>
+      <p id="marketTimedCoverage" class="muted tiny"></p>
+      <div id="marketAuditTimed" class="tablewrap"></div>
       <h4>Alt/üst destekli skor matrisi</h4>
       <div id="marketAuditTotals" class="tablewrap"></div>
       <h4>Piyasa ve harmanın güven kademeleri</h4>
@@ -2284,6 +2287,10 @@ async function renderMarketAudit(){
   const extension=report.extension?.[select.value];
   table('marketAuditBlend',extension?.earlyBlend);
   table('marketAuditTiming',extension?.timing);
+  const timed=report.timingRows?.[select.value];
+  table('marketAuditTimed',timed?.all);
+  $('marketTimedCoverage').textContent=timed?.bands.map(({from,to,models})=>
+   (to==null?from+' saat ve üzeri':from+'–'+to+' saat')+' · '+(models?.[0]?.n??0)+' maç').join(' | ')??'Saat bilgisi bağlı değil.';
   table('marketAuditTotals',extension?.totals??extension?.closingResearch);
   $('marketResearchAttribution').hidden=Boolean(extension?.totals)||!extension?.closingResearch;
   const tiers=extension?.tiers??[];
@@ -2292,7 +2299,7 @@ async function renderMarketAudit(){
    accuracyLabel(tier.coverage.hits,tier.coverage.n),accuracyLabel(tier.accuracy.hits,tier.accuracy.n)]));
   $('marketAuditTiers').replaceChildren(dataTable(['Model','Kademe','Kapsam','1X2 isabeti'],tierRows));
   status.textContent=(rows?.closing?.[0]?.n??0)+' ortak Pinnacle kapanış kaydı. Alt/üst karşılaştırması ayrı örneklemde. '+
-   'Arşivlerde oranların maç başına yayın zamanı yok. Canlı ana tahmin yayın modeli.'+
+   'Yayın zamanı doğrulanan ilk fiyatlar ayrı tabloda. Canlı ana tahmin yayın modeli.'+
    (!extension?.totals&&extension?.closingResearch?' Alt/üst tablosu kısa, ticari olmayan araştırma örnekleminden.':'');
  }catch{status.textContent='Piyasa test raporu yüklenemedi.';}
 }

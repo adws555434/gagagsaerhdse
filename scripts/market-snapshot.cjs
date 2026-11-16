@@ -127,5 +127,5 @@ async function run(){
  console.log(JSON.stringify({state:snapshot.state,events:snapshot.events.length,capturedAt:snapshot.capturedAt}));
 }
 
-module.exports={buildSnapshot,summarizeEvent};
+module.exports={buildSnapshot,summarizeEvent,SPORTS};
 if(require.main===module)run().catch(error=>{console.error(error.message);process.exitCode=1;});

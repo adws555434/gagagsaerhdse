@@ -7,12 +7,12 @@
 | Açılış ve kapanış 1X2 karşılaştırması | **Çalışıyor.** Aynı maçlarda kaynak ve zaman gruplarına göre karşılaştırıldı. |
 | Tarihsel 2,5 alt/üst | **Kısmi.** Dört ligin tam 2025/26 kaynak dosyaları ve Premier League’in 2026/27 kısmi kaydı alındı. Süper Lig ve Ligue 1 için kısa kapanış araştırma örneği var. |
 | Oranlardan skor matrisi ve beklenen gol farkı | **Çalışıyor.** Tarihsel 1X2 + 2,5 alt/üst ile ölçüldü. Ortak örneklemde yayın modelinin tam skoru ve ilk üç skoru da hesaplandı. |
-| Maç başına oran yayın saati | **Bağlı değil.** Kaynakların verdiği açılış/ilk ve kapanış etiketleri kullanıldı. Geçmişte belirli bir saat önce görülen fiyatların testi çalıştırılmadı. |
+| Maç başına oran yayın saati | **Kısmi.** İlk fiyatın saati bir alt örneklemde doğrulandı. Başlangıca yakın tarihsel saat dilimleri ve kapanışın dakika damgası eksik. |
 | Lig bazında erken harman ve güven kademeleri | **Çalışıyor.** Ağırlık her ay öncesi lig içindeki verilerle öğrenildi. Tarihsel test ve güven kademeleri yayımlandı. |
 | Altı ligde üç tam sezon ve bağımsız maç önü ölçümü | **Kısmi.** Ortak tam sezon sayısı 0. Sonuçlanmış bağımsız harman karşılaştırması 0/500. Çok sezonlu yayın koşulu sağlanmadı. |
 | Güncel oran API’si ve varsayılan tahmin | **Kısmi.** Canlı sağlayıcı testi çalıştırılmadı. Ana kart hangi modelin kullanıldığını gösteriyor. Yayın modeli varsayılan. |
 
-Skor ve değerlendirme sürümü `2026.11-phase-2-archive`. Yayın modeli `2026.11-club-balance`. Birleşik veri SHA-256 `79e0fd21c251737958a89432e28e0b1497d4d23ec87f778715b7a137d266c85f`. Analitik tahmin başına 0 çekiliş. 2.000 lig–sezon katmanlı haftalık eşleştirilmiş bootstrap. Ham oran tabloları yerine özetler yayımlanır.
+Skor ve değerlendirme sürümü `2026.11-phase-2-archive`. Yayın modeli `2026.11-club-balance`. Birleşik veri SHA-256 `ed20e601d25dbde785a093473853ec2953080c2e662d522e93973ed394ecf0ab`. Analitik tahmin başına 0 çekiliş. 2.000 lig–sezon katmanlı haftalık eşleştirilmiş bootstrap. Ham oran tabloları yerine özetler yayımlanır.
 
 ### Kaynak ve kullanım koşulları
 
@@ -148,6 +148,45 @@ node tests/phase2-backtest.cjs /veri/arsiv /veri/tips.csv /veri/cikti /veri/tff-
 ```
 
 [Ham karşılaştırmalar, lig/sezon aralıkları ve aylık ağırlıklar](tests/phase2-results.json)
+
+### Ek doğrulama · İlk fiyat saati ve üç sezonluk veri alımı
+
+**Zaman damgalı ilk fiyat testi çalışıyor.** TipsAudit’in sabit maç önü kayıtları, CSV’deki maç kimliği, kayıt özeti ve başlama saatiyle eşleştirildi. İlk Pinnacle fiyatı daha sonra doldurulmuşsa doldurma zamanı kullanıldı. Eksik fiyatın doldurulma zamanının tutulmadığı dönemden 182 maç bu incelemeye alınmadı. 186 maçta en erken doğrulanmış fiyatla kapanış karşılaştırıldı. Hepsinde ilk fiyat başlama saatinden en az 48 saat önceydi. 1–6, 6–24 ve 24–48 saat aralığındaki eşleşme sayıları sırasıyla 0, 0, 0. Yakın saatli geçmiş erken fiyat testi **çalıştırılmadı**. Arşivin kapanış fiyatı satır bazında ayrı bir yayın zamanı taşımıyor. [TipsAudit açıklaması](https://tipsaudit.com/about) · [Sabit girdiler](tests/phase2-timing-inputs.json)
+
+| Örneklem | Model | Log loss | RPS | 1X2 ve %95 aralık |
+|---|---|---:|---:|---|
+| Altı lig | Yayın modeli | 0,94165 | 0,20449 | 107/186 · %57,53 [%50,34–%64,41] |
+| Altı lig | Zaman damgalı erken 1X2 | 0,91388 | 0,19554 | 116/186 · %62,37 [%55,22–%69,01] |
+| Altı lig | Kapanış 1X2 | 0,90764 | 0,19337 | 116/186 · %62,37 [%55,22–%69,01] |
+| Süper Lig | Yayın modeli | 0,84336 | 0,18616 | 18/25 · %72,00 [%52,42–%85,72] |
+| Süper Lig | Zaman damgalı erken 1X2 | 0,83378 | 0,18042 | 17/25 · %68,00 [%48,41–%82,79] |
+| Süper Lig | Kapanış 1X2 | 0,76218 | 0,15828 | 18/25 · %72,00 [%52,42–%85,72] |
+
+Kapanış eksi ilk fiyat log loss farkının eşleştirilmiş %95 aralığı altı ligde -0,02093 ile 0,00865, Süper Lig’de -0,09809 ile -0,04290. Süper Lig sonucu bu dar zaman örneğine ait. Canlıda akış yine maçtan saatler önceki son görüntüye daha yakın.
+
+**Üç sezonluk sorgu planı çalışıyor.** [Football Charts](https://www.football-charts.com/dataset) CC BY 4.0 fikstür kopyasından aynı lig ve UTC başlama saatindeki maçlar gruplandı. Grup başına iki isteğin hedefi maçtan 6 saat ve 1 dakika önce. Sunucu hedef an veya öncesindeki en yakın görüntüyü döndürür. 1 dakika hedefi, son gerçekleşen kapanış fiyatı için yaklaşık bir ölçümdür. Sorgu planı 6.288 fikstür satırı, 4.657 zaman grubu, 9.314 çağrı ve bir bölge ile iki piyasa için en çok 186.280 kredi hesapladı. Bunlar plan değerleri. Fiilî kapsama, tablo kaynaklarının ek play-off kayıtları ve fiyat eksikleri nedeniyle ayrı ölçülecek. Bundesliga ile Ligue 1 planında kaynak fazladan fikstür barındırabilir. [The Odds API teknik tanımı](https://the-odds-api.com/historical-odds-data/)
+
+| Lig | Fikstür satırı | Çağrı | Kredi tavanı |
+|---|---:|---:|---:|
+| Süper Lig | 1.028 | 1.476 | 29.520 |
+| Premier League | 1.140 | 1.358 | 27.160 |
+| La Liga | 1.140 | 2.092 | 41.840 |
+| Bundesliga | 919 | 1.066 | 21.320 |
+| Serie A | 1.140 | 1.948 | 38.960 |
+| Ligue 1 | 921 | 1.374 | 27.480 |
+
+The Odds API [kullanım koşulları](https://the-odds-api.com/terms-and-conditions.html) model eğitimine ve türetilmiş sonuçların gösterilmesine izin veriyor. Tek aylık alım karşılaştırmasında plan tavanı 20K ve 100K paketlerini aşıyor. Sağlayıcı [5M paketi](https://the-odds-api.com/) aylık 119 USD listeliyor. Gerçek kredi tüketimi sonuç içeriğine bağlı. [Football Charts satış şartları](https://www.football-charts.com/terms) türetilmiş modelleri kullanıcıya bırakıyor ve ham veri yayımını sınırlıyor. Bununla birlikte arşiv [La Liga için alt/üst yakalama eksiği](https://www.football-charts.com/data) belirtiyor. [Betfair Basic](https://historicdata.betfair.com/ExchangeHistoricalStore/) ücretsiz bir aday, ancak bu proje için altı ligde 2,5 alt/üst kapsamı ve türetilen sonuçların açık uygulamada kullanım izni doğrulanmadı. Ücretsiz ve uygun lisanslı üç tam sezonluk ortak fiyat arşivi hâlâ **bağlı değil**.
+
+**Lisanslı alım iş akışı kısmi.** Sağlayıcının iki açık örnek görüntüsü gerçekten indirildi ve tarih, maç başlangıcı ve fiyat güncelliği denetiminden geçti. Premier League 20/20, Bundesliga 18/18 1X2 kaydı kabul edildi. Örneklerde toplam 0 alt/üst kaydı var. Ücretli API çağrısı **çalıştırılmadı**. Akış elle başlatılır, anahtarını GitHub Actions secret’ından alır ve kredi tavanında durur. Sonraki çağrı numarasından sürdürülebilir. Yayın dalına ham yanıt veya arşiv anahtarı yazılmaz. Çıktı, zaman damgası ve SHA-256 ile türetilen olasılıklardan oluşur. Otomatik varsayılan model değişikliği yapılmadı.
+
+```sh
+node tests/phase2-timing-test.cjs
+node tests/phase2-fetch-history.cjs plan /veri/girdi /veri/plan.json
+node tests/phase2-fetch-history.cjs samples /veri/girdi /veri/ornek.json
+node tests/phase2-backtest.cjs /veri/arsiv /veri/tips.csv /veri/cikti /veri/tff-results.json /veri/forecast-ledger.json /veri/ek-oran /veri/yakalama/*.json
+```
+
+Alım GitHub’da [Historical market capture](https://github.com/adws555434/gagagsaerhdse/actions/workflows/market-history.yml) üzerinden bir lig ve sezon seçilerek başlatılır. Oluşan dosyalar backtest komutuna verilir. Raporun bu ölçümdeki birleşik girdi SHA-256 değeri `ed20e601d25dbde785a093473853ec2953080c2e662d522e93973ed394ecf0ab`. Bağımsız sonuçlanmış piyasa harmanı 0/500. Faz 2 tamamlanmış sayılmadı.
 
 ## Faz 2 · İlk piyasa sürümü
 

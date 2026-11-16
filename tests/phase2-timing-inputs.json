@@ -1,0 +1,18 @@
+{
+  "tipsTrack": {
+    "file": "tips-record.json",
+    "url": "https://raw.githubusercontent.com/tipsaudit/track-record-public/a34f89771caa7cb6462e3bc769c767afcff58aba/data/latest.json",
+    "sha256": "7b8fdddbfd739144c0a4dda063784d7b9fad7d4640aea5a1d6f83dbd0ed25ea9",
+    "attribution": "TipsAudit (tipsaudit.com), CC BY 4.0"
+  },
+  "fixtures": {
+    "file": "fixtures.csv",
+    "url": "https://zenodo.org/records/23348754/files/football_charts_matches.csv?download=1",
+    "sha256": "08d1a0863d703550fe6e7fb1ef9faed4ea3cea95c664012373b1a1e1f159be10",
+    "attribution": "Data by football-charts.com, CC BY 4.0"
+  },
+  "samples": [
+    {"file":"epl.json","scope":"ENG_1_premier-league","url":"https://public-odds-api-sample-data.s3.amazonaws.com/historical-epl.json","sha256":"3154e5e1500263ae15af55c0f802e9fdb1127eea6d5829a7091289653b62b4dc"},
+    {"file":"bundesliga.json","scope":"GER_1_bundesliga","url":"https://public-odds-api-sample-data.s3.amazonaws.com/historical-bundesliga.json","sha256":"e02b2f9b2f3ce643de7e03a8ee8c1e458553ddebfb40a8d681cad936c2c74c04"}
+  ]
+}

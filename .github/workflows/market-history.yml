@@ -1,0 +1,65 @@
+name: Historical market capture
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: League to capture
+        required: true
+        type: choice
+        options:
+          - TUR_1_super-lig
+          - ENG_1_premier-league
+          - ESP_1_la-liga
+          - GER_1_bundesliga
+          - ITA_1_serie-a
+          - FRA_1_ligue-1
+      season:
+        description: Completed season
+        required: true
+        type: choice
+        options:
+          - 2023-2024
+          - 2024-2025
+          - 2025-2026
+      offset:
+        description: Request number at which to resume
+        required: true
+        default: '0'
+        type: string
+      credit_limit:
+        description: Credit ceiling for this run
+        required: true
+        default: '200'
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: football-market-history
+  cancel-in-progress: false
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tests/phase2-timing-test.cjs
+      - name: Capture licensed historical snapshots
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          HISTORICAL_CREDIT_LIMIT: ${{ inputs.credit_limit }}
+          CAPTURE_SCOPE: ${{ inputs.scope }}
+          CAPTURE_SEASON: ${{ inputs.season }}
+          CAPTURE_OFFSET: ${{ inputs.offset }}
+        run: |
+          node tests/phase2-fetch-history.cjs capture "${RUNNER_TEMP}/market-inputs" "${RUNNER_TEMP}/market-history/capture.json" "$CAPTURE_SCOPE" "$CAPTURE_SEASON" "$CAPTURE_OFFSET"
+      - name: Upload derived historical probabilities
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-history-${{ inputs.scope }}-${{ inputs.season }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/market-history/capture.json
+          if-no-files-found: ignore
+          retention-days: 5

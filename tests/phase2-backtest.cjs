@@ -6,6 +6,7 @@ const assert = require('node:assert/strict');
 const { createHash } = require('node:crypto');
 const core = require('./phase1-backtest.cjs');
 const archive = require('./phase2-archive.cjs');
+const timing = require('./phase2-timing.cjs');
 const root = fs.existsSync(path.join(__dirname, 'index.html')) ? __dirname : path.resolve(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const code = html.match(/<script>([\s\S]*?)<\/script>/)[1].split("$('go').addEventListener")[0];
@@ -33,7 +34,7 @@ const join = (date, home, away) => [date,app.marketTeamKey(home),app.marketTeamK
 function parseClosing(text) {
  const fields = ['home','draw','away'];
  const price = (row,type) => fields.map(kind => Number(row['pin_'+type+'_'+kind]));
- const required = ['id','kickoff_utc','country','league','home','away','result','void_reason','teams_reversed_after_logging',
+ const required = ['id','kickoff_utc','country','league','home','away','result','void_reason','teams_reversed_after_logging','record_hash',
   ...fields.map(x => 'pin_close_'+x),...fields.map(x => 'pin_open_'+x)];
  const rows = app.checkedCsv(text,required);
  const byLeague = new Map();
@@ -47,7 +48,7 @@ function parseClosing(text) {
    row.teams_reversed_after_logging!=='0' ? 'orientation' : null;
   const close = price(row,'close'),open = price(row,'open');
   const snapshot = {league,date,home:row.home,away:row.away,
-   actual:outcome(row.result),reason,close,open,kickoff};
+   actual:outcome(row.result),reason,close,open,kickoff,id:row.id,recordHash:row.record_hash};
   const entries = byLeague.get(league)??new Map();
   const key = join(date,row.home,row.away);
   const old = entries.get(key);
@@ -165,7 +166,7 @@ function assemble(inputs, market) {
    source.matched++;
    const open=app.marketDevig(found.open);
    if(open)source.openPair++;
-   matches.push({league,season,date,actualScore,models,proportional,power,open,overround:found.close.reduce((s,x)=>s+1/x,0)-1});
+   matches.push({league,season,date,actualScore,models,proportional,power,open,quote:found,overround:found.close.reduce((s,x)=>s+1/x,0)-1});
   }
   for(const [key,row] of book)if(!covered.has(key)){
    source.unmatchedClosingRows++;
@@ -194,16 +195,20 @@ function promotionCheck(rows,completeSeasons,independent){
 function analyzeArchive(old,newData,independent){
  const all=new Map();
  const latest={};
- const consensusLeagues=new Set(newData.matches.filter(x=>x.source==='consensus').map(x=>x.league));
+ const modelSources=new Set(['consensus','timestamped']);
+ const timestamped=new Set(newData.matches.filter(x=>x.source==='timestamped'&&x.early&&x.close).map(x=>[x.league,x.season,x.identity].join('|')));
+ const preferred=row=>row.source==='timestamped'||!timestamped.has([row.league,row.season,row.identity].join('|'));
+ const sourceMatches=newData.matches.filter(row=>modelSources.has(row.source)&&preferred(row));
+ const consensusLeagues=new Set(sourceMatches.map(x=>x.league));
  const tips=old.filter(row=>row.open).map(row=>({...row,source:'tips',early:row.open,close:row.power}));
- const joined=[...newData.matches.filter(row=>row.source==='consensus'&&row.early&&row.close),
+ const joined=[...sourceMatches.filter(row=>row.early&&row.close),
   ...tips.filter(row=>!consensusLeagues.has(row.league))];
  const inherited=(row,p)=>app.marketScoreDistribution(row.models[0],p);
  const timingFor=rows=>rows.map(row=>pairedRow(row,[row.models[0],inherited(row,row.early),inherited(row,row.close)]));
  const totalsFor=(rows,includeEarly)=>rows.filter(row=>row.closeMatrix&&(!includeEarly||row.earlyMatrix)).map(row=>
   pairedRow(row,includeEarly?[row.models[0],inherited(row,row.early),row.earlyMatrix,inherited(row,row.close),row.closeMatrix]:
    [row.models[0],inherited(row,row.close),row.closeMatrix]));
- const consensusTotals=newData.matches.filter(row=>row.source==='consensus');
+ const consensusTotals=sourceMatches;
  const researchTotals=newData.matches.filter(row=>row.source==='oddsintel');
  const blendRows=[];
  const weights={};
@@ -227,6 +232,10 @@ function analyzeArchive(old,newData,independent){
   const totals=totalsFor(ofLeague(consensusTotals),true);
   const closingResearch=totalsFor(ofLeague(researchTotals),false);
   const bySeason=core.groupBy(newData.coverage.filter(row=>row.fullSeason),row=>row.season);
+  const timedFull=core.groupBy(newData.coverage.filter(row=>row.fullSeason&&row.source==='timestamped'),row=>row.season);
+  const completeTimedSeasons=new Set([...timedFull].filter(([,rows])=>league==='all'?
+   Object.keys(core.leagueNames).every(code=>rows.some(row=>row.league===code)):
+   rows.some(row=>row.league===league)).map(([name])=>name));
   const completeSeasons=new Set(Array.from(bySeason).filter(([,coverage])=>league==='all'?
    Object.keys(core.leagueNames).every(code=>coverage.some(row=>row.league===code)):
    coverage.some(row=>row.league===league)).map(([name])=>name));
@@ -240,9 +249,29 @@ function analyzeArchive(old,newData,independent){
    tiers:[timingStats?.[1],timingStats?.[2],blendStats?.[2]].filter(Boolean).map(({name,tiers})=>({name,tiers})),
    seasonResults:Object.fromEntries(Array.from(core.groupBy(experiments,row=>row.season),([season,rows])=>
     [season,namedStats(rows,['Yayın modeli','Erken piyasa','Erken harman · Lig ağırlığı'])])),
-   gate:promotionCheck(experiments,completeSeasons,league==='all'?independent?.blendSettled??0:independent?.blendByScope?.[league]??0)});
+   gate:{...promotionCheck(experiments,completeSeasons,
+    league==='all'?independent?.blendSettled??0:independent?.blendByScope?.[league]??0),
+     fullArchiveSeasons:completeSeasons.size,fullTimedSeasons:completeTimedSeasons.size}});
  }
  return {leagues:Object.fromEntries(all),latest,weights};
+}
+
+function timedResults(matches,track){
+ if(!track)return null;
+ const linked=timing.attachTrackTimes(matches,track.predictions);
+ const resultFor=rows=>{
+  const records=rows.map(row=>pairedRow(row,[row.models[0],app.marketScoreDistribution(row.models[0],row.open),
+   app.marketScoreDistribution(row.models[0],row.power)]));
+  return {rows:records.length,models:namedStats(records,['Yayın modeli','Zaman damgalı erken 1X2','Kapanış 1X2']),
+   closingVersusEarly:paired(records,2,1)?.logLoss??null};
+ };
+ const bands=[[1,6],[6,24],[24,48],[48,Infinity]];
+ const byLeague=Object.fromEntries(['all',...Object.keys(core.leagueNames)].map(league=>{
+  const rows=linked.rows.filter(row=>league==='all'||row.league===league);
+  return [league,{all:resultFor(rows),bands:bands.map(([from,to])=>({from,to:Number.isFinite(to)?to:null,
+   ...resultFor(rows.filter(row=>row.leadHours>=from&&row.leadHours<to))}))}];
+ }));
+ return {source:timing.manifest.tipsTrack,timedMatched:linked.rows.length,excluded:linked.excluded,byLeague};
 }
 
 function ledgerStatus(file){
@@ -322,8 +351,8 @@ function selfTest(){
 async function run(){
  selfTest();
  if(process.argv.includes('--self-test'))return;
- const [dataDir,marketFile,outputDir,tffFile,ledgerFile,extraDir]=process.argv.slice(2);
- if(!outputDir)throw Error('Kullanım: node tests/phase2-backtest.cjs ARŞİV_DİZİNİ ORAN_CSV ÇIKTI_DİZİNİ [TFF_JSON] [LEDGER_JSON] [EK_ORAN_DİZİNİ]');
+ const [dataDir,marketFile,outputDir,tffFile,ledgerFile,extraDir,...licensedFiles]=process.argv.slice(2);
+ if(!outputDir)throw Error('Kullanım: node tests/phase2-backtest.cjs ARŞİV_DİZİNİ ORAN_CSV ÇIKTI_DİZİNİ [TFF_JSON] [LEDGER_JSON] [EK_ORAN_DİZİNİ] [ZAMAN_DAMGALI_ORAN_JSON]');
  const bytes=fs.readFileSync(marketFile);
  assert.equal(sha(bytes),manifest.sha256,'Oran kaynağının SHA-256 değeri değişti');
  let inputs=await core.loadInputs(dataDir,false);
@@ -346,11 +375,16 @@ async function run(){
   return {...row,metrics:[evalOdds(row.open),evalOdds(row.power)]};
  });
  const independent=ledgerStatus(ledgerFile);
- const extra=archive.joinArchive(app,inputs,await archive.loadOdds(app,extraDir));
+ const extended=await archive.loadOdds(app,extraDir);
+ const licensed=licensedFiles.map(file=>fs.readFileSync(file));
+ if(licensed.length)extended.push(timing.licensedOdds(app,licensed.flatMap(bytes=>JSON.parse(bytes).snapshots)));
+ const extra=archive.joinArchive(app,inputs,extended);
+ const track=extraDir?JSON.parse((await timing.pinnedInput(extraDir,timing.manifest.tipsTrack)).toString('utf8')):null;
+ const timed=timedResults(matches,track);
  const extension=analyzeArchive(matches,extra,independent);
  const report={version:app.MARKET_VERSION,scoreVersion:app.MARKET_SCORE_VERSION,baseModel:app.MODEL_VERSION,engine:app.ENGINE_VERSION,source:manifest,
-  dataSha256:sha(JSON.stringify([...inputs.flatMap(x=>[x.sha256,...(x.archiveSha256?[x.archiveSha256]:[])]),manifest.sha256,...(extraDir?archive.manifest.map(file=>file.sha256):[])])),
-  historySnapshotEnd:core.snapshotEnd,predictionTrials:0,bootstrapDraws:draws,seed,weightStep:1/scale,minWeightTraining,
+  dataSha256:sha(JSON.stringify([...inputs.flatMap(x=>[x.sha256,...(x.archiveSha256?[x.archiveSha256]:[])]),manifest.sha256,...(extraDir?[...archive.manifest.map(file=>file.sha256),timing.manifest.tipsTrack.sha256]:[]),...licensed.map(sha)])),
+  licensedSnapshotHashes:licensed.map(sha),historySnapshotEnd:core.snapshotEnd,predictionTrials:0,bootstrapDraws:draws,seed,weightStep:1/scale,minWeightTraining,
   publicationTimeAuditedPerClosingQuote:false,closingTotals:extraDir?'partial':null,archiveCoverage:extra.coverage,archiveSources:extraDir?archive.manifest:[],independent,defaultChanged:false,
   cutoff:'2026-11-16',leagueLabels:core.leagueNames,counts,weights:Object.fromEntries(weights),
   experimentalWeights:{byLeague:extension.latest,preMatch:learnWeight(matches,'open','2026-11-16'),closing:learnWeight(matches,'power','2026-11-16')},
@@ -358,13 +392,16 @@ async function run(){
   openVsClose:{n:openClose.length,openLogLoss:mean(openClose.map(x=>x.metrics[0][0])),
    closingLogLoss:mean(openClose.map(x=>x.metrics[1][0])),openRps:mean(openClose.map(x=>x.metrics[0][1])),
    closingRps:mean(openClose.map(x=>x.metrics[1][1])),paired:paired(openClose,1)},
-  extension,meanPinnacleOverround:mean(matches.map(x=>x.overround))};
+  extension,timed,meanPinnacleOverround:mean(matches.map(x=>x.overround))};
  const compact=rows=>rows?.map(({versusRelease,versusProportional,tiers,...row})=>row)??null;
  const publicExtension=Object.fromEntries(Object.entries(extension.leagues).map(([key,value])=>[key,{
   timing:compact(value.timing),totals:compact(value.totals),closingResearch:compact(value.closingResearch),
   earlyBlend:compact(value.earlyBlend),tiers:value.tiers
  }]));
- const written={version:report.version,scoreVersion:report.scoreVersion,dataSha256:report.dataSha256,cutoff:report.cutoff,source:report.source,leagueLabels:report.leagueLabels,
+ const timingRows=timed?Object.fromEntries(Object.entries(timed.byLeague).map(([key,rows])=>[key,{
+  all:compact(rows.all.models),bands:rows.bands.map(({from,to,models})=>({from,to,models:compact(models)}))
+ }])):null;
+ const written={version:report.version,timingRows,scoreVersion:report.scoreVersion,dataSha256:report.dataSha256,cutoff:report.cutoff,source:report.source,leagueLabels:report.leagueLabels,
   experimentalWeights:report.experimentalWeights,extension:publicExtension,closing:compact(report.closing),blend:compact(report.blend),
   leagues:Object.fromEntries(Object.entries(groups).map(([k,v])=>[k,{closing:compact(v.closing),blend:compact(v.blend)}]))};
  fs.mkdirSync(outputDir,{recursive:true});
@@ -375,5 +412,7 @@ async function run(){
   n:openClose.length,open:report.openVsClose.openLogLoss,close:report.openVsClose.closingLogLoss
  },archiveCoverage:extra.coverage,extensionWeights:extension.latest,unmatchedSamples:missing.filter(x=>x.reason==='archive_match_unavailable').slice(0,50)},null,2));
 }
+
+module.exports={app,promotionCheck};
 
 if(require.main===module)run().catch(error=>{console.error(error);process.exitCode=1;});
