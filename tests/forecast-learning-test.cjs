@@ -5,7 +5,7 @@ const path=require('node:path');
 const root=fs.existsSync(path.join(__dirname,'index.html'))?__dirname:path.resolve(__dirname,'..');
 const code=fs.readFileSync(path.join(root,'index.html'),'utf8').match(/<script>([\s\S]*?)<\/script>/)[1].split("$('go').addEventListener")[0];
 const model=new Function(code+';return {LEARNING_VERSION,learningDecision,shotEstimate,forecastSnapshot,shotCandidates,parseEvidence,evidenceForm,validLearningCandidates,workload,reliabilityBand,createLineupTrial,validLineupTrial,lineupArchiveEntries,settleHistory,candidateMetrics};')();
-const {buildLeague}=require(root===__dirname?'./forecast-ledger.cjs':'../scripts/forecast-ledger.cjs');
+const {buildLeague,collectLedger}=require(root===__dirname?'./forecast-ledger.cjs':'../scripts/forecast-ledger.cjs');
 let n=0;
 function test(name,fn){fn();n++;console.log('PASS '+name);}
 const scope='TUR_1_super-lig',stamp='2026-09-01T00:00:00Z',asOf='2026-11-16';
@@ -117,4 +117,35 @@ test('scheduled ledger deduplicates and settles, rejects unknown or late kickoff
  const settled=buildLeague(rows,scope,'Süper Lig',result,fixtures,new Date('2026-11-17T12:00:00Z'));
  assert.deepEqual(settled[0].actual,[2,0]);assert.equal(settled[0].savedAt,rows[0].savedAt);
 });
-console.log(n+' checks passed');
+async function testSources(){
+ const now=new Date('2026-11-16T12:00:00Z');
+ const upcoming={date:'2026-11-16',time:'18:00',home:'Besiktas',away:'Galatasaray'};
+ const prior=buildLeague([],scope,'Süper Lig',history,[upcoming],now);
+ const scores='date,home,away,ft_home,ft_away\n2026-11-16,Besiktas,Galatasaray,2,0';
+ const next=new Date('2026-11-17T12:00:00Z');
+ const fallback=async url=>{
+  if(!url.includes(scope)||!url.endsWith('results_2627.csv'))return {ok:false,status:503};
+  if(url.includes('raw.githubusercontent.com'))return {ok:true,text:async()=>'<html>broken</html>'};
+  return {ok:true,text:async()=>scores};
+ };
+ const snapshot=await collectLedger(prior,{clock:()=>next,fetchSource:fallback});
+ assert.equal(snapshot.coverage,1);
+ assert.equal(snapshot.feeds.length,7);
+ assert.equal(snapshot.feeds.find(row=>row.scope===scope).results,'mirror');
+ assert.equal(snapshot.feeds.find(row=>row.scope===scope).fixtures,'unavailable');
+ assert.deepEqual(snapshot.records[0].actual,[2,0]);
+ assert.equal(snapshot.records[0].savedAt,prior[0].savedAt);
+ assert.equal(prior[0].actual,null);
+ await assert.rejects(collectLedger(prior,{clock:()=>next,fetchSource:async()=>({ok:false,status:503})}),/Existing ledger preserved/);
+ n++;console.log('PASS malformed primary falls back, fixture outage still settles results, total outage preserves the prior ledger');
+ const fixture={date:'2026-11-17',time:'18:00',zone:'UTC',home:'Türkiye',away:'Almanya',neutral:true};
+ const nationalRows=history.map(row=>({...row,home:row.home==='Besiktas'?'Türkiye':'Almanya',away:row.away==='Besiktas'?'Türkiye':'Almanya'}));
+ const national=buildLeague([],'national','Erkek A milli takımları',nationalRows,[fixture,{...fixture,time:'24:00'}],next);
+ assert.equal(national.length,1);
+ assert.equal(national[0].kickoff,Date.parse('2026-11-17T18:00:00Z'));
+ assert.equal(national[0].candidates.length,1);
+ assert.match(national[0].model,/Rakip gücüne göre Poisson/);
+ n++;console.log('PASS national forecasts use UTC, reject invalid fixture time and use the national model');
+ console.log(n+' checks passed');
+}
+testSources().catch(error=>{console.error(error);process.exitCode=1});

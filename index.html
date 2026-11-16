@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="referrer" content="no-referrer">
-<meta name="app-version" content="2026.11-match-dashboard">
+<meta name="app-version" content="2026.11-data-resilience">
 <meta name="theme-color" content="#0c1013">
 <title>Football Intelligence — Maç analizi</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&amp;family=Instrument+Sans:wght@400..700&amp;display=swap">
@@ -462,6 +462,7 @@ const LEAGUES=[
 const ARCHIVE_BASE='https://raw.githubusercontent.com/openfootball/football.json/master/';
 const NATIONAL_ARCHIVE='https://github.com/martj42/international_results';
 const NATIONAL_RESULTS='https://raw.githubusercontent.com/martj42/international_results/master/results.csv';
+const NATIONAL_MIRROR='https://cdn.jsdelivr.net/gh/martj42/international_results@master/results.csv';
 const NATIONAL_START='2018-01-01';
 const ARCHIVE_LEAGUES={
  'TUR_1_super-lig':'tr.1','ENG_1_premier-league':'en.1','ESP_1_la-liga':'es.1','GER_1_bundesliga':'de.1',
@@ -470,7 +471,10 @@ const ARCHIVE_LEAGUES={
 const aliases={bjk:'besiktas',besiktasjk:'besiktas',gs:'galatasaray',galatasaraysk:'galatasaray',fb:'fenerbahce',fenerbahcesk:'fenerbahce',ts:'trabzonspor',moldefk:'molde',fkbodoglimt:'bodoglimt'};
 const norwayNames=new Map([['molde','Molde FK'],['bodoglimt','Bodø/Glimt']]);
 const cache=new Map();
+const requests=new Map();
 const CACHE_TTL=5*60*1000;
+const FEED_CACHE_TTL=7*24*60*60*1000;
+const FEED_CACHE_PREFIX='football-verified-feed-v1:';
 function norm(s){return String(s||'').toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i').replace(/ø/g,'o').replace(/æ/g,'ae').replace(/[^a-z0-9]/g,'')}
 function qnorm(s){let n=norm(s);return aliases[n]||n}
 const nationalNames=new Map();
@@ -1003,33 +1007,78 @@ async function renderForecast(home,away,results,fixture,contextData){
 async function getText(url){
  const stored=cache.get(url);
  if(stored&&Date.now()-stored.at<CACHE_TTL)return stored.text;
- const controller=new AbortController();
- const timer=setTimeout(()=>controller.abort(),6000);
- try{
-  const response=await fetch(url,{signal:controller.signal,cache:'no-store'});
-  if(!response.ok)throw new Error('HTTP '+response.status);
-  const text=await response.text();
-  cache.set(url,{text,at:Date.now()});
-  return text;
- }finally{clearTimeout(timer)}
+ if(requests.has(url))return requests.get(url);
+ const fetchText=async()=>{
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),6000);
+  try{
+   const response=await fetch(url,{signal:controller.signal,cache:'no-store'});
+   if(!response.ok)throw new Error('HTTP '+response.status);
+   const text=await response.text();
+   cache.set(url,{text,at:Date.now()});
+   return text;
+  }finally{clearTimeout(timer)}
+ };
+ const pending=fetchText().finally(()=>requests.delete(url));
+ requests.set(url,pending);
+ return pending;
 }
 function checkedCsv(text,required){
  const headers=text.replace(/^\uFEFF/,'').split(/\r?\n/,1)[0].split(',');
  if(!required.every(key=>headers.includes(key)))throw new Error('Beklenen veri başlıkları eksik.');
  return csv(text);
 }
-async function loadFeed(folder,file,headers){
+async function sourceFeed(key,urls,parse){
  let lastError;
- for(const base of BASES){
-  try{return checkedCsv(await getText(base+folder+'/'+file),headers)}
-  catch(error){lastError=error}
+ for(const [index,url] of urls.entries()){
+  try{
+   const rows=parse(await getText(url));
+   const at=cache.get(url).at;
+   try{
+    const snapshot=JSON.stringify({at,rows});
+    if(snapshot.length<=1_600_000)window.localStorage.setItem(FEED_CACHE_PREFIX+key,snapshot);
+   }catch{/* Storage may be disabled or full. */}
+   return {rows,at,state:index?'mirror':'live'};
+  }catch(error){cache.delete(url);lastError=error}
  }
+ try{
+  const item=JSON.parse(window.localStorage.getItem(FEED_CACHE_PREFIX+key)||'null');
+  if(Array.isArray(item?.rows)&&Number.isFinite(item.at)&&item.at<=Date.now()&&Date.now()-item.at<=FEED_CACHE_TTL){
+   return {...item,state:'cached'};
+  }
+ }catch{/* Ignore unreadable snapshots. */}
  throw lastError;
+}
+function parseClubFeed(text,file,headers){
+ const rows=checkedCsv(text,headers);
+ const results=file.startsWith('results_');
+ if(results&&!rows.length)throw Error('Kaynakta tamamlanan maç sonucu yok.');
+ if(rows.length&&!rows.some(row=>validDate(row.date)&&norm(row.home)&&norm(row.away)&&norm(row.home)!==norm(row.away)&&(!results||validScore(row)))){
+  throw Error('Kaynakta geçerli maç satırı yok.');
+ }
+ return rows;
+}
+function clubFeed(folder,file,headers){
+ return sourceFeed(folder+'/'+file,BASES.map(base=>base+folder+'/'+file),text=>parseClubFeed(text,file,headers));
+}
+async function loadFeed(folder,file,headers){return (await clubFeed(folder,file,headers)).rows;}
+function nationalFeed(){
+ const today=new Date().toISOString().slice(0,10);
+ return sourceFeed('national/results',[NATIONAL_RESULTS,NATIONAL_MIRROR],text=>{
+  const rows=nationalRows(text,today);
+  if(!rows.length)throw Error('Milli takım kaynağında geçerli sonuç yok.');
+  return rows;
+ });
+}
+function feedNotice(feed){
+ if(feed?.state==='cached')return 'Son doğrulanmış tarayıcı kopyası · '+new Date(feed.at).toLocaleString('tr-TR');
+ if(feed?.state==='mirror')return 'Yedek veri bağlantısı';
+ return '';
 }
 async function loadFolder(folder){
  const [scores,scheduled]=await Promise.allSettled([
-  loadFeed(folder,'results_2627.csv',['date','home','away','ft_home','ft_away']),
-  loadFeed(folder,'fixtures_2627.csv',['date','home','away'])
+  clubFeed(folder,'results_2627.csv',['date','home','away','ft_home','ft_away']),
+  clubFeed(folder,'fixtures_2627.csv',['date','home','away'])
  ]);
  if(scores.status==='rejected'&&scheduled.status==='rejected')throw scores.reason;
  const now=new Date(),today=now.toISOString().slice(0,10);
@@ -1037,10 +1086,12 @@ async function loadFolder(folder){
   if(folder!=='NOR_1_eliteserien')return row;
   return {...row,home:norwayNames.get(qnorm(row.home))??row.home,away:norwayNames.get(qnorm(row.away))??row.away};
  };
- const results=cleanRows((scores.value||[]).map(displayNames),today,true);
+ const results=cleanRows((scores.value?.rows||[]).map(displayNames),today,true);
  const played=new Set(results.map(rowKey));
- const fixtures=cleanRows((scheduled.value||[]).map(displayNames),today,false).filter(row=>!played.has(rowKey(row))&&upcomingFixture(row,now));
- return {results,fixtures,partial:scores.status==='rejected'||scheduled.status==='rejected'};
+ const fixtures=cleanRows((scheduled.value?.rows||[]).map(displayNames),today,false).filter(row=>!played.has(rowKey(row))&&upcomingFixture(row,now));
+ return {results,fixtures,partial:scores.status==='rejected'||scheduled.status==='rejected',
+  cached:scores.value?.state==='cached'||scheduled.value?.state==='cached',
+  feedStatus:[['Sonuçlar',scores.value],['Fikstür',scheduled.value]].flatMap(([label,feed])=>feedNotice(feed)?[label+' · '+feedNotice(feed)]:[])};
 }
 const clubKeyAliases={
  brightonhovealbion:'brighton',wolverhamptonwanderers:'wolves',tottenhamhotspur:'spurs',newcastleunited:'newcastle',
@@ -1091,7 +1142,7 @@ function nationalFixtures(text,now){
  return {fixtures:cleanRows(rows,now.toISOString().slice(0,10),false),checked:data.checked,source:data.source};
 }
 function knownKickoff(fixture){
- if(!fixture||!/^\d{2}:\d{2}$/.test(fixture.time))return null;
+ if(!fixture||!validDate(fixture.date)||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(fixture.time))return null;
  const stamp=Date.parse(fixture.date+'T'+fixture.time+':00'+(fixture.zone==='UTC'?'Z':'+01:00'));
  return Number.isFinite(stamp)?stamp:null;
 }
@@ -1229,7 +1280,7 @@ function saveForecast(fixture,data,probabilities,scores,modelName,candidates,rat
  const scope=historyScope(data),now=new Date();
  const rows=settleHistory(storage.rows,scope,data.results);
  const id=fixture&&scope+'|'+rowKey(fixture);
- const future=fixture&&(knownKickoff(fixture)!=null?upcomingFixture(fixture,now):fixture.date>now.toISOString().slice(0,10));
+ const future=!data.cached&&fixture&&(knownKickoff(fixture)!=null?upcomingFixture(fixture,now):fixture.date>now.toISOString().slice(0,10));
  if(future&&!rows.some(row=>row.id===id)){
   rows.unshift({id,scope,league:data.league,date:fixture.date,home:fixture.home,away:fixture.away,
    savedAt:now.getTime(),kickoff:knownKickoff(fixture)??Date.parse(fixture.date+'T00:00:00Z'),model:modelName+' · '+MODEL_VERSION,probabilities,scores,rates,actual:null,learningVersion:LEARNING_VERSION,candidates});
@@ -1248,7 +1299,7 @@ async function refreshHistory(){
   const updates=new Map();
   for(const scope of scopes){
    try{
-    const rows=scope==='national'?nationalRows(await getText(NATIONAL_RESULTS),new Date().toISOString().slice(0,10)):
+    const rows=scope==='national'?(await nationalFeed()).rows:
      (await loadFolder(scope)).results;
     if(!rows.length)failed++;
     updates.set(scope,rows);
@@ -1263,10 +1314,10 @@ async function refreshHistory(){
 }
 async function resolveNational(qa,qb){
  setStep(25,'Milli takım verileri okunuyor…');
- const [scores,scheduled]=await Promise.allSettled([getText(NATIONAL_RESULTS),getText('./nations-fixtures.json')]);
+ const [scores,scheduled]=await Promise.allSettled([nationalFeed(),getText('./nations-fixtures.json')]);
  if(scores.status==='rejected')throw new Error('Milli takım sonuç arşivine şu anda ulaşılamıyor.');
  const now=new Date();
- const results=nationalRows(scores.value,now.toISOString().slice(0,10));
+ const results=scores.value.rows;
  let schedule={fixtures:[]};
  if(scheduled.status==='fulfilled'){
   try{schedule=nationalFixtures(scheduled.value,now)}catch(error){console.warn(error.message)}
@@ -1275,7 +1326,8 @@ async function resolveNational(qa,qb){
  const fixtures=schedule.fixtures.filter(row=>!played.has(rowKey(row)));
  const teams=new Map([...results,...fixtures].flatMap(row=>[row.home,row.away]).map(name=>[nationalKey(name),name]));
  const a=teams.get(nationalKey(qa)),b=teams.get(nationalKey(qb));
- if(a&&b&&a!==b)return {results,fixtures,a,b,league:'Erkek A milli takımları',national:true,fixtureSource:schedule.source,fixtureChecked:schedule.checked};
+ if(a&&b&&a!==b)return {results,fixtures,a,b,league:'Erkek A milli takımları',national:true,fixtureSource:schedule.source,fixtureChecked:schedule.checked,
+  cached:scores.value.state==='cached',partial:!schedule.checked,feedStatus:[feedNotice(scores.value)].filter(Boolean)};
  return null;
 }
 async function renderArchive({folder,a,b,results}){
@@ -1887,18 +1939,32 @@ async function renderShotAudit(){
  }catch{status.textContent='İsabetli şut testi şu anda yüklenemedi.';}
 }
 let publicForecastRecords=[];
+const PUBLIC_LEDGER_URLS=[
+ 'https://raw.githubusercontent.com/adws555434/gagagsaerhdse/main/forecast-ledger.json',
+ 'https://cdn.jsdelivr.net/gh/adws555434/gagagsaerhdse@main/forecast-ledger.json',
+ './forecast-ledger.json'
+];
+function parsePublicLedger(text){
+ const ledger=JSON.parse(text);
+ if(!Array.isArray(ledger?.records)||!Number.isFinite(Date.parse(ledger.checked))||!ledger.records.every(validForecastRecord))throw Error('Invalid ledger');
+ if(ledger.feeds!==undefined&&(!Array.isArray(ledger.feeds)||!ledger.feeds.every(feed=>feed&&typeof feed.scope==='string'&&
+  ['live','mirror','unavailable'].includes(feed.results)&&['live','mirror','local','unavailable'].includes(feed.fixtures))))throw Error('Invalid feed status');
+ return ledger;
+}
 async function renderAutoForecasts(){
  const status=$('autoForecastStatus');
  const output=$('autoForecastList');
  try{
-  const ledgerUrl='https://raw.githubusercontent.com/adws555434/gagagsaerhdse/main/forecast-ledger.json';
-  const {checked,records}=JSON.parse(await getText(ledgerUrl).catch(()=>getText('./forecast-ledger.json')));
-  if(!Array.isArray(records)||!Number.isFinite(Date.parse(checked)))throw Error('Invalid ledger');
-  publicForecastRecords=records.filter(validForecastRecord);
+  const loaded=await Promise.allSettled(PUBLIC_LEDGER_URLS.map(async url=>parsePublicLedger(await getText(url))));
+  const ledger=loaded.flatMap(item=>item.status==='fulfilled'?[item.value]:[]).sort((a,b)=>Date.parse(b.checked)-Date.parse(a.checked))[0];
+  if(!ledger)throw Error('Invalid ledger');
+  const {checked,records,feeds}=ledger;
+  publicForecastRecords=records;
   const totals=historyMetrics(publicForecastRecords);
   const report=totals.n?' · Sonuçlanan '+totals.n+' · Maç sonucu '+probabilityLabel(totals.result/totals.n)+
    ' · Tam skor '+probabilityLabel(totals.score/totals.n)+' · İlk üç skor '+probabilityLabel(totals.top3/totals.n):' · Sonuçlanan kayıt henüz yok';
-  status.textContent='Son güncelleme '+new Date(checked).toLocaleString('tr-TR')+' · '+publicForecastRecords.length+' maç önü kaydı'+report+'.';
+  const complete=Array.isArray(feeds)?' · '+feeds.filter(feed=>feed.results!=='unavailable'&&feed.fixtures!=='unavailable').length+'/'+feeds.length+' veri kapsamı tam':'';
+  status.textContent='Son güncelleme '+new Date(checked).toLocaleString('tr-TR')+complete+' · '+publicForecastRecords.length+' maç önü kaydı'+report+'.';
   list(output,publicForecastRecords.slice().sort((a,b)=>b.savedAt-a.savedAt).slice(0,12).map(row=>({
    t:row.date+' · '+row.home+' — '+row.away,
    s:describeScore(row.scores[0],row.home,row.away)+' · '+(row.actual?'Gerçek '+row.actual.join('–'):'Sonuç bekleniyor')+' · '+row.league
@@ -1919,6 +1985,7 @@ function render(R){const {a,b,results,fixtures,national}=R,A=summary(a,results),
   fixtureLink.style.color='inherit';
   $('source').append(' · ',fixtureLink);
  }
+ if(R.feedStatus?.length)$('source').append(' · '+R.feedStatus.join(' · '));
  const today=new Date().toISOString().slice(0,10);
  const cutoff=N&&N.date<today?N.date:today;
  $('workload').textContent='';
@@ -1930,7 +1997,7 @@ function render(R){const {a,b,results,fixtures,national}=R,A=summary(a,results),
  const requestedRows=results.filter(row=>[row.home,row.away].some(team=>team===a||team===b));
  const total=requestedRows.length*qualityFields.length;
  const covered=requestedRows.reduce((sum,row)=>sum+qualityFields.filter(key=>num(row[key])!=null).length,0);
- $('quality').textContent=(national?'2018’den bu yana · ':'Bu sezon · ')+results.length+(national?' milli maç sonucu · ':' lig/kupa sonucu · ')+fixtures.length+' fikstür kaydı · Seçili takım maçlarında şut, korner ve sarı kart alanları '+(national?'sağlanmıyor':total?('%'+Math.round(100*covered/total)+' dolu'):'yok')+'.'+(R.partial?' Veri kaynağının bir bölümüne ulaşılamadı.':'');
+ $('quality').textContent=(national?'2018’den bu yana · ':'Bu sezon · ')+results.length+(national?' milli maç sonucu · ':' lig/kupa sonucu · ')+fixtures.length+' fikstür kaydı · Seçili takım maçlarında şut, korner ve sarı kart alanları '+(national?'sağlanmıyor':total?('%'+Math.round(100*covered/total)+' dolu'):'yok')+'.'+(R.partial?' Veri kaynağının bir bölümüne ulaşılamadı.':'')+(R.cached?' Son doğrulanmış tarayıcı kopyası kullanıldı. Bu analiz tahmin geçmişine eklenmez.':'');
  const m=$('metrics');m.textContent='';m.append(metric(a+' form',A.w+'G '+A.d+'B '+A.l+'M','PPM '+fmt(A.ppm)),metric(b+' form',B.w+'G '+B.d+'B '+B.l+'M','PPM '+fmt(B.ppm)));
  if(!national)m.append(metric('Lig sırası',(P1||'—')+' / '+(P2||'—'),a+' / '+b));
  m.append(metric('Gol / maç',fmt(A.played?A.gfpm:null)+' / '+fmt(B.played?B.gfpm:null),a+' / '+b));

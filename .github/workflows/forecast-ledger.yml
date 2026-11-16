@@ -5,8 +5,9 @@ on:
     paths:
       - '.github/workflows/forecast-ledger.yml'
       - 'scripts/forecast-ledger.cjs'
+      - 'tests/forecast-learning-test.cjs'
   schedule:
-    - cron: '17 6,12,18 * * *'
+    - cron: '17 0,6,12,18 * * *'
   workflow_dispatch:
 permissions:
   contents: write
@@ -22,6 +23,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: node tests/forecast-learning-test.cjs
       - run: node scripts/forecast-ledger.cjs
       - name: Save pre-match forecasts
         run: |

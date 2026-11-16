@@ -28,7 +28,10 @@ const fixDate='2098-12-01';
 const fixture='date,time,home,away\n'+fixDate+',19:00,Besiktas,Galatasaray';
 const archive=JSON.stringify({matches:Array.from({length:6},(_,i)=>({date:'2025-11-0'+(i+1),team1:'Beşiktaş',team2:'Galatasaray',score:[i%3,0]}))});
 const response=(text,ok=true)=>({ok,status:ok?200:404,text:async()=>text});
+let feedMode='primary';
+const feedCalls=new Map();
 async function mock(url){
+ feedCalls.set(url,(feedCalls.get(url)||0)+1);
  if(url.includes('lineup-samples.json'))return response(lineupArchive);
  if(url.includes('super-lig-data/results'))return response(JSON.stringify(signalAudit));
  if(url.includes('super-lig-research/results'))return response(JSON.stringify(turkeyReport));
@@ -42,6 +45,8 @@ async function mock(url){
  }
  if(url.includes('football.json'))return response(archive);
  if(!url.includes('TUR_1_super-lig'))return response('',false);
+ if(feedMode==='offline')return response('',false);
+ if(feedMode==='mirror'&&url.includes('cdn.jsdelivr.net'))return response('date,home,away,ft_home,ft_away\nnot-a-date,A,B,0,0');
  return response(url.includes('fixtures')?fixture:[stem,...past].join('\n'));
 }
 async function until(fn){
@@ -155,8 +160,34 @@ async function run(){
   await submit('Türkiye','Almanya',true);
   assert.equal($('balancedModel').textContent,'');
   assert.match($('learningModel').textContent,/yeterli isabetli şut kaydı/);
+  if(!live){
+   const nationalCache=JSON.parse(window.localStorage.getItem('football-verified-feed-v1:national/results'));
+   assert.equal(nationalCache.rows.length,14);
+   const folder='TUR_1_super-lig';
+   const clearNetworkCache=()=>window.eval('cache.clear()');
+   const key='football-verified-feed-v1:'+folder+'/results_2627.csv';
+   const snapshot=JSON.parse(window.localStorage.getItem(key));
+   assert.equal(snapshot.rows.length,35);
+   clearNetworkCache();
+   feedMode='mirror';
+   await submit('Beşiktaş','Galatasaray');
+   assert.match($('source').textContent,/Yedek veri bağlantısı/);
+   clearNetworkCache();
+   feedMode='offline';
+   window.localStorage.removeItem('football-intelligence-forecasts-v1');
+   await submit('Beşiktaş','Galatasaray');
+   assert.match($('quality').textContent,/tarayıcı kopyası/);
+   assert.equal(window.localStorage.getItem('football-intelligence-forecasts-v1'),null);
+   window.localStorage.setItem(key,JSON.stringify({...snapshot,at:Date.now()-8*86400000}));
+   const expired=await window.loadFolder(folder);
+   assert.equal(expired.results.length,0);
+   assert.equal(expired.partial,true);
+   const parallelUrl='https://test.invalid/single-request';
+   await Promise.allSettled([window.getText(parallelUrl),window.getText(parallelUrl)]);
+   assert.equal(feedCalls.get(parallelUrl),1);
+  }
   assert.deepEqual(errors,[]);
-  console.log('PASS club and national analysis, example controls, score and winner, three probability bars, heatmap, history navigation, source file import, lineup trial and archive, league and shot audits.');
+  console.log('PASS club and national analysis, forecast cards, source file import, lineup and league audits, source failover, cache expiry and request coalescing.');
  }finally{window.close()}
 }
 run().catch(e=>{console.error(e);process.exitCode=1});
