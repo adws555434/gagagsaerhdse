@@ -78,6 +78,7 @@ async function until(fn){
 }
 async function run(){
  const simulationCalls=[];
+ let simulationAvailable=true;
  const app=live?await (await fetch(site)).text():
   html.replace(/eventMode=import\('\.\/sim\/event-ui\.mjs(?:\?v=\d+)?'\)[\s\S]*?\.catch\(\(\)=>null\);/,
    'eventMode=Promise.resolve(window.testMatchSimulation);');
@@ -86,7 +87,10 @@ async function run(){
   w.TextEncoder=TextEncoder;
   Object.defineProperty(w.crypto,'subtle',{value:globalThis.crypto.subtle});
   w.fetch=(url,options)=>live?fetch(new URL(url,site),{cache:options?.cache,signal:AbortSignal.timeout(12000)}):mock(String(url));
-  w.testMatchSimulation=async match=>simulationCalls.push(match);
+  w.testMatchSimulation=async match=>{
+   simulationCalls.push(match);
+   if(simulationAvailable)w.document.getElementById('eventOutput').classList.remove('hidden');
+  };
  }});
  const {window}=dom,$=id=>window.document.getElementById(id);
  try{
@@ -121,6 +125,12 @@ async function run(){
    assert.equal(simulationCalls.length,1);
    assert.equal(simulationCalls[0].folder,'TUR_1_super-lig');
    assert.deepEqual([simulationCalls[0].a,simulationCalls[0].b],['Besiktas','Galatasaray']);
+   assert.equal($('forecastComparison').open,false);
+   assert.equal($('forecastTitle').classList.contains('hidden'),true);
+   assert.equal($('forecastJump').hash,'#eventPanel');
+   assert.equal($('resultJump').hash,'#eventPanel');
+   $('forecastComparisonTitle').click();
+   assert.equal($('forecastComparison').open,true);
   }
   assert.equal($('archiveForm').querySelectorAll('section').length,2);
   assert.match($('matchHistoryScope').textContent,/Süper Lig maçları/);
@@ -248,6 +258,11 @@ async function run(){
    assert.match($('lineupAuditHistory').textContent,/Gerçek 2–0/);
   }
   await submit('Türkiye','Almanya',true);
+  if(!live){
+   assert.equal($('forecastComparison').open,true);
+   assert.equal($('forecastComparisonTitle').classList.contains('hidden'),true);
+   assert.equal($('forecastJump').hash,'#forecastPanel');
+  }
   assert.match($('matchHistoryScope').textContent,/Erkek A milli maçları/);
   assert.equal($('longForecast').textContent,'');
   assert.equal($('balancedModel').textContent,'');
@@ -276,7 +291,11 @@ async function run(){
    assert.match($('forecast').textContent,/En olası skor\d+–\d+%[\d,]+ · Yayın modeli/);
    oddsMode='unconfigured';
    clearNetworkCache();
+   simulationAvailable=false;
    await submit('Beşiktaş','Galatasaray');
+   assert.equal($('forecastComparison').open,true);
+   assert.equal($('forecastTitle').classList.contains('hidden'),false);
+   assert.equal($('resultJump').hash,'#forecastPanel');
    assert.match($('activeForecastMethod').textContent,/Ana 1X2 · Yayın modeli/);
    oddsMode='unconfigured';
    clearNetworkCache();

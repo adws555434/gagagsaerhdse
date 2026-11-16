@@ -351,7 +351,7 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
   </aside>
   </div>
   <section class="card event-panel hidden" id="eventPanel" aria-labelledby="eventTitle">
-    <div class="panel-heading"><h2 id="eventTitle">Maç tahmini</h2><span class="league-label">Süper Lig</span></div>
+    <div class="panel-heading"><h2 id="eventTitle">Ana maç tahmini</h2><span class="league-label">Süper Lig</span></div>
     <div class="event-progress-row hidden" id="eventProgressRow">
       <progress id="eventProgress" max="100000000" value="0" aria-label="Simülasyon ilerlemesi"></progress>
       <button id="eventCancel" type="button" disabled>İptal et</button>
@@ -391,7 +391,7 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       <h2 id="title"></h2>
       <div id="meta" class="muted"></div>
       <nav class="result-links" aria-label="Analiz bölümleri">
-        <a href="#forecastPanel">Skor tahmini</a>
+        <a id="forecastJump" href="#forecastPanel">Ana maç tahmini</a>
         <a href="#analysisOverview">Takım karşılaştırması</a>
         <a href="#matchHistory">Son 100 maç</a>
         <a href="#lineupPanel">Kadro senaryosu</a>
@@ -400,48 +400,52 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       <div id="source" class="source"></div>
     </section>
     <section id="forecastPanel" class="card full" aria-labelledby="forecastTitle">
-      <h3 id="forecastTitle">Skor tahmini</h3>
-      <div id="forecast" class="metrics"></div>
-      <p id="forecastNote" class="muted"></p>
-      <p id="activeForecastMethod" class="muted tiny"></p>
-      <p id="simulationAudit" class="muted tiny"></p>
-      <div id="scorelines"></div>
-      <details id="scoreTopFive" class="hidden">
-        <summary>En olası beş skoru göster</summary>
-        <div id="scoreTopFiveContent"></div>
-        <p class="muted tiny" id="scoreTopFiveHistory"></p>
-      </details>
-      <p id="firstGoal" class="muted"></p>
-      <details id="marketPanel">
-        <summary>Piyasa ve harman karşılaştırması</summary>
-        <p id="marketStatus" class="muted tiny" role="status"></p>
-        <div id="marketComparison" class="tablewrap"></div>
-        <p id="marketTotals" class="muted tiny"></p>
-        <div id="marketScorelines"></div>
-        <div id="marketScoreCalibration" class="tablewrap"></div>
-      </details>
-      <details id="modelPanel" class="hidden">
-        <summary>Tahminin gerekçesi ve model karşılaştırması</summary>
-        <div id="modelWhy" class="list"></div>
-        <p id="modelCalibration" class="muted tiny"></p>
-        <div id="balancedModel" class="list"></div>
-        <div id="archiveModel" class="list"></div>
-        <div id="learningModel"></div>
-        <div id="forecastChanges"></div>
-      </details>
-      <details id="scoreGrid"><summary>Tam skor olasılık tablosu</summary><div id="scoreGridContent" class="tablewrap"></div></details>
-      <details id="scenarios" class="hidden">
-        <summary>Gol senaryosu</summary>
-        <p class="muted tiny">Dakika, skor ve sahadaki oyuncu sayısını ayarla. Oyuncu eksikliğinde gol hızları senaryo varsayımıyla değiştirilir.</p>
-        <div class="row option-row">
-          <label>Dakika <input id="scenarioMinute" type="number" min="0" max="90" value="20"></label>
-          <label>Skor durumu <select id="scenarioTeam"><option value="home">1–0</option><option value="away">0–1</option><option value="custom">Elle gir</option></select></label>
-          <label class="hidden" id="scenarioScoreLabel">Skor <input id="scenarioHome" type="number" min="0" max="20" value="0" aria-label="Ev sahibi golü"><input id="scenarioAway" type="number" min="0" max="20" value="0" aria-label="Deplasman golü"></label>
-          <label>Kırmızı kart <select id="scenarioRed"><option value="none">Yok</option><option value="home">Ev sahibi</option><option value="away">Deplasman</option><option value="both">İki takım</option></select></label>
-          <button id="scenarioRun" type="button">Senaryoyu hesapla</button>
-          <button id="scenarioCancel" type="button" class="hidden">İptal et</button>
-        </div>
-        <p id="scenarioResult" role="status"></p>
+      <h3 id="forecastTitle">Ana maç tahmini</h3>
+      <details id="forecastComparison" open>
+        <summary id="forecastComparisonTitle" class="hidden">Diğer modelle karşılaştır</summary>
+        <p id="forecastComparisonNote" class="muted tiny hidden">Yayın modeli farklı bir skor verebilir. <a href="#eventPanel">Ana maç tahminine dön</a></p>
+        <div id="forecast" class="metrics"></div>
+        <p id="forecastNote" class="muted"></p>
+        <p id="activeForecastMethod" class="muted tiny"></p>
+        <p id="simulationAudit" class="muted tiny"></p>
+        <div id="scorelines"></div>
+        <details id="scoreTopFive" class="hidden">
+          <summary>En olası beş skoru göster</summary>
+          <div id="scoreTopFiveContent"></div>
+          <p class="muted tiny" id="scoreTopFiveHistory"></p>
+        </details>
+        <p id="firstGoal" class="muted"></p>
+        <details id="marketPanel">
+          <summary>Piyasa ve harman karşılaştırması</summary>
+          <p id="marketStatus" class="muted tiny" role="status"></p>
+          <div id="marketComparison" class="tablewrap"></div>
+          <p id="marketTotals" class="muted tiny"></p>
+          <div id="marketScorelines"></div>
+          <div id="marketScoreCalibration" class="tablewrap"></div>
+        </details>
+        <details id="modelPanel" class="hidden">
+          <summary>Tahminin gerekçesi ve model karşılaştırması</summary>
+          <div id="modelWhy" class="list"></div>
+          <p id="modelCalibration" class="muted tiny"></p>
+          <div id="balancedModel" class="list"></div>
+          <div id="archiveModel" class="list"></div>
+          <div id="learningModel"></div>
+          <div id="forecastChanges"></div>
+        </details>
+        <details id="scoreGrid"><summary>Tam skor olasılık tablosu</summary><div id="scoreGridContent" class="tablewrap"></div></details>
+        <details id="scenarios" class="hidden">
+          <summary>Gol senaryosu</summary>
+          <p class="muted tiny">Dakika, skor ve sahadaki oyuncu sayısını ayarla. Oyuncu eksikliğinde gol hızları senaryo varsayımıyla değiştirilir.</p>
+          <div class="row option-row">
+            <label>Dakika <input id="scenarioMinute" type="number" min="0" max="90" value="20"></label>
+            <label>Skor durumu <select id="scenarioTeam"><option value="home">1–0</option><option value="away">0–1</option><option value="custom">Elle gir</option></select></label>
+            <label class="hidden" id="scenarioScoreLabel">Skor <input id="scenarioHome" type="number" min="0" max="20" value="0" aria-label="Ev sahibi golü"><input id="scenarioAway" type="number" min="0" max="20" value="0" aria-label="Deplasman golü"></label>
+            <label>Kırmızı kart <select id="scenarioRed"><option value="none">Yok</option><option value="home">Ev sahibi</option><option value="away">Deplasman</option><option value="both">İki takım</option></select></label>
+            <button id="scenarioRun" type="button">Senaryoyu hesapla</button>
+            <button id="scenarioCancel" type="button" class="hidden">İptal et</button>
+          </div>
+          <p id="scenarioResult" role="status"></p>
+        </details>
       </details>
     </section>
     <section id="analysisOverview" class="card full"><h3>Genel karşılaştırma</h3><div id="metrics" class="metrics"></div><div id="narrative"></div></section>
@@ -2891,9 +2895,20 @@ function render(R){const {a,b,results,fixtures,national}=R,A=summary(a,results),
 }
 let eventMode;
 
+function setPredictionView(useSimulation){
+ $('forecastComparison').open=!useSimulation;
+ $('forecastComparisonTitle').classList.toggle('hidden',!useSimulation);
+ $('forecastComparisonNote').classList.toggle('hidden',!useSimulation);
+ $('forecastTitle').classList.toggle('hidden',useSimulation);
+ $('forecastPanel').setAttribute('aria-labelledby',useSimulation?'forecastComparisonTitle':'forecastTitle');
+ const target=useSimulation?'#eventPanel':'#forecastPanel';
+ $('forecastJump').href=target;
+ $('resultJump').href=target;
+}
 async function runMatchSimulation(match){
  if(match.folder!=='TUR_1_super-lig'||match.national)return;
  $('eventPanel').classList.remove('hidden');
+ $('eventTitle').textContent='Ana maç tahmini';
  $('eventStatus').textContent='Simülasyon hazırlanıyor…';
  $('eventProgress').value=0;
  const run=await eventMode;
@@ -2918,6 +2933,8 @@ async function analyze(){
   setStatus('Analiz ediliyor…','warn');
   setStep(4,'Takımlar aranıyor…');
   const match=await resolve(qa,qb,$('nationalOnly').checked);
+  const usesSimulation=match.folder==='TUR_1_super-lig'&&!match.national;
+  setPredictionView(usesSimulation);
   setStep(75,'İstatistikler hesaplanıyor…');
   const cutoff=new Date().toISOString().slice(0,10);
   $('longForecast').replaceChildren();
@@ -2929,7 +2946,13 @@ async function analyze(){
    renderArchiveModel(match,forecast,archive);
    renderLongHistoryForecast(match,archive||[],cutoff);
    setStep(100,'Maç analizi hazır.');
-  }finally{await simulation;}
+  }finally{
+   await simulation;
+   if(usesSimulation&&$('eventOutput').classList.contains('hidden')){
+    $('eventTitle').textContent='Maç simülasyonu';
+    setPredictionView(false);
+   }
+  }
   setStatus('Tamamlandı ✓','ok');
  }catch(error){
   console.error(error);
