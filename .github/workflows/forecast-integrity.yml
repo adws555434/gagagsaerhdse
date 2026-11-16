@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - index.html
+      - 'sim/**'
+      - 'tests/event-*.mjs'
       - scripts/forecast-ledger.cjs
       - scripts/market-validation.cjs
       - tests/phase0-forecast-test.cjs
@@ -38,3 +40,4 @@ jobs:
       - run: node tests/phase2-market-test.cjs
       - run: node tests/phase2-timing-test.cjs
       - run: node tests/phase2-live-test.cjs
+      - run: node --test tests/event-simulation.test.mjs

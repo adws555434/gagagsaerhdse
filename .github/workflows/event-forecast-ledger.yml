@@ -1,0 +1,39 @@
+name: Süper Lig event forecast ledger
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '57 1,7,13,19 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'sim/**'
+      - 'scripts/event-ledger.mjs'
+      - '.github/workflows/event-forecast-ledger.yml'
+permissions:
+  contents: write
+concurrency:
+  group: super-lig-event-forecast-ledger
+  cancel-in-progress: false
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/event-simulation.test.mjs
+      - run: node scripts/event-ledger.mjs
+      - name: Commit frozen forecasts
+        if: always()
+        run: |
+          git diff --quiet -- event-forecast-ledger.json && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add event-forecast-ledger.json
+          git commit -m "Update frozen Süper Lig event forecasts"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+          done
+          exit 1

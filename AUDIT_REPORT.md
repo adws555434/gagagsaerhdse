@@ -526,3 +526,35 @@ Güncel maç sonuçları ve fikstür için [open-matchday](https://github.com/ol
 | 6 | 1 | 6 | 12 | 372 |
 
 [Sağlayıcının fiyatlandırması](https://the-odds-api.com/#pricing) · [Kota ve piyasalar](https://the-odds-api.com/liveapi/guides/v4/)
+
+## Süper Lig · Kesin Tahmin olay simülasyonu
+
+Kart en sık görülen skorun kazananını veya beraberliğini gösterir. Ev sahibi, beraberlik ve deplasman sayıları bütün skorların toplamıdır. Karttaki tek skor ile üç sonuçtan en yüksek olasılıklısı farklı olabilir.
+
+Takım modeli 1994/95'ten başlayarak maçları sırayla işler. Ev sahibi ve deplasman gol tabanı, zaman ağırlıklı hücum/savunma ve lig ortalamasına küçültme kullanır. Sonuçlanan geçmiş tahminlerin tam skor log loss'u 156 ayar arasından yarı ömür, küçültme ağırlığı ve Dixon–Coles rho değerini seçer. İlk 100 uygun maçta başlangıç ayarı kullanılır. Aynı günün sonuçları gün içindeki tahminlere girmez. Her iki takım için en az beş geçmiş maç gerekir.
+
+90 dakika altı zaman bölümüne ayrılır. Duruma bağlı gol hızı, geride olma ve kırmızı kart etkileri [Dixon–Robinson](https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/1467-9884.00152) ve [Titman vd.](https://academic.oup.com/jrsssa/article-abstract/178/3/659/7058647) ile uyumlu yönlerde başlangıç varsayımlarıdır. Tam Süper Lig olay akışı olmadığından dakikaya bağlı katsayılar ve kart oranı ligde kalibre edilmedi. Her takım için ilk kırmızı kart temsil edilir. Belirsizlik üç noktalı ve örneklem büyüklüğüne bağlıdır. 1X2 ve 2,5 alt/üst oranı aynı güncel görüntüde varsa model ve piyasa gol beklentileri eşit ağırlıklı geometrik ortalamayla birleştirilir. Bu piyasa ağırlığı doğrulanmış bir fit değildir.
+
+Xoshiro128** üreteci SHA-256 ile sabitlenmiş girdiden başlatılır. 100 blok ayrı tohum akışına sahip olduğundan iş parçacığı sayısı sonucu değiştirmez. Dixon–Coles ağırlığı reddetmeli örneklemeyle uygulanır. Her çıktı tam 100.000.000 kabul edilmiş maçtan oluşur ve rapor reddedilen çekilişler dahil deneme sayısını da tutar. Aynı olay geçişlerini hesaplayan deterministik skor matrisiyle fark toleransı 0,05 yüzde puandır.
+
+| Ölçüm | Sonuç |
+| --- | --- |
+| Arşiv dönemi ve kapsamı | 13 Ağustos 1994–8 Kasım 2026 · 10.191 maç |
+| Analitik ileri-yürüyen ölçüm | 9.924 maç · 267 maçta geçmiş veri yetersiz |
+| Kartın gösterdiği kazanan veya beraberlik | 3.268/9.924 · %32,93 [%32,01–%33,86] |
+| Tek skor | 1.193/9.924 · %12,02 [%11,40–%12,68] |
+| İlk üç skor | 3.230/9.924 · %32,55 [%31,63–%33,48] |
+| Karşılaştırma olarak, skorları sonuç türüne göre toplayarak seçilen kazanan veya beraberlik | 5.285/9.924 · %53,25 [%52,27–%54,23] |
+| Gerçek 100 milyon çekilişli geçmiş örnek | 6 maç · hepsi analitik skor denetiminden geçti |
+| Örnekte en büyük fark | Skor 0,00834 ve maç sonucu 0,01085 yüzde puan |
+| Her 9.924 maç için 100 milyon fiziksel çekiliş | Çalıştırılmadı |
+| Tarihsel piyasa ve olay parametresi ölçümü | Çalıştırılmadı |
+| Gerçek maç öncesi dondurulmuş ve sonuçlanmış yeni mod kaydı | İlk canlı provada 0 |
+
+Başarı oranları Wilson %95 aralığıdır ve geriye dönük ölçümdür. Eski sonuçlar [engsoccerdata](https://github.com/jalapic/engsoccerdata), 2025/26 resmi [TFF fikstürü](https://www.tff.org/default.aspx?pageID=1768) ve güncel [open-matchday](https://github.com/oladeeayo/open-matchday) kopyalarından alınır. Arşiv 1994 öncesini kapsamaz. GitHub'da kaynak maç satırları yerine ileri yürüyen özet ve takım modelinin sayısal durumu vardır.
+
+Tam arşiv çekilişini yerel girdilerle yeniden üretmek için aşağıdaki komut kullanılır. Çıktı her on maçta ilerlemeyi kaydeder ve aynı arşiv özetiyle kaldığı yerden sürer.
+
+```sh
+node tests/event-backtest.mjs /veri/turkey.csv /veri/sabit-fikstur /veri/tff-results.json /veri/event-validation.json --all-100m
+```

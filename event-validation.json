@@ -1,0 +1,353 @@
+{
+  "version": "2026.11-super-lig-events-v1",
+  "sourceArchiveSha": "cb1d8d58a99213d4b6bcb44a54f5f0f4de0127771171e7969043b59837993a54",
+  "inputSha": "7c8b7bc00b8c5884ad3d9f1f92e2c795528f8e72a0ff064acdc0c4b8ce2d39c6",
+  "marketBacktest": "notRun",
+  "full100mAllFixtures": "notRun",
+  "analytic": {
+    "archive": 10191,
+    "eligible": 9924,
+    "unavailable": 267,
+    "from": "1994-08-13",
+    "through": "2026-11-08",
+    "winner": {
+      "hits": 3268,
+      "n": 9924,
+      "rate": 0.32930270052398225,
+      "ci95": [
+        0.32012405273885297,
+        0.3386134468422037
+      ]
+    },
+    "score": {
+      "hits": 1193,
+      "n": 9924,
+      "rate": 0.1202136235388956,
+      "ci95": [
+        0.11396174551893866,
+        0.12675940909794597
+      ]
+    },
+    "top3": {
+      "hits": 3230,
+      "n": 9924,
+      "rate": 0.32547359935509873,
+      "ci95": [
+        0.3163241280462772,
+        0.33475813244627894
+      ]
+    },
+    "modalWinner": {
+      "hits": 5285,
+      "n": 9924,
+      "rate": 0.5325473599355098,
+      "ci95": [
+        0.5227202485190041,
+        0.54234928373325
+      ]
+    },
+    "largestTail": 9.827316738153513e-11,
+    "byYear": {
+      "1994": {
+        "n": 107,
+        "winner": 46,
+        "score": 17,
+        "top3": 38,
+        "modalWinner": 63
+      },
+      "1995": {
+        "n": 294,
+        "winner": 120,
+        "score": 35,
+        "top3": 95,
+        "modalWinner": 179
+      },
+      "1996": {
+        "n": 296,
+        "winner": 118,
+        "score": 37,
+        "top3": 116,
+        "modalWinner": 182
+      },
+      "1997": {
+        "n": 296,
+        "winner": 115,
+        "score": 34,
+        "top3": 86,
+        "modalWinner": 172
+      },
+      "1998": {
+        "n": 291,
+        "winner": 107,
+        "score": 34,
+        "top3": 96,
+        "modalWinner": 152
+      },
+      "1999": {
+        "n": 275,
+        "winner": 92,
+        "score": 33,
+        "top3": 81,
+        "modalWinner": 142
+      },
+      "2000": {
+        "n": 329,
+        "winner": 121,
+        "score": 47,
+        "top3": 104,
+        "modalWinner": 191
+      },
+      "2001": {
+        "n": 286,
+        "winner": 95,
+        "score": 31,
+        "top3": 84,
+        "modalWinner": 166
+      },
+      "2002": {
+        "n": 306,
+        "winner": 112,
+        "score": 42,
+        "top3": 101,
+        "modalWinner": 159
+      },
+      "2003": {
+        "n": 291,
+        "winner": 95,
+        "score": 34,
+        "top3": 107,
+        "modalWinner": 159
+      },
+      "2004": {
+        "n": 297,
+        "winner": 78,
+        "score": 26,
+        "top3": 86,
+        "modalWinner": 153
+      },
+      "2005": {
+        "n": 292,
+        "winner": 109,
+        "score": 40,
+        "top3": 96,
+        "modalWinner": 152
+      },
+      "2006": {
+        "n": 459,
+        "winner": 144,
+        "score": 49,
+        "top3": 158,
+        "modalWinner": 226
+      },
+      "2007": {
+        "n": 139,
+        "winner": 47,
+        "score": 18,
+        "top3": 62,
+        "modalWinner": 79
+      },
+      "2008": {
+        "n": 292,
+        "winner": 99,
+        "score": 36,
+        "top3": 91,
+        "modalWinner": 160
+      },
+      "2009": {
+        "n": 298,
+        "winner": 87,
+        "score": 34,
+        "top3": 87,
+        "modalWinner": 157
+      },
+      "2010": {
+        "n": 284,
+        "winner": 104,
+        "score": 29,
+        "top3": 105,
+        "modalWinner": 149
+      },
+      "2011": {
+        "n": 296,
+        "winner": 92,
+        "score": 32,
+        "top3": 104,
+        "modalWinner": 145
+      },
+      "2012": {
+        "n": 300,
+        "winner": 99,
+        "score": 45,
+        "top3": 99,
+        "modalWinner": 152
+      },
+      "2013": {
+        "n": 306,
+        "winner": 77,
+        "score": 25,
+        "top3": 87,
+        "modalWinner": 162
+      },
+      "2014": {
+        "n": 284,
+        "winner": 97,
+        "score": 37,
+        "top3": 92,
+        "modalWinner": 130
+      },
+      "2015": {
+        "n": 319,
+        "winner": 86,
+        "score": 35,
+        "top3": 109,
+        "modalWinner": 170
+      },
+      "2016": {
+        "n": 292,
+        "winner": 99,
+        "score": 31,
+        "top3": 97,
+        "modalWinner": 156
+      },
+      "2017": {
+        "n": 310,
+        "winner": 78,
+        "score": 29,
+        "top3": 89,
+        "modalWinner": 171
+      },
+      "2018": {
+        "n": 306,
+        "winner": 109,
+        "score": 43,
+        "top3": 110,
+        "modalWinner": 163
+      },
+      "2019": {
+        "n": 301,
+        "winner": 105,
+        "score": 42,
+        "top3": 100,
+        "modalWinner": 149
+      },
+      "2020": {
+        "n": 293,
+        "winner": 87,
+        "score": 34,
+        "top3": 85,
+        "modalWinner": 143
+      },
+      "2021": {
+        "n": 455,
+        "winner": 138,
+        "score": 65,
+        "top3": 156,
+        "modalWinner": 226
+      },
+      "2022": {
+        "n": 328,
+        "winner": 95,
+        "score": 46,
+        "top3": 96,
+        "modalWinner": 173
+      },
+      "2023": {
+        "n": 364,
+        "winner": 105,
+        "score": 38,
+        "top3": 104,
+        "modalWinner": 203
+      },
+      "2024": {
+        "n": 354,
+        "winner": 122,
+        "score": 48,
+        "top3": 108,
+        "modalWinner": 185
+      },
+      "2025": {
+        "n": 342,
+        "winner": 115,
+        "score": 47,
+        "top3": 129,
+        "modalWinner": 182
+      },
+      "2026": {
+        "n": 242,
+        "winner": 75,
+        "score": 20,
+        "top3": 72,
+        "modalWinner": 134
+      }
+    },
+    "seconds": 154.22596881
+  },
+  "full100mSample": [
+    {
+      "period": "1995-03",
+      "n": 100000000,
+      "overflow": 0,
+      "topThreeMatchesAnalytic": true,
+      "maxScore": 0.00008342505221373142,
+      "maxOutcome": 0.00010854579836430678,
+      "tail": 2.1649348980190553e-14,
+      "proposals": 126270324,
+      "seconds": 6.987409650000016
+    },
+    {
+      "period": "2005-03",
+      "n": 100000000,
+      "overflow": 0,
+      "topThreeMatchesAnalytic": true,
+      "maxScore": 0.00005327465007198828,
+      "maxOutcome": 0.00009431552251404351,
+      "tail": 1.9095836023552692e-14,
+      "proposals": 115464629,
+      "seconds": 6.831072129000008
+    },
+    {
+      "period": "2015-03",
+      "n": 100000000,
+      "overflow": 0,
+      "topThreeMatchesAnalytic": true,
+      "maxScore": 0.00004469630544100267,
+      "maxOutcome": 0.000048169736659942064,
+      "tail": 1.9539925233402755e-14,
+      "proposals": 112257467,
+      "seconds": 6.15141659399998
+    },
+    {
+      "period": "2024-04",
+      "n": 100000000,
+      "overflow": 0,
+      "topThreeMatchesAnalytic": true,
+      "maxScore": 0.00003911590355806793,
+      "maxOutcome": 0.00004381831430422256,
+      "tail": 1.7763568394002505e-14,
+      "proposals": 110747576,
+      "seconds": 5.389796482000005
+    },
+    {
+      "period": "2025-10",
+      "n": 100000000,
+      "overflow": 0,
+      "topThreeMatchesAnalytic": true,
+      "maxScore": 0.00006330882308083763,
+      "maxOutcome": 0.00006728854399107309,
+      "tail": 1.7430501486614958e-14,
+      "proposals": 113576391,
+      "seconds": 5.796557736000017
+    },
+    {
+      "period": "2026-10",
+      "n": 100000000,
+      "overflow": 0,
+      "topThreeMatchesAnalytic": true,
+      "maxScore": 0.00005526609853737097,
+      "maxOutcome": 0.000040273893769426916,
+      "tail": 1.9761969838327786e-14,
+      "proposals": 117374258,
+      "seconds": 6.369445860000007
+    }
+  ]
+}

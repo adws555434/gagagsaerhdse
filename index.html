@@ -321,6 +321,7 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       <button id="go" class="primary" type="button">Tam analiz yap <span class="button-arrow" aria-hidden="true"></span></button>
     </div>
     <div class="match-options">
+      <button id="eventRun" type="button">Kesin Tahmin · 100 milyon simülasyon</button>
       <label class="mode-option"><input id="nationalOnly" type="checkbox"> Erkek A milli takımları</label>
       <div class="examples" aria-label="Örnek eşleşmeler">
         <button class="example" type="button" data-home="Beşiktaş" data-away="Galatasaray">Beşiktaş – Galatasaray</button>
@@ -333,6 +334,21 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
         <div id="step" role="status" class="muted tiny">Motor hazırlanıyor…</div>
         <a class="tiny hidden" id="resultJump" href="#forecastPanel">Sonuca git ↓</a>
       </div>
+    </div>
+  </section>
+  <section class="card hidden" id="eventPanel" aria-labelledby="eventTitle">
+    <h2 id="eventTitle">Kesin Tahmin · Süper Lig</h2>
+    <p class="muted tiny">Simülasyonda en sık çıkan tek skor gösterilir. Gerçek maçın sonucu farklı olabilir.</p>
+    <progress id="eventProgress" max="100000000" value="0" aria-label="Simülasyon ilerlemesi"></progress>
+    <button id="eventCancel" type="button" disabled>İptal et</button>
+    <p id="eventStatus" role="status"></p>
+    <div class="hidden" id="eventOutput">
+      <h3 id="eventAnswer"></h3>
+      <p id="eventPickCount"></p>
+      <div class="tablewrap" id="eventScores"></div>
+      <p id="eventCombined"></p>
+      <div class="tablewrap" id="eventOutcomes"></div>
+      <p class="muted tiny" id="eventHistory"></p>
     </div>
   </section>
   <details class="card" id="predictableMatches">
@@ -2848,6 +2864,15 @@ for(const button of document.querySelectorAll('.example')){
  });
 }
 selfTest();renderHistory();void renderAutoForecasts();
+import('./sim/event-ui.mjs').then(({connectEventMode})=>connectEventMode({
+  archiveRows,clubModelKey,csv,loadFolder,findTeam,direct,knownKickoff,findMarketQuote,
+  MARKET_SNAPSHOT_URLS,MARKET_VERSION,marketTotalsDistribution,getText,dataTable,accuracyLabel
+})).catch(()=>{
+ const button=$('eventRun');
+ button.disabled=true;
+ button.textContent='Kesin Tahmin yüklenemedi';
+});
+
 </script>
 </body>
 </html>
