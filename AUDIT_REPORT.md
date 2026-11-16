@@ -4,6 +4,25 @@
 
 [Uygulamayı aç](https://adws555434.github.io/gagagsaerhdse/)
 
+## Geçmiş sezonlu model karşılaştırması
+
+Arşiv ayrıştırıcısı, `score.ft` alanının yanı sıra kaynakta doğrudan `score` dizisi olarak gelen tamamlanmış skorları da okur. Düz `[0, 0]` biçiminde gelen 122 maç, 2025/26 döneminde altı ligde geçmiş maç listelerine geri eklendi. Süper Lig dosyasındaki geçerli skor sayısı 90'dan 99'a çıktı. Bazı sezon dosyaları eksik olduğundan kapsama ligin bütün maçları dahil olmayabilir. Testteki 2025/26 örneklemi yeni ayrıştırıcıyla 1.561 maça çıktı. Aşağıdaki iki model aynı örneklemde ölçüldü.
+
+Yeni karşılaştırma, güncel sezona önceki iki sezonu ekler, eski maçları 720 günlük yarı ömürle ağırlıklandırır ve düşük skorlara Dixon–Coles düzeltmesi uygular. İki takımın da arşivde en az beş maçı gerekir. Mevcut ana tahmin, kayıtlı tahmin geçmişi ve milli takım tahmin motoru önceki sürümdeki modelle çalışır.
+
+| Dönem | Maç | Sonuç isabeti | Tam skor | İlk üç skor | Log loss | Brier |
+|---|---:|---:|---:|---:|---:|---:|
+| 2018/19–2019/20 · ayar seçiminde kullanılmadı | 3.573 | %50,32 → %51,69 | %12,48 → %12,03 | %31,88 → %32,41 | 1,0066 → 0,9949 | 0,6011 → 0,5931 |
+| 2020/21–2024/25 · geliştirme | 8.387 | %51,39 → %52,03 | %12,33 → %12,75 | %32,49 → %33,11 | 1,0045 → 0,9941 | 0,5998 → 0,5927 |
+| 2025/26 · geriye dönük karşılaştırma | 1.561 | %50,29 → %51,12 | %11,34 → %12,81 | %30,17 → %32,54 | 1,0187 → 1,0047 | 0,6099 → 0,5999 |
+| 2026/27 sezon başı · geriye dönük karşılaştırma | 313 | %53,67 → %59,42 | %10,22 → %9,90 | %30,67 → %29,39 | 0,9611 → 0,9409 | 0,5704 → 0,5546 |
+
+Toplam 13.834 kronolojik tahmin. Yüzdeler ana modelden geçmiş sezonlu karşılaştırmaya geçişi gösterir. Log loss ve Brier için düşük değer daha iyidir. Maçın oynandığı günün maçları hesap dışı tutuldu. 2025/26 ve 2026/27 sonuçlarına aday taraması sırasında bakıldı. Bunlar gerçek zamanlı başarı ölçümü değildir. Karşılaştırma son iki sezonda bazı lig ve skor ölçütlerinde gerilediği için varsayılan model olarak seçilmedi.
+
+[Değerlendirme kodu](tests/archive-model-evaluation.cjs) · [Sabit veri kaynakları ve SHA-256 değerleri](tests/archive-model-data.json) · [Liglere göre ham sonuçlar](tests/archive-model-results.json) · [Dixon–Coles araştırması](https://doi.org/10.1111/1467-9876.00065)
+
+Veri listesinde adı geçen dosyaları bir klasöre indirdikten sonra depo kökünde `node tests/archive-model-evaluation.cjs /veri/klasoru` komutuyla hesap tekrar edilebilir.
+
 ## Kulüp maç sonucu düzeltmesi
 
 1.427 maçlık 2025/26 grubunda maç sonucu isabeti 768'den 775'e çıkarıldı. Kolonlardaki “Poisson + Elo” düşüşten önceki referanstır. “Önceki rakip modeli” 100 aday arasından önceki turda seçilen sürümdür.
