@@ -10,6 +10,7 @@ const shotReport=JSON.parse(fs.readFileSync(path.join(root,root===__dirname?'sho
 const turkeyReport=JSON.parse(fs.readFileSync(path.join(root,root===__dirname?'super-lig-research/results.json':'tests/super-lig-research/results.json'),'utf8'));
 const signalPath=root===__dirname?'super-lig-data/results.json':'tests/super-lig-data/results.json';
 const signalAudit=JSON.parse(fs.readFileSync(path.join(root,signalPath),'utf8'));
+const phase1Summary=JSON.parse(fs.readFileSync(path.join(root,'phase1-summary.json'),'utf8'));
 const lineupArchive=fs.readFileSync(path.join(root,'lineup-samples.json'),'utf8');
 const errors=[];
 const consoleSink=new VirtualConsole();
@@ -31,6 +32,7 @@ let feedMode='primary';
 const feedCalls=new Map();
 async function mock(url){
  feedCalls.set(url,(feedCalls.get(url)||0)+1);
+ if(url.includes('phase1-summary.json'))return response(JSON.stringify(phase1Summary));
  if(url.includes('lineup-samples.json'))return response(lineupArchive);
  if(url.includes('super-lig-data/results'))return response(JSON.stringify(signalAudit));
  if(url.includes('super-lig-research/results'))return response(JSON.stringify(turkeyReport));
@@ -108,6 +110,17 @@ async function run(){
   $('historyLink').click();
   assert.equal($('historyPanel').open,true);
   await until(()=>$('leagueAudit').querySelectorAll('tbody tr').length===6);
+  $('phase1Audit').open=true;
+  await until(()=>$('phase1Models').querySelectorAll('tbody tr').length===5);
+  assert.match($('phase1Status').textContent,new RegExp(phase1Summary.results['tr.1'][0].n+' ortak maç'));
+  assert.equal($('phase1Tiers').querySelectorAll('tbody tr').length,4);
+  const phase1League=$('phase1League');
+  phase1League.value='all';phase1League.dispatchEvent(new window.Event('change'));
+  await until(()=>$('phase1Status').textContent.includes(phase1Summary.results.all[0].n+' ortak maç'));
+  assert.match($('phase1Models').textContent,/%95 GA/);
+  assert.equal($('phase1Curve').querySelectorAll('polyline').length,3);
+  assert.ok($('phase1Calibration').querySelectorAll('tbody tr').length>0);
+  assert.ok($('phase1Months').querySelectorAll('tbody tr').length>0);
   $('lineupAudit').open=true;
   await until(()=>$('lineupArchiveList').querySelectorAll('summary').length===3);
   assert.match($('lineupArchiveList').textContent,/Gençlerbirliği · 65 dk önce/);

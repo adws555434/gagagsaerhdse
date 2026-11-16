@@ -7,6 +7,9 @@ on:
       - index.html
       - scripts/forecast-ledger.cjs
       - tests/phase0-forecast-test.cjs
+      - tests/phase1-backtest.cjs
+      - tests/phase1-inputs.json
+      - phase1-summary.json
       - tests/forecast-learning-test.cjs
       - .github/workflows/forecast-integrity.yml
 permissions:
@@ -21,3 +24,4 @@ jobs:
           node-version: '22'
       - run: node tests/phase0-forecast-test.cjs
       - run: node tests/forecast-learning-test.cjs
+      - run: node tests/phase1-backtest.cjs --self-test

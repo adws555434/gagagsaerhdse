@@ -5,9 +5,26 @@ const {createHash}=require('node:crypto');
 const root=fs.existsSync(path.join(__dirname,'index.html'))?__dirname:path.resolve(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const core=html.match(/<script>([\s\S]*?)<\/script>/)[1].split("$('go').addEventListener")[0];
-const model=new Function(core+';return {BASES,NATIONAL_RESULTS,NATIONAL_MIRROR,LEAGUES,ARCHIVE_LEAGUES,MODEL_VERSION,ENGINE_VERSION,LEARNING_VERSION,parseClubFeed,cleanRows,knownKickoff,rowKey,estimateGoals,forecastModel,shotEstimate,shotCandidates,settleHistory,validForecastRecord,nationalRows,nationalFixtures,forecastInputPayload,prepareForecastDistribution,forecastDecision};')();
+const model=new Function(core+';return {BASES,NATIONAL_RESULTS,NATIONAL_MIRROR,LEAGUES,ARCHIVE_LEAGUES,MODEL_VERSION,ENGINE_VERSION,LEARNING_VERSION,parseClubFeed,cleanRows,knownKickoff,rowKey,estimateGoals,forecastModel,shotEstimate,shotCandidates,settleHistory,validForecastRecord,nationalRows,nationalFixtures,forecastInputPayload,prepareForecastDistribution,forecastDecision,leagueScoreReference,eloScoreReference};')();
 const ledgerPath=path.join(root,'forecast-ledger.json');
 const competitions=model.LEAGUES.filter(([folder])=>model.ARCHIVE_LEAGUES[folder]);
+const measurementVersion='2026.11-phase-1';
+function comparisonSnapshots(base,forecast,history){
+ const frequency=model.leagueScoreReference(history);
+ if(!frequency)return null;
+ const {h,a,rates}=forecast;
+ const distributions={
+  release:model.prepareForecastDistribution(rates.homeGoals,rates.awayGoals),
+  frequency,
+  elo:model.eloScoreReference(frequency,h,a),
+  poisson:model.prepareForecastDistribution(base.homeGoals,base.awayGoals),
+  uncertainty:model.prepareForecastDistribution(rates.homeGoals,rates.awayGoals,{matches:[rates.H.matches,rates.A.matches]})
+ };
+ return Object.fromEntries(Object.entries(distributions).map(([key,distribution])=>{
+  const decision=model.forecastDecision(distribution);
+  return [key,{probabilities:distribution.outcomes,consistentScore:decision.score[0],scores:decision.top.slice(0,3).map(([score])=>score)}];
+ }));
+}
 const nationalCompetition=['national','Erkek A milli takımları'];
 
 async function readSource(urls,parse,fetchSource){
@@ -64,11 +81,13 @@ function buildLeague(saved,folder,league,results,fixtures,now){
   const shots=national?null:model.shotEstimate(fixture.home,fixture.away,eligible,neutral,today);
   const candidates=model.shotCandidates(rates,shots);
   const decision=model.forecastDecision(model.prepareForecastDistribution(...rates));
+  const comparison=national?null:comparisonSnapshots(base,forecast,eligible);
   const inputs=model.forecastInputPayload(eligible,fixture.home,fixture.away,fixture,folder,today);
   const dataSha256=createHash('sha256').update(inputs).digest('hex');
   updated.push({id,scope:folder,league,date:fixture.date,home:fixture.home,away:fixture.away,savedAt:now.getTime(),kickoff,
    model:forecast.name+' · '+model.MODEL_VERSION,...candidates[0],rates,candidates,learningVersion:model.LEARNING_VERSION,
-   modelVersion:model.MODEL_VERSION,engineVersion:model.ENGINE_VERSION,dataSha256,simulationCount:0,consistentScore:decision.score[0],actual:null});
+   modelVersion:model.MODEL_VERSION,engineVersion:model.ENGINE_VERSION,dataSha256,simulationCount:0,consistentScore:decision.score[0],actual:null,
+   ...(comparison?{measurementVersion,comparison}:{})});
   known.add(id);
  }
  return updated;

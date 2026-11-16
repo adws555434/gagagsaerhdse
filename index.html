@@ -435,6 +435,23 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       <p id="lineupArchiveStatus" class="muted tiny"></p>
       <div id="lineupArchiveList"></div>
     </details>
+    <details id="phase1Audit">
+      <summary>Sezon sezon model karşılaştırması</summary>
+      <p id="phase1Status" class="muted tiny" role="status"></p>
+      <label for="phase1League">Lig</label>
+      <select id="phase1League"><option value="tr.1">Süper Lig</option><option value="all">Tüm test ligleri</option></select>
+      <div id="phase1Models" class="tablewrap"></div>
+      <h4>Yayın modelinin güven kademeleri</h4>
+      <div id="phase1Tiers" class="tablewrap"></div>
+      <details>
+        <summary>Kalibrasyon ve aylık olasılık hatası</summary>
+        <p class="muted tiny">Tahmin edilen olasılık ile gerçekleşen oran birbirine yaklaştıkça model daha iyi kalibre olur.</p>
+        <div id="phase1Curve"></div>
+        <div id="phase1Calibration" class="tablewrap"></div>
+        <div id="phase1Months" class="tablewrap"></div>
+      </details>
+      <p class="muted tiny"><a href="https://github.com/adws555434/gagagsaerhdse/blob/main/AUDIT_REPORT.md#faz-1--ölçüm-altyapısı">Test yöntemi ve kaynak kapsamı</a></p>
+    </details>
     <h3>Lig bazında geçmiş test</h3>
     <p id="leagueAuditStatus" class="muted tiny"></p>
     <div id="leagueAudit" class="tablewrap"></div>
@@ -589,6 +606,27 @@ function eloRatings(results){
   ratings.set(row.away,a-shift);
  }
  return ratings;
+}
+function leagueScoreReference(history){
+ const scores=new Map(),counts=[0,0,0];
+ for(const row of history){
+  const h=Number(row.ft_home),a=Number(row.ft_away),key=h+'–'+a;
+  counts[matchOutcome(h,a)]++;
+  scores.set(key,(scores.get(key)??0)+1);
+ }
+ if(counts.some(count=>!count))return null;
+ const outcomes=counts.map(count=>count/history.length);
+ return {outcomes,scores:[...scores].map(([key,count])=>[key,count/history.length]).sort((a,b)=>b[1]-a[1])};
+}
+function eloScoreReference(frequency,homeRating,awayRating,neutral=false){
+ const share=eloExpected(homeRating-awayRating+(neutral?0:ELO_HOME));
+ const draw=frequency.outcomes[1]*4*share*(1-share);
+ const outcomes=[(1-draw)*share,draw,(1-draw)*(1-share)];
+ const scores=frequency.scores.map(([key,p])=>{
+  const result=matchOutcome(...key.split('–').map(Number));
+  return [key,p*outcomes[result]/frequency.outcomes[result]];
+ }).sort((a,b)=>b[1]-a[1]);
+ return {outcomes,scores};
 }
 function eloAdjustedRates(rates,homeRating,awayRating){
  const baseTotal=rates.homeGoals+rates.awayGoals;
@@ -868,7 +906,7 @@ function renderModel(home,away,base,model,neutral,probabilities){
  }
  if(config)items.splice(3,0,{t:'Yalnız Poisson karşılaştırması',s:display(poissonDistribution(base.homeGoals,base.awayGoals).outcomes)});
  list($('modelWhy'),items);
- $('modelCalibration').textContent='Güven kademesi '+confidenceTier(probabilities)+' · İleri yürüyen kalibrasyon ölçümü henüz yok.';
+ $('modelCalibration').textContent='Güven kademesi '+confidenceTier(probabilities)+' · Geçmiş sezon kademeleri ve kalibrasyon ölçümü Tahmin geçmişi bölümünde.';
  $('modelPanel').classList.remove('hidden');
 }
 // Mulberry32 with an explicit unsigned seed.
@@ -2136,6 +2174,71 @@ async function renderShotAudit(){
   status.textContent='2026/27 sezon başı · %0 ana model. Her tahmin sadece önceki günlerin verisini kullanır. Düşük log loss daha iyi.';
  }catch{status.textContent='İsabetli şut testi şu anda yüklenemedi.';}
 }
+function calibrationCurve(series){
+ const ns='http://www.w3.org/2000/svg';
+ const node=(tag,attributes)=>{
+  const child=document.createElementNS(ns,tag);
+  for(const [name,value] of Object.entries(attributes))child.setAttribute(name,value);
+  return child;
+ };
+ const plot=node('svg',{viewBox:'0 0 360 240',role:'img',
+  'aria-label':'Kalibrasyon eğrisi. X ekseninde tahmin, Y ekseninde gerçekleşen oran. 1 yeşil, X sarı, 2 mavi.'});
+ plot.style.cssText='display:block;width:min(100%,440px);margin:12px 0';
+ const text=(x,y,value,extra={})=>{
+  const label=node('text',{x,y,fill:'currentColor','font-size':11,...extra});
+  label.textContent=value;plot.append(label);
+ };
+ const x=p=>42+298*p,y=p=>194-166*p;
+ for(const tick of [0,.25,.5,.75,1]){
+  plot.append(node('line',{x1:x(0),x2:x(1),y1:y(tick),y2:y(tick),stroke:'currentColor',opacity:.16}));
+  text(x(tick),211,Math.round(tick*100)+'%',{'text-anchor':'middle'});
+  text(37,y(tick)+4,Math.round(tick*100)+'%',{'text-anchor':'end'});
+ }
+ plot.append(node('line',{x1:x(0),x2:x(1),y1:y(0),y2:y(1),stroke:'currentColor','stroke-dasharray':'4 4',opacity:.55}));
+ const colors=['#52e3a4','#f4c465','#79b5ff'];
+ series.forEach((bins,i)=>{
+  const coords=bins.map(bin=>[x(bin.predicted),y(bin.observed.rate)]);
+  plot.append(node('polyline',{points:coords.map(pair=>pair.join(',')).join(' '),fill:'none',stroke:colors[i],'stroke-width':2}));
+  for(const [cx,cy] of coords)plot.append(node('circle',{cx,cy,r:3,fill:colors[i]}));
+  text(86+i*98,18,['1 Ev sahibi','X Beraberlik','2 Deplasman'][i],{fill:colors[i],'text-anchor':'middle'});
+ });
+ text(191,232,'Ortalama tahmin olasılığı',{'text-anchor':'middle'});
+ return plot;
+}
+let phase1Report=null;
+async function renderPhase1Audit(){
+ const status=$('phase1Status'),selector=$('phase1League');
+ try{
+  if(!phase1Report){
+   const report=JSON.parse(await getText('./phase1-summary.json'));
+   if(!report?.results?.all?.[0]?.tiers)throw Error('Ölçüm biçimi geçersiz');
+   for(const [value,name] of Object.entries(report.leagues)){
+    if(selector.querySelector('option[value="'+value+'"]'))continue;
+    const option=document.createElement('option');option.value=value;option.textContent=name;selector.append(option);
+   }
+   phase1Report=report;
+  }
+  const published=phase1Report.results[selector.value];
+  const accuracy=value=>accuracyLabel(value.hits,value.n);
+  status.textContent=published[0].n+' ortak maç · Sezon başında dondurulan modeller · Tarihsel test. '+
+   'Bağımsız maç önü ölçümü için aşağıdaki kayıt defterine bak.';
+  $('phase1Models').replaceChildren(dataTable(['Model','Log loss','RPS','Brier','1X2 isabeti','Tam skor','İlk üç skor'],
+   published.map(row=>[row.name,fmt(row.logLoss,4),fmt(row.rps,4),fmt(row.brier,4),
+    accuracy(row.result),accuracy(row.score),accuracy(row.top3)])));
+  $('phase1Tiers').replaceChildren(dataTable(['En yüksek 1X2 olasılığı','Kapsam','İsabet'],
+   published[0].tiers.map(tier=>[tier.label,accuracy(tier.coverage),accuracy(tier.accuracy)])));
+  $('phase1Curve').replaceChildren(calibrationCurve(published[0].calibration));
+  const labels=['1 · Ev sahibi','X · Beraberlik','2 · Deplasman'];
+  $('phase1Calibration').replaceChildren(dataTable(['Sonuç','Olasılık aralığı','Ortalama tahmin','Gerçekleşen'],
+   published[0].calibration.flatMap((bins,i)=>bins.map(bin=>[labels[i],(bin.bin*10)+'–'+((bin.bin+1)*10)+'%',
+    probabilityLabel(bin.predicted),accuracy(bin.observed)]))));
+  $('phase1Months').replaceChildren(dataTable(['Ay','Maç','Log loss'],
+   published[0].monthly.map(row=>[row.month,row.n,fmt(row.logLoss,4)])));
+ }catch{
+  status.textContent='Geçmiş sezon testi yüklenemedi. Bölümü yeniden açarak tekrar deneyebilirsin.';
+  for(const id of ['phase1Models','phase1Tiers','phase1Curve','phase1Calibration','phase1Months'])$(id).replaceChildren();
+ }
+}
 let publicForecastRecords=[];
 const PUBLIC_LEDGER_URLS=[
  'https://raw.githubusercontent.com/adws555434/gagagsaerhdse/main/forecast-ledger.json',
@@ -2214,6 +2317,8 @@ async function analyze(){const btn=$('go');if(btn.disabled)return;scenarioContro
 function selfTest(){try{const t=csv('date,home,away,ft_home,ft_away\n2026-01-01,Besiktas,Galatasaray,1,0\n');if(t.length!==1||findTeam('Beşiktaş',t)!=='Besiktas')throw new Error('motor testi');setStatus('Motor hazır ✓','ok');setStep(0,'Motor hazır. İki takım yazıp butona bas.')}catch(e){setStatus('Motor hatası','bad');setStep(0,'Motor başlatılamadı: '+e.message)}}
 $('go').addEventListener('click',analyze);$('a').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});$('b').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('historyPanel').open){void refreshHistory();void renderAutoForecasts();}});$('historyPanel').addEventListener('toggle',()=>{if($('historyPanel').open){void renderLeagueAudit();void renderAutoForecasts();if(readHistory().rows.some(row=>!row.actual))void refreshHistory();}});window.addEventListener('error',e=>{setStatus('JavaScript hatası','bad');$('step').textContent=e.message});$('refreshHistory').addEventListener('click',refreshHistory);$('turkeyAudit').addEventListener('toggle',()=>{if($('turkeyAudit').open){void renderTurkeyAudit();void renderTurkeySignals();}});$('shotAudit').addEventListener('toggle',()=>{if($('shotAudit').open)void renderShotAudit();});
 $('lineupAudit').addEventListener('toggle',()=>{if($('lineupAudit').open)void renderLineupArchive();});
+$('phase1Audit').addEventListener('toggle',()=>{if($('phase1Audit').open)void renderPhase1Audit();});
+$('phase1League').addEventListener('change',()=>void renderPhase1Audit());
 $('historyLink').addEventListener('click',()=>{$('historyPanel').open=true;});
 for(const button of document.querySelectorAll('.example')){
  button.addEventListener('click',()=>{

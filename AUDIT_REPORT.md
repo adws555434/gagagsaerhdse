@@ -1,5 +1,73 @@
 # Football Intelligence · Sürüm denetimi
 
+## Faz 1 · Ölçüm altyapısı
+
+| Bileşen | Durum |
+|---|---|
+| Sezon sezon ileri yürüyen backtest ve referanslar | **Çalışıyor.** Aynı maç kümesinde lig 1X2 sıklığı, Elo, bağımsız Poisson, mevcut yayın modeli ve gol beklentisi belirsizliği adayı. |
+| Metrikler ve aralıklar | **Çalışıyor.** Log loss, RPS, üç sınıf toplam Brier, 1X2, tutarlı tam skor ve ilk üç genel skor. Lig, sezon, lig × sezon ve genel sonuçlarda model farkları için eşleştirilmiş bootstrap. |
+| Sınıf kalibrasyonu, aylık izleme ve güven kademeleri | **Çalışıyor.** Tahmin edilen olasılık ve gözlenen sıklık yan yana. Sezon başlangıcı, ortası ve sonu ham sonuçlarda ayrı. Kalibrasyon dönüşümü **bağlı değil**. |
+| Kapsam denetimi | **Çalışıyor.** Eksik skor, eksik fikstür alanı ve yetersiz takım geçmişi tarih ve takımla raporlanır. |
+| Bağımsız maç önü kayıtları | **Kısmi.** Yeni uygun kulüp fikstürlerine aynı anda yayın tahmini ve dört referans kaydedilir. Önceki kayıtlar korunur. Sonuç bekleyen ve sürüm bilgisi eksik kayıtlar bağımsız örnekleme girmez. |
+| Piyasa, canlı piyasa API’si, oyuncu etkisi ve yeni bağlam | **Bağlı değil.** Bu faz bunları ölçmedi. |
+
+Ölçüm sürümü `2026.11-phase-1`, gol modeli `2026.11-club-balance`, analitik motor `2026.11-phase-0`. Kaynak dosyalarının sıralı SHA-256 özeti `54503d5e961ca3a4d884097793207b7d9f7f4cd23c13801dcee93b7d2b118f4c`. Tarihsel tahmin başına 0 Monte Carlo çekilişi. Analitik matris kullanıldı. Eşleştirilmiş farklar için 2.000 bootstrap tekrarı, tohum `20261116`. Kaynak kesimi `2026-11-15`.
+
+Her test sezonu için model 1 Temmuz'da donduruldu ve yalnızca önceki sezonların o tarihten eski skorlarını gördü. Canlı yayın modeli son maçlardan güncellenir. Bu tablodaki “yayın modeli” aynı yöntemin dondurulmuş denemesidir. Geçmiş arşivin yayımlanma saatleri bulunmadığı için sonuçlar tarihsel tekrardır. Bazı sezonlar eski model geliştirmesinde de kullanılmıştır. Ayar için kullanılmayan maçları ayırmanın ötesinde, bağımsız ölçüm için kayıt defterinde maç başlamadan dondurulan tahmin şartı geçerlidir.
+
+Sonuç seçimi en yüksek 1X2 olasılığıdır. Tam skor, seçilen 1X2 sınıfındaki en olası skordur. İlk üç skor bütün matristen gelir. İsabet ve kapsam için köşeli parantezler Wilson %95 aralığıdır. Model farkları için lig-sezon katmanlarında ardışık yedi günlük bloklar aynı örnek üzerinden çekildi. RPS, ev–beraberlik–deplasman sıralamasında iki kümülatif hatanın ortalamasıdır. İlk 90 gün başlangıç, 90–239. günler orta dönem, kalanı sezon sonudur. Her pencere arşivdeki ilk fikstür tarihinden sayılır.
+
+### Yayın yönteminin lig bazında ölçümü
+
+| Lig | Maç | Log loss | RPS | 1X2 isabeti [%95 GA] | Tutarlı tam skor [%95 GA] | İlk üç genel skor [%95 GA] |
+|---|---:|---:|---:|---|---|---|
+| Süper Lig | 545 | 0,96898 | 0,19552 | 291/545 · %53,39 [%49,20–%57,54] | 45/545 · %8,26 [%6,23–%10,87] | 161/545 · %29,54 [%25,86–%33,50] |
+| Premier League | 1028 | 1,02292 | 0,21298 | 510/1028 · %49,61 [%46,56–%52,66] | 95/1028 · %9,24 [%7,62–%11,17] | 288/1028 · %28,02 [%25,36–%30,84] |
+| La Liga | 996 | 0,99061 | 0,20152 | 518/996 · %52,01 [%48,90–%55,10] | 138/996 · %13,86 [%11,85–%16,14] | 373/996 · %37,45 [%34,50–%40,50] |
+| Bundesliga | 815 | 1,01005 | 0,20965 | 411/815 · %50,43 [%47,00–%53,85] | 63/815 · %7,73 [%6,09–%9,77] | 218/815 · %26,75 [%23,82–%29,89] |
+| Serie A | 978 | 0,99143 | 0,20028 | 512/978 · %52,35 [%49,22–%55,47] | 117/978 · %11,96 [%10,08–%14,15] | 345/978 · %35,28 [%32,34–%38,32] |
+| Ligue 1 | 779 | 1,00863 | 0,21446 | 390/779 · %50,06 [%46,56–%53,57] | 79/779 · %10,14 [%8,21–%12,46] | 233/779 · %29,91 [%26,80–%33,22] |
+| **Tümü** | 5141 | 1,00075 | 0,20619 | 2632/5141 · %51,20 [%49,83–%52,56] | 537/5141 · %10,45 [%9,64–%11,31] | 1618/5141 · %31,47 [%30,22–%32,76] |
+
+### Süper Lig model karşılaştırması
+
+| Model | Log loss | RPS | Brier | 1X2 isabeti [%95 GA] | Tutarlı tam skor [%95 GA] | İlk üç genel skor [%95 GA] |
+|---|---:|---:|---:|---|---|---|
+| Yayın modeli | 0,96898 | 0,19552 | 0,57619 | 291/545 · %53,39 [%49,20–%57,54] | 45/545 · %8,26 [%6,23–%10,87] | 161/545 · %29,54 [%25,86–%33,50] |
+| Lig sıklığı | 1,07244 | 0,23081 | 0,64870 | 242/545 · %44,40 [%40,29–%48,60] | 53/545 · %9,72 [%7,51–%12,50] | 151/545 · %27,71 [%24,11–%31,61] |
+| Elo | 0,98192 | 0,19846 | 0,58267 | 281/545 · %51,56 [%47,37–%55,73] | 54/545 · %9,91 [%7,67–%12,70] | 163/545 · %29,91 [%26,22–%33,88] |
+| Bağımsız Poisson | 0,99221 | 0,20408 | 0,59255 | 282/545 · %51,74 [%47,55–%55,91] | 41/545 · %7,52 [%5,59–%10,05] | 161/545 · %29,54 [%25,86–%33,50] |
+| Belirsizlikli Poisson | 0,96966 | 0,19564 | 0,57647 | 291/545 · %53,39 [%49,20–%57,54] | 45/545 · %8,26 [%6,23–%10,87] | 156/545 · %28,62 [%24,99–%32,56] |
+
+| Süper Lig güven kademesi | Kapsam [%95 GA] | 1X2 isabeti [%95 GA] |
+|---|---|---|
+| %45 altı | 181/545 · %33,21 [%29,39–%37,27] | 74/181 · %40,88 [%33,98–%48,16] |
+| %45–55 | 163/545 · %29,91 [%26,22–%33,88] | 73/163 · %44,79 [%37,36–%52,45] |
+| %55–65 | 93/545 · %17,06 [%14,14–%20,45] | 63/93 · %67,74 [%57,70–%76,38] |
+| %65+ | 108/545 · %19,82 [%16,69–%23,37] | 81/108 · %75,00 [%66,07–%82,21] |
+
+### Yayın kararı ve veri kapsamı
+
+| Aday | Tüm liglerde log loss farkı, aday eksi yayın modeli, %95 GA | Gerilemeyen sezon | Tarihsel değerlendirme |
+|---|---|---:|---|
+| Lig sıklığı | 0,062583 ile 0,083209 | 0/4 | Yayın modelinden daha yüksek hata |
+| Elo | 0,002400 ile 0,010398 | 1/4 | Yayın modelinden daha yüksek hata |
+| Bağımsız Poisson | 0,022745 ile 0,032135 | 0/4 | Yayın modelinden daha yüksek hata |
+| Belirsizlikli Poisson | -0,000276 ile 0,000233 | 1/4 | Fark kanıtlanamadı |
+
+**Varsayılan model değişmedi.** Sabitlenen kayıt defterinde 18 eski maç önü kaydı vardı. Bu kayıtların 18 tanesinde yeni sürüm bilgisi veya veri özeti eksikti. Yeni şemayla sonuçlanmış 0 maç ve adayların birlikte puanlanabildiği 0 maç vardı. Bağımsız ölçüm için en az 500 ortak sonuç gerekiyor. Bağımsız isabet çalıştırılmadı.
+
+Süper Lig 2025/26 arşivindeki 207 eksik skor TFF’nin hafta kayıtlarından tamamlandı. Her iki kaynaktaki 99 skor, takım ve tarih eşleşti. Açık arşivdeki eksikler sezonun ikinci kısmında yoğunlaştı. İki yönlü tarih permütasyon testinde p = 0,00050. Bu test yalnızca zamansal yoğunlaşmayı ölçer. 2024/25 arşivinde 338/342 skor kullanılabildi. Son sezon CSV dosyaları yalnızca yayımlanan skorları içerir. Bu dosyaların dışında kalan fikstürlerin kapsamı ölçülmedi. Önceki üst lig geçmişi yetersiz olan takımlar tüm modellerde ortak kümenin dışında kaldı. Alt lig, kupa ve milli takım ölçümü bu backtest’e bağlı değil.
+
+[Ham lig, sezon, aylık, kalibrasyon ve bootstrap sonuçları](tests/phase1-results.json) · [Eksik kapsam](tests/phase1-coverage.json) · [Sabit girdi listesi](tests/phase1-inputs.json)
+
+Yeniden üretim için [TFF haftalarından skor dosyasını oluştur](tests/super-lig-research/README.md#yeniden-üretim) ve [maç önü kayıt defterinin sabit kopyasını](https://raw.githubusercontent.com/adws555434/gagagsaerhdse/1879a9aa54fa6ab01780076b44dad71884116fe8/forecast-ledger.json) indir. TFF ham skor dosyası bu depoya eklenmedi. Node.js 22 ile çalıştırılabilir. TFF seçeneği verilmezse açık arşivle kapsamı daha dar bir rapor üretilir.
+
+```sh
+node tests/phase1-backtest.cjs --self-test
+node tests/phase1-backtest.cjs --download --tff /veri/tff-results.json /veri/arsiv /veri/forecast-ledger.json /veri/faz-1
+```
+
 ## Faz 0 · Analitik matris ve simülasyon
 
 | Bileşen | Durum |

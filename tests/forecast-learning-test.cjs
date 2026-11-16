@@ -127,13 +127,25 @@ test('scheduled ledger deduplicates and settles, rejects unknown or late kickoff
  const fixtures=[{date:'2026-11-16',time:'18:00',home:'Besiktas',away:'Galatasaray'},
   {date:'2026-11-16',time:'11:00',home:'Galatasaray',away:'Besiktas'},
   {date:'2026-11-17',time:'',home:'Galatasaray',away:'Besiktas'}];
- const rows=buildLeague([],scope,'Süper Lig',history,fixtures,now);
+ const covered=history.map((row,i)=>i===0?{...row,ft_home:'0',ft_away:'0'}:i===1?{...row,ft_home:'0',ft_away:'1'}:row);
+ const missingClasses=buildLeague([],scope,'Süper Lig',history,fixtures,now);
+ assert.equal(missingClasses[0].comparison,undefined);
+ const rows=buildLeague([],scope,'Süper Lig',covered,fixtures,now);
  assert.equal(rows.length,1);assert.equal(rows[0].candidates.length,4);assert.equal(rows[0].actual,null);
  assert.ok(rows[0].savedAt<rows[0].kickoff);
+ assert.equal(rows[0].measurementVersion,'2026.11-phase-1');
+ assert.deepEqual(Object.keys(rows[0].comparison),['release','frequency','elo','poisson','uncertainty']);
+ assert.equal(rows[0].comparison.release.consistentScore,rows[0].consistentScore);
+ for(const snapshot of Object.values(rows[0].comparison)){
+  assert.ok(snapshot.probabilities.every(value=>value>=0));
+  assert.ok(Math.abs(snapshot.probabilities.reduce((a,b)=>a+b,0)-1)<1e-12);
+ }
+ assert.equal(rows[0].simulationCount,0);
  assert.equal(buildLeague(rows,scope,'Süper Lig',history,fixtures,now).length,1);
  const result=[...history,{...fixtures[0],ft_home:'2',ft_away:'0'}];
  const settled=buildLeague(rows,scope,'Süper Lig',result,fixtures,new Date('2026-11-17T12:00:00Z'));
  assert.deepEqual(settled[0].actual,[2,0]);assert.equal(settled[0].savedAt,rows[0].savedAt);
+ assert.deepEqual(settled[0].comparison,rows[0].comparison);
 });
 async function testSources(){
  const now=new Date('2026-11-16T12:00:00Z');
