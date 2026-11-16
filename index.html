@@ -178,6 +178,12 @@ function simulateScore(homeGoals,awayGoals,count=SIMULATIONS,random=createSimula
  return {outcomes,scores:[...scores].sort((a,b)=>b[1]-a[1])};
 }
 const percent=count=>'%'+(count*100/SIMULATIONS).toLocaleString('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1});
+function describeScore(score,home,away){
+ const [homeGoals,awayGoals]=score.split('–').map(Number);
+ if(homeGoals===awayGoals)return score+' beraberlik';
+ const winner=homeGoals>awayGoals?home:away;
+ return score+' '+winner+' kazanır';
+}
 function showScenarios(home,away,rates){
  const details=$('scenarios'),output=$('scenarioResult'),team=$('scenarioTeam');
  details.classList.toggle('hidden',!rates);
@@ -197,7 +203,7 @@ function showScenarios(home,away,rates){
   const homeAhead=team.value==='home';
   const sim=simulateScore(rates.homeGoals*remaining,rates.awayGoals*remaining,SIMULATIONS,createSimulationRandom(),Number(homeAhead),Number(!homeAhead));
   output.textContent=minute+'. dakika · '+home+' '+percent(sim.outcomes.home)+' · Beraberlik '+percent(sim.outcomes.draw)+
-   ' · '+away+' '+percent(sim.outcomes.away)+' · En olası bitiş '+sim.scores[0][0]+' · 100.000 simülasyon';
+   ' · '+away+' '+percent(sim.outcomes.away)+' · En olası bitiş '+describeScore(sim.scores[0][0],home,away)+' · 100.000 simülasyon';
  };
 }
 function renderForecast(home,away,results,fixture){
@@ -212,7 +218,7 @@ function renderForecast(home,away,results,fixture){
  const sim=simulateScore(homeGoals,awayGoals);
  const pct=percent;
  const [score,count]=sim.scores[0];
- panel.append(metric('En olası skor',score,pct(count)+' · '+home+' – '+away),
+ panel.append(metric('En olası skor',describeScore(score,home,away),'Bu skorun olasılığı '+pct(count)),
   metric(home+' kazanır',pct(sim.outcomes.home),'Ev sahibi'),
   metric('Beraberlik',pct(sim.outcomes.draw)),
   metric(away+' kazanır',pct(sim.outcomes.away),'Deplasman'));
@@ -230,7 +236,7 @@ function renderForecast(home,away,results,fixture){
  const share=prob=>pct(prob*SIMULATIONS);
  $('firstGoal').textContent='İlk gol modeli (sabit gol hızı varsayımı) · '+home+' '+share((1-noGoal)*homeGoals/totalRate)+
   ' · '+away+' '+share((1-noGoal)*awayGoals/totalRate)+' · golsüz '+share(noGoal);
- list(scores,sim.scores.slice(1,4).map(([scoreline,total])=>({t:scoreline+' · '+pct(total)})));
+ list(scores,sim.scores.slice(1,4).map(([scoreline,total])=>({t:describeScore(scoreline,home,away)+' · '+pct(total)})));
 }
 async function getText(url){
  const stored=cache.get(url);
