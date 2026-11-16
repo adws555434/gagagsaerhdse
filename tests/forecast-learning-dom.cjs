@@ -79,7 +79,7 @@ async function until(fn){
 async function run(){
  const simulationCalls=[];
  const app=live?await (await fetch(site)).text():
-  html.replace(/eventMode=import\('\.\/sim\/event-ui\.mjs'\)[\s\S]*?\.catch\(\(\)=>null\);/,
+  html.replace(/eventMode=import\('\.\/sim\/event-ui\.mjs(?:\?v=\d+)?'\)[\s\S]*?\.catch\(\(\)=>null\);/,
    'eventMode=Promise.resolve(window.testMatchSimulation);');
  if(live)assert.match(app,/id="lineupAudit"/);
  const dom=new JSDOM(app,{url:site,runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:consoleSink,beforeParse(w){

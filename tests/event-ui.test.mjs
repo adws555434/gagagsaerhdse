@@ -46,6 +46,7 @@ test('new mode cancels, rejects insufficient data, runs 100 million, and reuses 
  const $=id=>document.getElementById(id);
  const app={
   clubModelKey:name=>name.toLowerCase(),loadFolder:async()=>data,
+  displayTeamName:name=>name==='Besiktas'?'Beşiktaş':name,
   findTeam:(q,rows)=>rows.some(r=>r.home===q||r.away===q)?q:null,
   direct:()=>fixture,knownKickoff:()=>kickoff,findMarketQuote:()=>null,
   MARKET_SNAPSHOT_URLS:[],dataTable:(headers,rows)=>{const t=document.createElement('div');t.textContent=rows.flat().join(' ');return t;},
@@ -59,6 +60,7 @@ test('new mode cancels, rejects insufficient data, runs 100 million, and reuses 
   assert.match($('eventStatus').textContent,/Veri yetersiz/);
   const cancelled=run(match);
   await wait(()=>$('eventProgress').value>0);
+  assert.ok(!$('eventProgressRow').classList.contains('hidden'));
   $('eventCancel').click();
   await cancelled;
   assert.match($('eventStatus').textContent,/iptal/);
@@ -66,9 +68,9 @@ test('new mode cancels, rejects insufficient data, runs 100 million, and reuses 
   const started=Date.now();
   await run(match);
   assert.equal($('eventProgress').value,TRIALS);
-  assert.match($('eventStatus').textContent,/100\.000\.000/);
-  assert.match($('eventAnswer').textContent,/\d+–\d+/);
-  assert.match($('eventPickCount').textContent,/kez/);
+  assert.ok($('eventProgressRow').classList.contains('hidden'));
+  assert.match($('eventMethod').textContent,/100\.000\.000/);
+  assert.match($('eventPickCount').textContent,/Skor tahmini \d+–\d+.*ihtimal/);
   assert.match($('eventCombined').textContent,/üç skordan/);
   await wait(()=>$('eventHistory').textContent.includes('%53,25'));
   const running=browserWorkers;
@@ -78,8 +80,13 @@ test('new mode cancels, rejects insufficient data, runs 100 million, and reuses 
   }}]};
   await run(match);
   assert.equal(browserWorkers,running);
-  assert.equal($('eventAnswer').textContent,'Besiktas kazanır · 2–1');
+  assert.equal($('eventAnswer').textContent,'Favori Beşiktaş');
+  assert.equal($('eventPickCount').querySelector('strong').textContent,'2–1');
   assert.match($('eventScores').textContent,/^1–1/);
+  assert.equal($('eventOutcomes').querySelector('.is-favorite').textContent,'Beşiktaş kazanır%47,0');
+  assert.match($('eventCombined').textContent,/%34,0$/);
+  assert.match($('eventCounts').textContent,/47\.000\.000 kez/);
+  assert.equal($('eventTechnical').open,false);
   assert.match($('eventStatus').textContent,/önce kaydedilen/);
   $('predictableMatches').open=true;
   await wait(()=>$('eventPredictableList').textContent.includes('Besiktas'));

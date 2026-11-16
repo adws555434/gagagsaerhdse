@@ -285,7 +285,7 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
   *, *::before, *::after { transition: none !important; }
 }
 </style>
-<link rel="stylesheet" href="./assets/matchday.css">
+<link rel="stylesheet" href="./assets/matchday.css?v=2">
 </head>
 <body>
 <a class="skip-link" href="#matchSearch">Takım seçimine geç</a>
@@ -351,9 +351,8 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
   </aside>
   </div>
   <section class="card event-panel hidden" id="eventPanel" aria-labelledby="eventTitle">
-    <div class="panel-heading"><h2 id="eventTitle">100 milyonluk maç simülasyonu</h2><span class="league-label">Süper Lig</span></div>
-    <p class="muted tiny">Önce en sık çıkan maç sonucu, sonra o sonuca uyan en sık skor gösterilir.</p>
-    <div class="event-progress-row">
+    <div class="panel-heading"><h2 id="eventTitle">Maç tahmini</h2><span class="league-label">Süper Lig</span></div>
+    <div class="event-progress-row hidden" id="eventProgressRow">
       <progress id="eventProgress" max="100000000" value="0" aria-label="Simülasyon ilerlemesi"></progress>
       <button id="eventCancel" type="button" disabled>İptal et</button>
     </div>
@@ -362,15 +361,27 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       <div class="event-headline">
         <p class="muted tiny" id="eventFixture"></p>
         <h3 id="eventAnswer"></h3>
-        <p id="eventPickCount"></p>
+        <p id="eventPickCount" class="muted"></p>
       </div>
       <div class="event-breakdown">
-        <div class="event-data"><div class="tablewrap" id="eventOutcomes"></div></div>
-        <div class="event-data"><div class="tablewrap" id="eventScores"></div><p id="eventCombined"></p></div>
+        <section class="event-data" aria-labelledby="eventOutcomesTitle">
+          <h3 id="eventOutcomesTitle">Maç nasıl biter?</h3>
+          <ul class="event-probabilities" id="eventOutcomes"></ul>
+        </section>
+        <section class="event-data" aria-labelledby="eventScoresTitle">
+          <h3 id="eventScoresTitle">En olası 3 skor</h3>
+          <p class="muted tiny">Kazanan tahmininden bağımsız sıralanır.</p>
+          <ol class="event-probabilities" id="eventScores"></ol>
+          <p id="eventCombined" class="event-combined"></p>
+        </section>
       </div>
-      <details class="event-history"><summary>Geçmiş Süper Lig performansı</summary>
-        <p class="muted tiny" id="eventHistory"></p>
-        <p class="muted tiny"><a href="https://github.com/adws555434/gagagsaerhdse/blob/main/EVENT_CALIBRATION.md">Süper Lig geçmiş testinin tamamı</a></p>
+      <details class="event-history" id="eventHistoryDetails"><summary>Geçmişte ne kadar tuttu?</summary>
+        <div id="eventHistory"></div>
+        <p class="muted tiny"><a href="https://github.com/adws555434/gagagsaerhdse/blob/main/EVENT_CALIBRATION.md">Tam test raporu ve güven aralıkları</a></p>
+      </details>
+      <details class="event-history" id="eventTechnical"><summary>Simülasyon ayrıntıları</summary>
+        <p class="muted tiny" id="eventMethod"></p>
+        <ul class="event-probabilities" id="eventCounts"></ul>
       </details>
     </div>
   </section>
@@ -2940,6 +2951,10 @@ function selfTest(){
   setStep(0,'Motor başlatılamadı: '+error.message);
  }
 }
+function displayTeamName(name){
+ return ({Besiktas:'Beşiktaş',Kasimpasa:'Kasımpaşa','Istanbul Basaksehir':'İstanbul Başakşehir',
+  'Gençlerbirligi':'Gençlerbirliği'})[name]??name;
+}
 function selectMatch(home,away,national=false){
  if($('go').disabled||!$('eventCancel').disabled)return;
  $('a').value=home;
@@ -2955,8 +2970,6 @@ async function renderFixturePreview(){
   const now=Date.now(),day=new Intl.DateTimeFormat('tr-TR',{day:'numeric',month:'short',timeZone:'Europe/Istanbul'});
   const matches=fixtures.map(row=>({row,kickoff:knownKickoff(row)})).filter(item=>item.kickoff>now)
    .sort((a,b)=>a.kickoff-b.kickoff).slice(0,3);
-  const label=name=>({'Besiktas':'Beşiktaş','Kasimpasa':'Kasımpaşa','Istanbul Basaksehir':'İstanbul Başakşehir',
-   'Gençlerbirligi':'Gençlerbirliği'}[name]??name);
   for(const {row,kickoff} of matches){
    const button=document.createElement('button');
    button.type='button';
@@ -2967,15 +2980,16 @@ async function renderFixturePreview(){
     const team=document.createElement('span'),abbr=document.createElement('i');
     team.className='fixture-team';
     abbr.setAttribute('aria-hidden','true');
-    abbr.textContent=label(name).slice(0,2).toLocaleUpperCase('tr-TR');
-    team.append(abbr,label(name));teams.append(team);
+    const label=displayTeamName(name);
+    abbr.textContent=label.slice(0,2).toLocaleUpperCase('tr-TR');
+    team.append(abbr,label);teams.append(team);
    }
    const date=document.createElement('time');
    date.dateTime=new Date(kickoff).toISOString();
    date.className='fixture-date';
    date.textContent=day.format(kickoff);
    button.append(teams,date);
-   button.addEventListener('click',()=>selectMatch(label(row.home),label(row.away)));
+   button.addEventListener('click',()=>selectMatch(displayTeamName(row.home),displayTeamName(row.away)));
    list.append(button);
   }
   message.textContent=matches.length?'':'Başlama saati doğrulanmış maç bulunamadı.';
@@ -3009,8 +3023,8 @@ $('scoreCalibrationAudit').addEventListener('toggle',()=>{if($('scoreCalibration
 for(const button of document.querySelectorAll('.example')){
  button.addEventListener('click',()=>selectMatch(button.dataset.home,button.dataset.away,button.hasAttribute('data-national')));
 }
-eventMode=import('./sim/event-ui.mjs').then(({connectEventMode})=>connectEventMode({
- archiveRows,clubModelKey,csv,loadFolder,direct,knownKickoff,findMarketQuote,
+eventMode=import('./sim/event-ui.mjs?v=2').then(({connectEventMode})=>connectEventMode({
+ archiveRows,clubModelKey,csv,loadFolder,direct,knownKickoff,findMarketQuote,displayTeamName,
  MARKET_SNAPSHOT_URLS,MARKET_VERSION,marketTotalsDistribution,getText,dataTable
 })).catch(()=>null);
 selfTest();renderHistory();void renderAutoForecasts();void renderFixturePreview();void renderPerformanceSummary();

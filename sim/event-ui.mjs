@@ -6,13 +6,34 @@ import {analyticMatrix,summarize} from './event-engine.mjs';
 
 const number=new Intl.NumberFormat('tr-TR');
 const percent=new Intl.NumberFormat('tr-TR',{style:'percent',maximumFractionDigits:3});
+const displayPercent=new Intl.NumberFormat('tr-TR',{style:'percent',minimumFractionDigits:1,maximumFractionDigits:1});
+const date=new Intl.DateTimeFormat('tr-TR',{dateStyle:'long',timeZone:'UTC'});
 const historicalPercent=new Intl.NumberFormat('tr-TR',{style:'percent',maximumFractionDigits:2,minimumFractionDigits:2});
+function resultRows(rows){
+ return rows.map(({label,value,highlight=false,probability})=>{
+  const item=document.createElement('li');
+  const name=document.createElement('span'),amount=document.createElement('strong');
+  item.className='event-probability'+(highlight?' is-favorite':'');
+  name.textContent=label;
+  amount.textContent=value;
+  item.append(name,amount);
+  if(probability!=null){
+   const meter=document.createElement('span'),fill=document.createElement('i');
+   meter.className='event-meter';
+   meter.setAttribute('aria-hidden','true');
+   fill.style.width=probability*100+'%';
+   meter.append(fill);item.append(meter);
+  }
+  return item;
+ });
+}
 export function connectEventMode(app){
  const $=id=>document.getElementById(id);
  const cancel=$('eventCancel'),panel=$('eventPanel'),progress=$('eventProgress');
  const status=$('eventStatus'),answer=$('eventAnswer'),output=$('eventOutput'),history=$('eventHistory');
  let controller,archiveRequest;
- const outcomes=fixture=>[fixture.home+' kazanır','Beraberlik',fixture.away+' kazanır'];
+ const name=app.displayTeamName;
+ const outcomes=fixture=>[name(fixture.home)+' kazanır','Beraberlik',name(fixture.away)+' kazanır'];
  const archive=()=>archiveRequest??=app.getText('./event-model-state.json').then(parseArchive)
   .catch(error=>{archiveRequest=null;throw error;});
  const markets=async()=>(await Promise.allSettled(app.MARKET_SNAPSHOT_URLS.map(url=>app.getText(url).then(JSON.parse))))
@@ -27,29 +48,39 @@ export function connectEventMode(app){
  function finish(result,fixture,market,frozen,seconds){
   const top=result.pick;
   const score=top.home+'–'+top.away;
-  answer.textContent=outcomes(fixture)[result.winner]+' · '+score;
-  const describe=count=>number.format(count)+' kez · '+percent.format(count/result.n);
-  $('eventPickCount').textContent='Bu skor '+describe(top.count)+'.';
-  const scores=result.top.map(({home,away,count})=>[home+'–'+away,describe(count)]);
-  $('eventScores').replaceChildren(app.dataTable(['Bütün skorlar içinde en sık çıkan 3 skor','Simülasyon sayısı ve ihtimali'],scores,true));
-  $('eventCombined').textContent='Bu üç skordan biri · '+describe(result.top.reduce((sum,row)=>sum+row.count,0));
-  $('eventOutcomes').replaceChildren(app.dataTable(['Maç sonucu','Simülasyon sayısı ve ihtimali'],
-   outcomes(fixture).map((name,i)=>[name,describe(result.outcomes[i])]),true));
-  status.textContent=(frozen?'Maçtan önce kaydedilen sonuç':'Simülasyon tamamlandı')+
-   ' · '+number.format(result.n)+' maç · '+(market?'Takım modeli ve piyasa':'Takım modeli')+
+  const labels=outcomes(fixture);
+  answer.textContent=result.winner===1?'En olası sonuç beraberlik':'Favori '+name(result.winner===0?fixture.home:fixture.away);
+  const scoreMark=document.createElement('strong');
+  scoreMark.textContent=score;
+  $('eventPickCount').replaceChildren('Skor tahmini ',scoreMark,' · '+displayPercent.format(top.count/result.n)+' ihtimal');
+  const scores=result.top.map(({home,away,count})=>({label:home+'–'+away,count}));
+  const results=labels.map((label,i)=>({label,count:result.outcomes[i],highlight:i===result.winner}));
+  const show=({label,count,highlight})=>({label,value:displayPercent.format(count/result.n),highlight,probability:count/result.n});
+  $('eventScores').replaceChildren(...resultRows(scores.map(show)));
+  const combined=scores.reduce((sum,row)=>sum+row.count,0);
+  $('eventCombined').textContent='Bu üç skordan birinin gelme ihtimali '+displayPercent.format(combined/result.n);
+  $('eventOutcomes').replaceChildren(...resultRows(results.map(show)));
+  $('eventCounts').replaceChildren(...resultRows([...results,...scores,{label:'Üç skorun toplamı',count:combined}].map(({label,count})=>({
+   label,value:number.format(count)+' kez · '+percent.format(count/result.n)
+  }))));
+  $('eventMethod').textContent=number.format(result.n)+' simülasyon · '+(market?'Takım modeli ve piyasa oranları':'Takım modeli')+
    (seconds==null?'':' · '+new Intl.NumberFormat('tr-TR',{maximumFractionDigits:2}).format(seconds)+' sn');
-  $('eventFixture').textContent=fixture.home+' – '+fixture.away+(fixture.time?' · '+fixture.date:'');
+  status.textContent=frozen?'Maçtan önce kaydedilen tahmin gösteriliyor.':'';
+  $('eventFixture').textContent=name(fixture.home)+' – '+name(fixture.away)+(fixture.time?' · '+date.format(new Date(fixture.date)):'');
   progress.value=TRIALS;
   output.classList.remove('hidden');
   history.textContent='Geçmiş başarı raporu yükleniyor…';
   app.getText('./event-validation.json').then(JSON.parse).then(report=>{
    if(report.version!==VERSION)throw Error('Rapor sürümü uyuşmuyor.');
-   const a=report.full100m??report.analytic, samples=report.sampleSummary?.verified??report.full100mSample.length;
-   const line=(name,row)=>name+' '+number.format(row.hits)+'/'+number.format(row.n)+' · '+historicalPercent.format(row.rate)+
-    ' · %95 aralık '+row.ci95.map(value=>historicalPercent.format(value)).join('–');
-   history.textContent='Geçmiş Süper Lig · '+(report.full100mAllFixtures==='passed'?'100 milyonluk geçmiş test':'Analitik geçmiş test')+
-    ' · '+[line('Kazanan veya beraberlik',a.winner),line('Kazananla uyumlu skor',a.score),line('Genel en sık skor',a.globalScore),line('İlk üç skor',a.top3)].join(' · ')+
-    (report.full100mAllFixtures==='passed'?'':' · 100 milyon çekiliş '+samples+' geçmiş maçta ayrıca doğrulandı.');
+   const a=report.full100m??report.analytic;
+   const explanation=document.createElement('p'),list=document.createElement('ul');
+   explanation.className='muted tiny';
+   explanation.textContent=number.format(a.winner.n)+' geçmiş Süper Lig maçındaki isabet oranları';
+   list.className='event-probabilities';
+   list.append(...resultRows([
+    ['Maç sonucunu bildi',a.winner],['Yukarıdaki tek skor tahminini bildi',a.score],['Gerçek skor ilk üçe girdi',a.top3]
+   ].map(([label,row])=>({label,value:historicalPercent.format(row.rate)}))));
+   history.replaceChildren(explanation,list);
   }).catch(()=>{history.textContent='Geçmiş başarı raporuna ulaşılamadı.';});
  }
  const ranking=$('predictableMatches');
@@ -98,9 +129,12 @@ export function connectEventMode(app){
   output.classList.add('hidden');
   answer.textContent='';
   progress.value=0;
+  $('eventTechnical').open=false;
+  $('eventHistoryDetails').open=false;
   const abort=new AbortController();
   controller=abort;
   cancel.disabled=false;
+  $('eventProgressRow').classList.remove('hidden');
   status.textContent='Süper Lig fikstürü ve geçmiş maçlar kontrol ediliyor…';
   try{
    if(!globalThis.Worker)throw Error('Bu tarayıcı paralel simülasyonu desteklemiyor.');
@@ -127,13 +161,14 @@ export function connectEventMode(app){
     workerCount:Math.max(1,Math.min(8,navigator.hardwareConcurrency??2)),
     onProgress:(done,total)=>{
      progress.value=done;
-     status.textContent=done===total?'Analitik skor matrisiyle karşılaştırılıyor…':number.format(done)+' / '+number.format(total)+' maç';
+     status.textContent=done===total?'Sonuçlar kontrol ediliyor…':'Simülasyon sürüyor · '+Math.floor(100*done/total)+'%';
     }});
    finish(result,fixture,input.input.market,false,(performance.now()-start)/1000);
   }catch(error){
    status.textContent=abort.signal.aborted?'Simülasyon iptal edildi.':error.message||'Simülasyon tamamlanamadı.';
   }finally{
    cancel.disabled=true;
+   $('eventProgressRow').classList.add('hidden');
    controller=null;
   }
  };
