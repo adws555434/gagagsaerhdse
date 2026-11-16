@@ -1,1 +1,11 @@
-{"version":"2026.11-super-lig-events-v1","records":[],"score":{"n":0,"winner":0,"score":0,"top3":0}}
+{
+  "version": "2026.11-super-lig-events-v1",
+  "records": [],
+  "score": {
+    "n": 0,
+    "winner": 0,
+    "score": 0,
+    "globalScore": 0,
+    "top3": 0
+  }
+}
