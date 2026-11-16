@@ -4,6 +4,12 @@
 
 [Uygulamayı aç](https://adws555434.github.io/gagagsaerhdse/)
 
+## 100 milyon simülasyon sürümü
+
+Yayındaki maç analizi ve gol senaryosu 100.000.000 deneme yapar. Hesap kısa parçalar halinde yürür ve ilerleme görünür. Yeni analiz başlatıldığında önceki gol senaryosu iptal edilir.
+
+Aşağıdaki tarihsel isabet oranları 100.000 ve 500.000 denemeli ölçümlere aittir. 100 milyon deneme, modelin tahmin başarısında kanıtlanmış bir artış olarak yorumlanmaz.
+
 ## Özelliklerin durumu
 
 | İstek | Durum |
@@ -13,11 +19,11 @@
 | Form, gol, şut, isabetli şut, korner, sarı kart, faul, ilk yarı skor ortalamaları, bir sonraki lig maçına kadar dinlenme | Kaynakta bulunduğu ölçüde. Dinlenme verisi diğer organizasyonları kapsamaz. |
 | Puan tablosu | Sonuçlardan hesaplanır. Resmi sıralama, puan cezası ve kupa grupları hesaba katılmaz. |
 | 50–100 maç ve eski sezonlar | Altı ligde mevcut kayıtlarla en fazla 100 maçlık uzun dönem formu ve son 10 karşılaşma. Eksik sezonlar işaretlenir. Ana skor modeli mevcut sezondaki takım başına son 20 maçı kullanır. |
-| 500.000 Monte Carlo, en olası skor, üç alternatif skor, 1X2 | İki takım için de organizasyonda en az beş geçmiş maç olduğunda çalışıyor. Aynı veriyle sonuç yeniden üretilebilir. |
+| 100.000.000 Monte Carlo, en olası skor, üç alternatif skor, 1X2 | İki takım için de organizasyonda en az beş geçmiş maç olduğunda çalışıyor. Aynı veriyle sonuç yeniden üretilebilir. |
 | İlk gol | Sabit gol hızı varsayımıyla ev sahibi, deplasman ve golsüz maç olasılığı. |
-| İlk 20 dakikada gol senaryosu | Dakika ve öne geçen takım seçilebilir. Kalan süre 500.000 kez simüle edilir. Gerçek maç akışı ve taktik değişiklikleri ayrı veri gerektirir. |
+| İlk 20 dakikada gol senaryosu | Dakika ve öne geçen takım seçilebilir. Kalan süre 100.000.000 kez simüle edilir. Gerçek maç akışı ve taktik değişiklikleri ayrı veri gerektirir. |
 | Ligler | Norveç Eliteserien dahil 14 ligde birer maç için skor simülasyonu doğrulandı. Üç UEFA kupasında veri geliyor, denetim günü beş maç eşiği sebebiyle skor üretilemedi. |
-| Erkek A milli takımları | Türkçe ve İngilizce ülke adları, son 20 maçlık form, geçmiş eşleşmeler, 500.000 simülasyon ve bilinen tarafsız saha. 16 Kasım 2026 tarihli Uluslar Ligi fikstürü ayrı dosyada. Diğer eşleşmeler senaryo olarak hesaplanabilir. |
+| Erkek A milli takımları | Türkçe ve İngilizce ülke adları, son 20 maçlık form, geçmiş eşleşmeler, 100.000.000 simülasyon ve bilinen tarafsız saha. 16 Kasım 2026 tarihli Uluslar Ligi fikstürü ayrı dosyada. Diğer eşleşmeler senaryo olarak hesaplanabilir. |
 | Veri kalitesi ve kaynaklar | Sonuç, fikstür, seçili istatistik alanlarının doluluk oranı ve arşiv kapsamı görünür. |
 | Oyuncu formu, sakatlık, ceza, kadro, dakika, gol/asist ve kart/hata riski | Açık ve yeterli maç öncesi oyuncu verisi henüz bağlı değil. Oyuncu özel hayatı ve sağlık bilgileri işlenmez. |
 | xG, xA, PPDA, gelişmiş pas/baskı, taktik, antrenman, hava, saha, hakem, motivasyon ve takım içi uyum | Bu yayında kullanılmıyor. |
@@ -82,7 +88,7 @@ for entry in manifest['files']:
         raise ValueError(entry['file'])
     (target / entry['file']).write_bytes(data)
 PYTHON
-node tests/backtest.cjs audit-data
+node tests/backtest.cjs audit-data 500000
 ```
 
 [100.000 simülasyon çıktısı](tests/backtest-summary.json) ve [500.000 simülasyon çıktısı](tests/backtest-500-clubs.json) lig bazında sayaçları ve arşiv kapsamını içerir.
