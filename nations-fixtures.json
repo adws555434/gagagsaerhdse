@@ -1,0 +1,115 @@
+{
+  "competition": "UEFA Uluslar Ligi",
+  "checked": "2026-11-16",
+  "source": "https://www.uefa.com/uefanationsleague/news/02a2-1fea18abbcbc-456e846509e7-1000--2026-27-uefa-nations-league-all-the-league-phase-fixtures/",
+  "matches": [
+    [
+      "2026-11-16T15:00:00Z",
+      "Faroe Islands",
+      "Moldova",
+      false
+    ],
+    [
+      "2026-11-16T15:00:00Z",
+      "Kazakhstan",
+      "Slovakia",
+      false
+    ],
+    [
+      "2026-11-16T17:00:00Z",
+      "Iceland",
+      "Luxembourg",
+      false
+    ],
+    [
+      "2026-11-16T17:00:00Z",
+      "Estonia",
+      "Bulgaria",
+      false
+    ],
+    [
+      "2026-11-16T17:00:00Z",
+      "Lithuania",
+      "Liechtenstein",
+      false
+    ],
+    [
+      "2026-11-16T19:45:00Z",
+      "Gibraltar",
+      "Malta",
+      false
+    ],
+    [
+      "2026-11-16T19:45:00Z",
+      "Germany",
+      "Netherlands",
+      false
+    ],
+    [
+      "2026-11-16T19:45:00Z",
+      "Greece",
+      "Serbia",
+      false
+    ],
+    [
+      "2026-11-16T19:45:00Z",
+      "Switzerland",
+      "Scotland",
+      false
+    ],
+    [
+      "2026-11-16T19:45:00Z",
+      "North Macedonia",
+      "Slovenia",
+      false
+    ],
+    [
+      "2026-11-17T19:45:00Z",
+      "Israel",
+      "Austria",
+      true
+    ],
+    [
+      "2026-11-17T19:45:00Z",
+      "Bosnia and Herzegovina",
+      "Romania",
+      false
+    ],
+    [
+      "2026-11-17T19:45:00Z",
+      "Ukraine",
+      "Georgia",
+      true
+    ],
+    [
+      "2026-11-17T19:45:00Z",
+      "Denmark",
+      "Norway",
+      false
+    ],
+    [
+      "2026-11-17T19:45:00Z",
+      "Wales",
+      "Portugal",
+      false
+    ],
+    [
+      "2026-11-17T19:45:00Z",
+      "Hungary",
+      "Northern Ireland",
+      false
+    ],
+    [
+      "2026-11-17T19:45:00Z",
+      "Poland",
+      "Sweden",
+      false
+    ],
+    [
+      "2026-11-17T19:45:00Z",
+      "Republic of Ireland",
+      "Kosovo",
+      false
+    ]
+  ]
+}
