@@ -3023,7 +3023,7 @@ $('scoreCalibrationAudit').addEventListener('toggle',()=>{if($('scoreCalibration
 for(const button of document.querySelectorAll('.example')){
  button.addEventListener('click',()=>selectMatch(button.dataset.home,button.dataset.away,button.hasAttribute('data-national')));
 }
-eventMode=import('./sim/event-ui.mjs?v=3').then(({connectEventMode})=>connectEventMode({
+eventMode=import('./sim/event-ui.mjs?v=4').then(({connectEventMode})=>connectEventMode({
  archiveRows,clubModelKey,csv,loadFolder,direct,knownKickoff,findMarketQuote,displayTeamName,
  MARKET_SNAPSHOT_URLS,MARKET_VERSION,marketTotalsDistribution,getText,dataTable
 })).catch(()=>null);

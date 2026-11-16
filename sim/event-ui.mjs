@@ -48,7 +48,13 @@ export function connectEventMode(app){
  function finish(result,fixture,market,frozen,seconds){
   const top=result.pick;
   const labels=outcomes(fixture);
-  const scoreLabel=(home,away)=>home+'–'+away+' · '+labels[outcomeOf(home,away)];
+  const scoreLabel=(home,away)=>{
+   const score=home+'–'+away;
+   const outcome=outcomeOf(home,away);
+   if(outcome===1)return score+' beraberlik';
+   const winner=outcome===0?fixture.home:fixture.away;
+   return name(winner)+' '+score+' kazanır';
+  };
   answer.textContent=result.winner===1?'En olası sonuç beraberlik':'Favori '+name(result.winner===0?fixture.home:fixture.away);
   const scoreMark=document.createElement('strong');
   scoreMark.textContent=scoreLabel(top.home,top.away);

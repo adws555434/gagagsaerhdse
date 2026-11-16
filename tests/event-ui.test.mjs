@@ -70,20 +70,20 @@ test('new mode cancels, rejects insufficient data, runs 100 million, and reuses 
   assert.equal($('eventProgress').value,TRIALS);
   assert.ok($('eventProgressRow').classList.contains('hidden'));
   assert.match($('eventMethod').textContent,/100\.000\.000/);
-  assert.match($('eventPickCount').textContent,/Skor tahmini \d+–\d+.*ihtimal/);
+  assert.match($('eventPickCount').textContent,/Skor tahmini .*\d+–\d+.*ihtimal/);
   assert.match($('eventCombined').textContent,/üç skordan/);
   await wait(()=>$('eventHistory').textContent.includes('%53,25'));
   const running=browserWorkers;
   frozen={records:[{id:fixtureId(fixture,app),version:VERSION,kickoff,savedAt:before,result:{
    n:TRIALS,outcomes:[47_000_000,29_000_000,24_000_000],winner:0,pick:{home:2,away:1,count:10_000_000},
-   top:[{home:1,away:1,count:15_000_000},{home:2,away:1,count:10_000_000},{home:1,away:0,count:9_000_000}]
+   top:[{home:1,away:1,count:15_000_000},{home:2,away:1,count:10_000_000},{home:0,away:1,count:9_000_000}]
   }}]};
   await run(match);
   assert.equal(browserWorkers,running);
   assert.equal($('eventAnswer').textContent,'Favori Beşiktaş');
-  assert.equal($('eventPickCount').querySelector('strong').textContent,'2–1 · Beşiktaş kazanır');
-  assert.match($('eventScores').textContent,/^1–1 · Beraberlik/);
-  assert.match($('eventScores').textContent,/2–1 · Beşiktaş kazanır/);
+  assert.equal($('eventPickCount').querySelector('strong').textContent,'Beşiktaş 2–1 kazanır');
+  assert.deepEqual([...$('eventScores').querySelectorAll('li > span:first-child')].map(row=>row.textContent),
+   ['1–1 beraberlik','Beşiktaş 2–1 kazanır','Galatasaray 0–1 kazanır']);
   assert.equal($('eventOutcomes').querySelector('.is-favorite').textContent,'Beşiktaş kazanır%47,0');
   assert.match($('eventCombined').textContent,/%34,0$/);
   assert.match($('eventCounts').textContent,/47\.000\.000 kez/);
