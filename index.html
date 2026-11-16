@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="referrer" content="no-referrer">
-<meta name="app-version" content="2026.11-audit">
+<meta name="app-version" content="2026.11-100m">
 <title>Football Intelligence</title>
 <style>
 :root{--bg:#071019;--p:#0d1a27;--p2:#142433;--line:#294157;--t:#eef6ff;--m:#9eb1c3;--b:#4d8dff;--g:#3ac878;--r:#ef6e78}
@@ -137,7 +137,8 @@ function h2h(a,b,rows){return rows.filter(r=>(r.home===a&&r.away===b)||(r.home==
 function nextFor(team,fx){return fx.filter(r=>r.home===team||r.away===team).sort((x,y)=>String(x.date).localeCompare(String(y.date)))[0]||null}
 function direct(a,b,fx){return fx.filter(r=>(r.home===a&&r.away===b)||(r.home===b&&r.away===a)).sort((x,y)=>String(x.date).localeCompare(String(y.date)))[0]||null}
 function daysBetween(a,b){if(!a||!b)return null;return Math.max(0,Math.round((new Date(b+'T12:00:00Z')-new Date(a+'T12:00:00Z'))/86400000))}
-const SIMULATIONS=500000;
+const SIMULATIONS=100000000;
+const SIMULATION_BATCH=100000;
 const simulationLabel=SIMULATIONS.toLocaleString('tr-TR')+' simülasyon';
 const MIN_TEAM_MATCHES=5;
 function estimateGoals(home,away,results,neutral=false){
@@ -187,7 +188,7 @@ function createSimulationRandom(){
   return state/4294967296;
  };
 }
-function simulateScore(homeGoals,awayGoals,count=SIMULATIONS,random=createSimulationRandom(),initialHome=0,initialAway=0){
+function* scoreBatches(homeGoals,awayGoals,count,random,initialHome,initialAway){
  const outcomes={home:0,draw:0,away:0};
  const homeStop=Math.exp(-homeGoals),awayStop=Math.exp(-awayGoals);
  const counts=[];
@@ -199,8 +200,34 @@ function simulateScore(homeGoals,awayGoals,count=SIMULATIONS,random=createSimula
   const score=row[away];
   if(score)score[1]++;
   else{const entry=[home+'–'+away,1];row[away]=entry;scores.push(entry)}
+  if((i+1)%SIMULATION_BATCH===0&&i+1<count)yield i+1;
  }
  return {outcomes,scores:scores.sort((a,b)=>b[1]-a[1])};
+}
+function simulateScore(homeGoals,awayGoals,count=SIMULATIONS,random=createSimulationRandom(),initialHome=0,initialAway=0){
+ const batches=scoreBatches(homeGoals,awayGoals,count,random,initialHome,initialAway);
+ let next=batches.next();
+ while(!next.done)next=batches.next();
+ return next.value;
+}
+async function runSimulation(homeGoals,awayGoals,{initialHome=0,initialAway=0,onProgress,signal}={}){
+ const batches=scoreBatches(homeGoals,awayGoals,SIMULATIONS,createSimulationRandom(),initialHome,initialAway);
+ let lastProgress=-1;
+ for(;;){
+  await new Promise(resolve=>setTimeout(resolve,0));
+  if(signal?.aborted)return null;
+  const deadline=performance.now()+12;
+  let next;
+  do{
+   next=batches.next();
+   if(next.done)return next.value;
+  }while(performance.now()<deadline);
+  const progress=Math.floor(20*next.value/SIMULATIONS)*5;
+  if(progress!==lastProgress){
+   onProgress?.(progress);
+   lastProgress=progress;
+  }
+ }
 }
 const percent=count=>'%'+(count*100/SIMULATIONS).toLocaleString('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1});
 function describeScore(score,home,away){
@@ -209,8 +236,10 @@ function describeScore(score,home,away){
  const winner=homeGoals>awayGoals?home:away;
  return score+' '+winner+' kazanır';
 }
+let scenarioController;
 function showScenarios(home,away,rates){
  const details=$('scenarios'),output=$('scenarioResult'),team=$('scenarioTeam');
+ const button=$('scenarioRun');
  details.classList.toggle('hidden',!rates);
  details.open=false;
  output.textContent='';
@@ -218,7 +247,8 @@ function showScenarios(home,away,rates){
  team.value='home';
  team.options[0].textContent=home;
  team.options[1].textContent=away;
- $('scenarioRun').onclick=()=>{
+ button.disabled=false;
+ button.onclick=async()=>{
   const minute=num($('scenarioMinute').value);
   if(!Number.isInteger(minute)||minute<0||minute>90){
    output.textContent='0 ile 90 arasında tam sayı yaz.';
@@ -226,22 +256,41 @@ function showScenarios(home,away,rates){
   }
   const remaining=(90-minute)/90;
   const homeAhead=team.value==='home';
-  const sim=simulateScore(rates.homeGoals*remaining,rates.awayGoals*remaining,SIMULATIONS,createSimulationRandom(),Number(homeAhead),Number(!homeAhead));
-  output.textContent=minute+'. dakika · '+home+' '+percent(sim.outcomes.home)+' · Beraberlik '+percent(sim.outcomes.draw)+
-   ' · '+away+' '+percent(sim.outcomes.away)+' · En olası bitiş '+describeScore(sim.scores[0][0],home,away)+' · '+simulationLabel;
+  const controller=new AbortController();
+  scenarioController=controller;
+  button.disabled=true;
+  output.textContent='Senaryo hesaplanıyor…';
+  try{
+   const sim=await runSimulation(rates.homeGoals*remaining,rates.awayGoals*remaining,{
+    initialHome:Number(homeAhead),initialAway:Number(!homeAhead),signal:controller.signal,
+    onProgress:progress=>{output.textContent='Senaryo hesaplanıyor… %'+progress}
+   });
+   if(!sim||controller.signal.aborted)return;
+   output.textContent=minute+'. dakika · '+home+' '+percent(sim.outcomes.home)+' · Beraberlik '+percent(sim.outcomes.draw)+
+    ' · '+away+' '+percent(sim.outcomes.away)+' · En olası bitiş '+describeScore(sim.scores[0][0],home,away)+' · '+simulationLabel;
+  }catch(error){
+   console.error(error);
+   if(!controller.signal.aborted)output.textContent='Senaryo tamamlanamadı. Tekrar dene.';
+  }finally{
+   if(scenarioController===controller){scenarioController=null;button.disabled=false}
+  }
  };
 }
-function renderForecast(home,away,results,fixture){
+async function renderForecast(home,away,results,fixture){
  const panel=$('forecast'),note=$('forecastNote'),scores=$('scorelines');
  panel.textContent='';
  scores.textContent='';
  $('firstGoal').textContent='';
  const neutral=fixture?.neutral===true;
  const rates=estimateGoals(home,away,results,neutral);
- showScenarios(home,away,rates);
+ showScenarios(home,away,null);
  if(!rates){note.textContent='Tahmin için her iki takımın da bu organizasyonda en az '+MIN_TEAM_MATCHES+' tamamlanmış maçı gerekiyor.';return}
  const {homeGoals,awayGoals,H,A}=rates;
- const sim=simulateScore(homeGoals,awayGoals);
+ note.textContent=simulationLabel+' çalıştırılıyor…';
+ const sim=await runSimulation(homeGoals,awayGoals,{onProgress:progress=>{
+  setStep(78+Math.round(progress*.19),simulationLabel+' · %'+progress);
+ }});
+ showScenarios(home,away,rates);
  const pct=percent;
  const [score,count]=sim.scores[0];
  panel.append(metric('En olası skor',describeScore(score,home,away),'Bu skorun olasılığı '+pct(count)),
@@ -443,7 +492,6 @@ function render(R){const {a,b,results,fixtures,national}=R,A=summary(a,results),
  }
  const cutoff=N?N.date:new Date().toISOString().slice(0,10);
  const forecastRows=results.filter(row=>row.date<cutoff);
- renderForecast(N?N.home:a,N?N.away:b,forecastRows,N);
  const qualityFields=['home_shots','away_shots','home_corners','away_corners','home_yellow','away_yellow'];
  const requestedRows=results.filter(row=>[row.home,row.away].some(team=>team===a||team===b));
  const total=requestedRows.length*qualityFields.length;
@@ -461,8 +509,9 @@ function render(R){const {a,b,results,fixtures,national}=R,A=summary(a,results),
  list($('half'),[{t:a,s:'İY gol '+fmt(A.htgf)+' · İY yenen '+fmt(A.htga)},{t:b,s:'İY gol '+fmt(B.htgf)+' · İY yenen '+fmt(B.htga)}]);
  $('leagueTable').classList.toggle('hidden',national===true);
  if(!national)renderTable(T,a,b);
+ return renderForecast(N?N.home:a,N?N.away:b,forecastRows,N);
 }
-async function analyze(){const btn=$('go');if(btn.disabled)return;$('err').classList.add('hidden');$('out').classList.add('hidden');const qa=$('a').value.trim(),qb=$('b').value.trim();if(qa.length<2||qb.length<2||qnorm(qa)===qnorm(qb)){$('errText').textContent='İki farklı takımın adını yaz.';$('err').classList.remove('hidden');setStatus('Motor hazır ✓','ok');setStep(0,'Takım adlarını kontrol et.');return}btn.disabled=true;try{setStatus('Analiz ediliyor…','warn');setStep(4,'Takımlar aranıyor…');const R=await resolve(qa,qb,$('nationalOnly').checked);setStep(75,'İstatistikler hesaplanıyor…');render(R);if(R.national)renderNationalArchive(R);else await renderArchive(R);setStep(100,'Analiz tamamlandı.');setStatus('Tamamlandı ✓','ok')}catch(e){console.error(e);$('errText').textContent=e.message||String(e);$('err').classList.remove('hidden');setStatus('Hata','bad');setStep(0,'Analiz tamamlanamadı.')}finally{btn.disabled=false}}
+async function analyze(){const btn=$('go');if(btn.disabled)return;scenarioController?.abort();$('err').classList.add('hidden');$('out').classList.add('hidden');const qa=$('a').value.trim(),qb=$('b').value.trim();if(qa.length<2||qb.length<2||qnorm(qa)===qnorm(qb)){$('errText').textContent='İki farklı takımın adını yaz.';$('err').classList.remove('hidden');setStatus('Motor hazır ✓','ok');setStep(0,'Takım adlarını kontrol et.');return}btn.disabled=true;try{setStatus('Analiz ediliyor…','warn');setStep(4,'Takımlar aranıyor…');const R=await resolve(qa,qb,$('nationalOnly').checked);setStep(75,'İstatistikler hesaplanıyor…');await Promise.all([render(R),R.national?renderNationalArchive(R):renderArchive(R)]);setStep(100,'Analiz tamamlandı.');setStatus('Tamamlandı ✓','ok')}catch(e){console.error(e);$('errText').textContent=e.message||String(e);$('err').classList.remove('hidden');setStatus('Hata','bad');setStep(0,'Analiz tamamlanamadı.')}finally{btn.disabled=false}}
 function selfTest(){try{const t=csv('date,home,away,ft_home,ft_away\n2026-01-01,Besiktas,Galatasaray,1,0\n');if(t.length!==1||findTeam('Beşiktaş',t)!=='Besiktas')throw new Error('motor testi');setStatus('Motor hazır ✓','ok');setStep(0,'Motor hazır. İki takım yazıp butona bas.')}catch(e){setStatus('Motor hatası','bad');setStep(0,'Motor başlatılamadı: '+e.message)}}
 $('go').addEventListener('click',analyze);$('a').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});$('b').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});window.addEventListener('error',e=>{setStatus('JavaScript hatası','bad');$('step').textContent=e.message});selfTest();
 </script>
