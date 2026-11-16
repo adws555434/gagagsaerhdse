@@ -1,0 +1,112 @@
+[
+  {
+    "file": "tr.1.csv",
+    "url": "https://raw.githubusercontent.com/oladeeayo/open-matchday/3a3ac5075ad614d94e0f908f9e0752f937a10cd9/data/TUR_1_super-lig/results_2627.csv",
+    "sha256": "4db63d5ff891afc83e44349974139cfac275f5671a1e5b217bc869903cfbef83"
+  },
+  {
+    "file": "en.1.csv",
+    "url": "https://raw.githubusercontent.com/oladeeayo/open-matchday/3a3ac5075ad614d94e0f908f9e0752f937a10cd9/data/ENG_1_premier-league/results_2627.csv",
+    "sha256": "ba9e74b9d52a07cf917eac06c3f49cd66359141a710ef38e0acc291e30d91b74"
+  },
+  {
+    "file": "es.1.csv",
+    "url": "https://raw.githubusercontent.com/oladeeayo/open-matchday/3a3ac5075ad614d94e0f908f9e0752f937a10cd9/data/ESP_1_la-liga/results_2627.csv",
+    "sha256": "a6e61bcfbaef4abeb4005aaeb0542258a4827ce6efbf316c336050f6ce39e417"
+  },
+  {
+    "file": "de.1.csv",
+    "url": "https://raw.githubusercontent.com/oladeeayo/open-matchday/3a3ac5075ad614d94e0f908f9e0752f937a10cd9/data/GER_1_bundesliga/results_2627.csv",
+    "sha256": "b8327e8bf0f1696a2f93899dc4d54834d74a45d68ff51cabb044a737856023f9"
+  },
+  {
+    "file": "it.1.csv",
+    "url": "https://raw.githubusercontent.com/oladeeayo/open-matchday/3a3ac5075ad614d94e0f908f9e0752f937a10cd9/data/ITA_1_serie-a/results_2627.csv",
+    "sha256": "543803ebbe61356cbf49f9a02d2d6d934e664d1029bc57bcea8174bc4a43d1d9"
+  },
+  {
+    "file": "fr.1.csv",
+    "url": "https://raw.githubusercontent.com/oladeeayo/open-matchday/3a3ac5075ad614d94e0f908f9e0752f937a10cd9/data/FRA_1_ligue-1/results_2627.csv",
+    "sha256": "78ab1fdbf7d7488c042d14fefa52bce80d944abd6c1a7fc3590cd458f2fc2962"
+  },
+  {
+    "file": "2020-21-de.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2020-21/de.1.json",
+    "sha256": "74a709c3f800064f26c4d44ec92af9bcd32c6b94ec00ace7cc5b684e8c3c8e74"
+  },
+  {
+    "file": "2020-21-en.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2020-21/en.1.json",
+    "sha256": "21ddf26b48469da530c51ccc4857bf1a534bda3aed08766b55185efb142e9a20"
+  },
+  {
+    "file": "2020-21-es.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2020-21/es.1.json",
+    "sha256": "817a41df564a1790147e97fc417922f6e9354b142b2baf6d376d809da2bd24b6"
+  },
+  {
+    "file": "2020-21-fr.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2020-21/fr.1.json",
+    "sha256": "27eceef1ea5b9b3b601074c3bfbb6a80f7e969d73d513f9dba104b688003c4e2"
+  },
+  {
+    "file": "2020-21-it.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2020-21/it.1.json",
+    "sha256": "0e00abb3f9d03675c4bdde14b3bde34fed5713727282f82ed095b49e60fbcfea"
+  },
+  {
+    "file": "2020-21-tr.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2020-21/tr.1.json",
+    "sha256": "d866888f862353a6858321c03159f9b84e880608c716cf8a29700acad1804ec9"
+  },
+  {
+    "file": "2021-22-de.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2021-22/de.1.json",
+    "sha256": "f1b9901cffb6b073f389e730213b5f8efe6a9a73b2f86058794f2d0f1dcc54dc"
+  },
+  {
+    "file": "2021-22-en.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2021-22/en.1.json",
+    "sha256": "fbdfd426fa18fa2f8630b77de87c082734da495ac4668d6d72f29f76b73b9564"
+  },
+  {
+    "file": "2021-22-es.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2021-22/es.1.json",
+    "sha256": "7beb67dd49d7132bf9f7baea540342439b97ed4a7b21ffb90d3231a402c54d02"
+  },
+  {
+    "file": "2021-22-fr.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2021-22/fr.1.json",
+    "sha256": "8abb493061d32faaf413c403b440c043723d9743a9e69d6472bf5410e2d4e039"
+  },
+  {
+    "file": "2021-22-it.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2021-22/it.1.json",
+    "sha256": "a3e94b23cac768e4191e99312f4d48471c4000c5c2fe766b0325cee935754061"
+  },
+  {
+    "file": "2022-23-de.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2022-23/de.1.json",
+    "sha256": "b0c052dc75836dfc6b0d3781d35b828851db7377c9f6ccb39643dbbe1964f3bd"
+  },
+  {
+    "file": "2022-23-en.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2022-23/en.1.json",
+    "sha256": "8d09f0f9846981626cdfec48903e1f21e7c79aabe6f92535c9e092e8e79b808b"
+  },
+  {
+    "file": "2022-23-es.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2022-23/es.1.json",
+    "sha256": "0204c66c919c2cd5cc3d1ba26be4f68592e4e173843162a9e6755182ccf83778"
+  },
+  {
+    "file": "2022-23-fr.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2022-23/fr.1.json",
+    "sha256": "6301ac1ba1fa0f5b72345759711beac3b3be3c989725cc1c6ef9307ffef692c7"
+  },
+  {
+    "file": "2022-23-it.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2022-23/it.1.json",
+    "sha256": "d775fdd375af6998233fbfcd5b33d176cb9d016a981682626c5ce2f95b0c2f88"
+  }
+]
