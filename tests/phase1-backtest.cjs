@@ -146,7 +146,7 @@ function fitSeason(league, historical, season) {
   for (const row of history) for (const team of [row.home, row.away]) {
     appearances.set(team, (appearances.get(team) ?? 0) + 1);
   }
-  function predict({ home, away, date }) {
+  function predict({ home, away, date }, transform = null) {
     assert.ok(date >= asOf, 'Test maçı sezon başlangıcından önce');
     const base = app.estimateGoals(home, away, history);
     if (!base || !frequency) return null;
@@ -157,7 +157,7 @@ function fitSeason(league, historical, season) {
       app.eloScoreReference(frequency, h, a),
       app.prepareForecastDistribution(base.homeGoals, base.awayGoals),
       app.prepareForecastDistribution(rates.homeGoals, rates.awayGoals, { matches: [rates.H.matches, rates.A.matches] })
-    ].map(distribution => ({
+    ].map(distribution => transform ? transform(distribution) : ({
       p: distribution.outcomes, decision: app.forecastDecision(distribution)
     }));
   }
@@ -493,7 +493,9 @@ async function run() {
       ({ name, logLoss, rps, result, score, top3 })) }, null, 2));
 }
 
-run().catch(error => {
+module.exports = { loadInputs, auditTurkey, fitSeason, metricRow, binomial, groupBy, percentile, seasonStart, leagueNames, snapshotEnd };
+
+if (require.main === module) run().catch(error => {
   console.error(error);
   process.exitCode = 1;
 });

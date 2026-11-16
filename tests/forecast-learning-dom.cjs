@@ -10,6 +10,8 @@ const shotReport=JSON.parse(fs.readFileSync(path.join(root,root===__dirname?'sho
 const turkeyReport=JSON.parse(fs.readFileSync(path.join(root,root===__dirname?'super-lig-research/results.json':'tests/super-lig-research/results.json'),'utf8'));
 const signalPath=root===__dirname?'super-lig-data/results.json':'tests/super-lig-data/results.json';
 const signalAudit=JSON.parse(fs.readFileSync(path.join(root,signalPath),'utf8'));
+const phase2Report=fs.readFileSync(path.join(root,'phase2-market-report.json'),'utf8');
+const marketSnapshot=fs.readFileSync(path.join(root,'market-snapshot.json'),'utf8');
 const phase1Summary=JSON.parse(fs.readFileSync(path.join(root,'phase1-summary.json'),'utf8'));
 const lineupArchive=fs.readFileSync(path.join(root,'lineup-samples.json'),'utf8');
 const errors=[];
@@ -29,9 +31,22 @@ const fixture='date,time,home,away\n'+fixDate+',19:00,Besiktas,Galatasaray';
 const archive=JSON.stringify({matches:Array.from({length:6},(_,i)=>({date:'2025-11-0'+(i+1),team1:'Beşiktaş',team2:'Galatasaray',score:[i%3,0]}))});
 const response=(text,ok=true)=>({ok,status:ok?200:404,text:async()=>text});
 let feedMode='primary';
+let oddsMode='unconfigured';
 const feedCalls=new Map();
 async function mock(url){
  feedCalls.set(url,(feedCalls.get(url)||0)+1);
+ if(url.includes('phase2-market-report.json'))return response(phase2Report);
+ if(url.includes('market-snapshot.json')){
+  if(oddsMode==='unconfigured')return response(marketSnapshot);
+  const captured=Date.now()-1000;
+  return response(JSON.stringify({version:'2026.11-phase-2',state:'ready',
+   capturedAt:new Date(captured).toISOString(),events:[{
+    scope:'TUR_1_super-lig',home:'Beşiktaş JK',away:'Galatasaray',
+    kickoff:fixDate+'T18:00:00Z',quotedAt:new Date(captured-1000).toISOString(),
+    totalQuotedAt:new Date(captured-1000).toISOString(),books:2,
+    power:[.52,.27,.21],proportional:[.50,.27,.23],over25:.55
+   }]}));
+ }
  if(url.includes('phase1-summary.json'))return response(JSON.stringify(phase1Summary));
  if(url.includes('lineup-samples.json'))return response(lineupArchive);
  if(url.includes('super-lig-data/results'))return response(JSON.stringify(signalAudit));
@@ -121,6 +136,12 @@ async function run(){
   assert.equal($('phase1Curve').querySelectorAll('polyline').length,3);
   assert.ok($('phase1Calibration').querySelectorAll('tbody tr').length>0);
   assert.ok($('phase1Months').querySelectorAll('tbody tr').length>0);
+  $('marketAudit').open=true;
+  await until(()=>$('marketAuditClose').querySelectorAll('tbody tr').length===7);
+  assert.match($('marketAuditStatus').textContent,/ortak kapanış kaydı/);
+  assert.equal($('marketAuditBlend').querySelectorAll('tbody tr').length,8);
+  assert.match($('marketAuditClose').textContent,/%95 GA/);
+  if(!live)assert.match($('marketStatus').textContent,/bağlı değil/);
   $('lineupAudit').open=true;
   await until(()=>$('lineupArchiveList').querySelectorAll('summary').length===3);
   assert.match($('lineupArchiveList').textContent,/Gençlerbirliği · 65 dk önce/);
@@ -197,6 +218,12 @@ async function run(){
    feedMode='mirror';
    await submit('Beşiktaş','Galatasaray');
    assert.match($('source').textContent,/Yedek veri bağlantısı/);
+   clearNetworkCache();oddsMode='ready';
+   await submit('Beşiktaş','Galatasaray');
+   assert.equal($('marketComparison').querySelectorAll('tbody tr').length,3);
+   assert.match($('marketComparison').textContent,/Harman · deney/);
+   assert.match($('marketTotals').textContent,/Piyasa Poisson toplam gol/);
+   oddsMode='unconfigured';
    clearNetworkCache();
    feedMode='offline';
    window.localStorage.removeItem('football-intelligence-forecasts-v1');
@@ -214,7 +241,7 @@ async function run(){
    assert.equal(feedCalls.get(parallelUrl),1);
   }
   assert.deepEqual(errors,[]);
-  console.log('PASS club and national analysis, forecast cards, source file import, lineup and league audits, source failover, cache expiry and request coalescing.');
+  console.log('PASS club and national analysis, forecast cards, source file import, lineup, market and league audits, source failover, cache expiry and request coalescing.');
  }finally{window.close()}
 }
 run().catch(e=>{console.error(e);process.exitCode=1});

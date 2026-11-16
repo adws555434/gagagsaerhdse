@@ -1,0 +1,10 @@
+{
+  "source": "TipsAudit",
+  "license": "CC-BY-4.0",
+  "attribution": "https://tipsaudit.com/data",
+  "documentation": "https://github.com/tipsaudit/track-record-public/tree/a34f89771caa7cb6462e3bc769c767afcff58aba/datasets",
+  "url": "https://raw.githubusercontent.com/tipsaudit/track-record-public/a34f89771caa7cb6462e3bc769c767afcff58aba/datasets/tipsaudit-predictions-all.csv",
+  "sha256": "a35012902ca1078c3a9d206587364bdc7f53e4f897aac514ae48293887084a22",
+  "closingMarket": "1X2",
+  "totalsMarket": null
+}

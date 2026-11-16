@@ -355,6 +355,12 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       <p id="simulationAudit" class="muted tiny"></p>
       <div id="scorelines"></div>
       <p id="firstGoal" class="muted"></p>
+      <details id="marketPanel">
+        <summary>Piyasa ve harman karşılaştırması</summary>
+        <p id="marketStatus" class="muted tiny" role="status"></p>
+        <div id="marketComparison" class="tablewrap"></div>
+        <p id="marketTotals" class="muted tiny"></p>
+      </details>
       <details id="modelPanel" class="hidden">
         <summary>Tahminin gerekçesi ve model karşılaştırması</summary>
         <div id="modelWhy" class="list"></div>
@@ -451,6 +457,17 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
         <div id="phase1Months" class="tablewrap"></div>
       </details>
       <p class="muted tiny"><a href="https://github.com/adws555434/gagagsaerhdse/blob/main/AUDIT_REPORT.md#faz-1--ölçüm-altyapısı">Test yöntemi ve kaynak kapsamı</a></p>
+    </details>
+    <details id="marketAudit">
+      <summary>Piyasa oranlarının geçmiş testi</summary>
+      <p id="marketAuditStatus" class="muted tiny" role="status"></p>
+      <label for="marketAuditLeague">Lig</label>
+      <select id="marketAuditLeague"><option value="tr.1">Süper Lig</option><option value="all">Tüm test ligleri</option></select>
+      <h4>Kapanış verisi bulunan ortak maçlar</h4>
+      <div id="marketAuditClose" class="tablewrap"></div>
+      <h4>Harman için sonraki dönem testi</h4>
+      <div id="marketAuditBlend" class="tablewrap"></div>
+      <p class="muted tiny"><a href="https://github.com/adws555434/gagagsaerhdse/blob/main/AUDIT_REPORT.md#faz-2--piyasa-oranları">Yöntem ve kapsam</a> · <a href="https://tipsaudit.com/data">Geçmiş 1X2 kaynağı · TipsAudit (CC BY 4.0)</a></p>
     </details>
     <h3>Lig bazında geçmiş test</h3>
     <p id="leagueAuditStatus" class="muted tiny"></p>
@@ -788,6 +805,105 @@ function reliabilityBand(records,probabilities){
  return {n:rows.length,hits,band};
 }
 const SCORE_GRID_SIZE=41;
+const MARKET_VERSION='2026.11-phase-2';
+const MARKET_MAX_QUOTE_AGE=24*60*60*1000;
+function marketDevig(prices,method='power'){
+ if(!Array.isArray(prices)||![2,3].includes(prices.length)||!prices.every(p=>Number.isFinite(p)&&p>1))return null;
+ const raw=prices.map(p=>1/p);
+ const sum=values=>values.reduce((a,b)=>a+b,0);
+ const fair=method==='power'?(()=>{
+  let low=0,high=1;
+  while(sum(raw.map(p=>p**high))>1&&high<2**20)high*=2;
+  if(sum(raw.map(p=>p**high))>1)return null;
+  for(let i=0;i<48;i++){
+   const mid=(low+high)/2;
+   if(sum(raw.map(p=>p**mid))>1)low=mid;else high=mid;
+  }
+  return raw.map(p=>p**((low+high)/2));
+ })():raw;
+ if(!fair)return null;
+ const total=sum(fair);
+ return fair.map(p=>p/total);
+}
+function marketBlend(base,market,weight){
+ return base.map((p,i)=>p+weight*(market[i]-p));
+}
+function marketWeight(report,now){
+ const cutoff=Date.parse(report?.cutoff+'T00:00:00Z');
+ const estimate=report?.experimentalWeights?.preMatch;
+ return report?.version===MARKET_VERSION&&Number.isFinite(cutoff)&&cutoff<=now&&
+  Number.isFinite(estimate?.weight)&&estimate.weight>=0&&estimate.weight<=1?estimate.weight:null;
+}
+function marketScoreDistribution(base,outcomes){
+ const scores=base.scores.map(([key,p])=>{
+  const result=matchOutcome(...key.split('–').map(Number));
+  return [key,p*outcomes[result]/base.outcomes[result]];
+ }).sort((a,b)=>b[1]-a[1]);
+ return {outcomes,scores};
+}
+function marketGoalFit(probabilities,over25){
+ if(!probabilities?.every(p=>Number.isFinite(p)&&p>0)||probabilities.length!==3||
+    !(over25>0&&over25<1))return null;
+ const bisect=(low,high,fn)=>{
+  for(let i=0;i<44;i++){
+   const mid=(low+high)/2;
+   if(fn(mid)<0)low=mid;else high=mid;
+  }
+  return (low+high)/2;
+ };
+ const over=total=>1-Math.exp(-total)*(1+total+total*total/2);
+ if(over25>=over(20))return null;
+ const total=bisect(0,20,t=>over(t)-over25);
+ const winShare=probabilities[0]/(probabilities[0]+probabilities[2]);
+ const share=bisect(0,1,s=>{
+  const p=resultDistribution(total*s,total*(1-s));
+  return p[0]/(p[0]+p[2])-winShare;
+ });
+ const rates=[total*share,total*(1-share)];
+ const grid=prepareForecastDistribution(...rates);
+ return {rates,total,difference:rates[0]-rates[1],drawResidual:grid.outcomes[1]-probabilities[1]};
+}
+const marketAliases={
+ besiktasjk:'besiktas',galatasaraysk:'galatasaray',fenerbahcesk:'fenerbahce',rizespor:'caykurrizespor',corumfk:'corum',eyup:'eyupspor',amed:'amedspor',erzurumsporfk:'erzurumspor',
+ parisstgermain:'parissaintgermain',psg:'parissaintgermain',
+ athleticbilbao:'athleticclub',athleticclubdebilbao:'athleticclub',bilbao:'athleticclub',athletic:'athleticclub',
+ atleticomadrid:'atleticodemadrid',bayerleverkusen:'bayer04leverkusen',bayer04:'bayer04leverkusen',bayernmunich:'bayernmunchen',
+ borussiambach:'monchengladbach',borussiamgladbach:'monchengladbach',
+ mainz05:'mainz',fsvmainz05:'mainz','1fsvmainz05':'mainz',
+ fckoln:'koln','1fckoln':'koln','1fckoln1899':'koln','1fcunionberlin':'unionberlin',
+ sv07elversberg:'elversberg',svelversberg:'elversberg',svwerderbremen:'werderbremen',
+ '1899hoffenheim':'hoffenheim',
+ realvalladolid:'valladolid',alaves:'deportivoalaves',espanyol:'rcdespanyol',rcdespanyoldebarcelona:'rcdespanyol',
+ celtavigo:'celta',girona:'gironafc',leganes:'cdleganes',levante:'levanteud',osasuna:'caosasuna',
+ racingsantander:'rracingclub',deportivolacoruna:'rcdeportivo',realsociedad:'realsociedad',
+ inter:'internazionale',tottenham:'spurs',hullcity:'hull',wolverhampton:'wolves',
+ marseille:'olympiquedemarseille',lyon:'olympiquelyonnais',nice:'ogcnice',monaco:'asmonaco',
+ strasbourg:'rcstrasbourgalsace',auxerre:'ajauxerre',angers:'angerssco',paris:'paris'
+};
+function marketTeamKey(name){
+ let key=clubModelKey(String(name||'').replace(/\s+(?:S\.K\.|A\.Ş\.)$/iu,''));
+ for(let i=0;i<2;i++)key=marketAliases[key]??key;
+ return key;
+}
+function validMarketProbabilities(values,length=3){
+ return Array.isArray(values)&&values.length===length&&values.every(p=>Number.isFinite(p)&&p>0&&p<1)&&
+  Math.abs(values.reduce((a,b)=>a+b,0)-1)<1e-8;
+}
+function findMarketQuote(feed,scope,fixture,now){
+ const kickoff=knownKickoff(fixture);
+ const captured=Date.parse(feed?.capturedAt);
+ if(!['ready','partial'].includes(feed?.state)||!Number.isFinite(captured)||kickoff==null||!(captured<=now&&now<kickoff)||now-captured>MARKET_MAX_QUOTE_AGE)return null;
+ const matched=(feed.events??[]).filter(row=>row?.scope===scope&&marketTeamKey(row.home)===marketTeamKey(fixture.home)&&
+  marketTeamKey(row.away)===marketTeamKey(fixture.away)&&Date.parse(row.kickoff)===kickoff);
+ if(matched.length!==1)return null;
+ const row=matched[0],quoted=Date.parse(row.quotedAt);
+ if(!(quoted<=captured&&captured<kickoff&&now-quoted<=MARKET_MAX_QUOTE_AGE)||
+    !validMarketProbabilities(row.power)||!validMarketProbabilities(row.proportional))return null;
+ const totalQuoted=Date.parse(row.totalQuotedAt);
+ const totalUsable=Number.isFinite(row.over25)&&row.over25>0&&row.over25<1&&
+  totalQuoted<=captured&&now-totalQuoted<=MARKET_MAX_QUOTE_AGE;
+ return totalUsable?row:{...row,over25:null,totalQuotedAt:null};
+}
 function poissonTerms(rate,size){
  const values=[Math.exp(-rate)];
  for(let goals=1;goals<size;goals++)values.push(values[goals-1]*rate/goals);
@@ -1083,6 +1199,7 @@ function showScenarios(home,away,rates){
 }
 async function renderForecast(home,away,results,fixture,contextData){
  const panel=$('forecast'),note=$('forecastNote'),scores=$('scorelines');
+ void renderMarketForecast(null,null,null,Date.now());
  panel.textContent='';
  scores.textContent='';
  $('simulationAudit').textContent='';
@@ -1166,6 +1283,7 @@ async function renderForecast(home,away,results,fixture,contextData){
   saveForecast(fixture,contextData,probabilities,decision.top.slice(0,3).map(([value])=>value),name,candidates,[homeGoals,awayGoals],
    {engineVersion:ENGINE_VERSION,modelVersion:MODEL_VERSION,dataSha256,simulationCount:SIMULATIONS,seed:SIMULATION_SEED,consistentScore:score});
  }
+ await renderMarketForecast(historyScope(contextData),fixture,fixed,Date.now());
  return {home,away,base,rates,fixture};
 }
 async function getText(url){
@@ -2027,6 +2145,80 @@ function setupLineupScenario(home,away,rates,original){
    ' ('+formatDelta(d.outcomes[i]-original[i])+')').join(' · ')+' · '+describeScore(d.scores[0][0],home,away);
  };
 }
+let marketReportRequest=null;
+function loadMarketReport(){
+ if(!marketReportRequest)marketReportRequest=getText('./phase2-market-report.json').then(text=>{
+  const report=JSON.parse(text);
+  if(report.version!==MARKET_VERSION||!Array.isArray(report.closing))throw Error('Geçersiz piyasa raporu');
+  return report;
+ }).catch(error=>{marketReportRequest=null;throw error;});
+ return marketReportRequest;
+}
+async function renderMarketForecast(scope,fixture,base,started){
+ const panel=$('marketPanel'),status=$('marketStatus'),table=$('marketComparison'),totals=$('marketTotals');
+ panel.open=false;
+ table.replaceChildren();totals.textContent='';
+ if(!base){status.textContent='Veri yetersiz. Önce takım verilerinin tamamlanması gerekiyor.';return;}
+ if(!ARCHIVE_LEAGUES[scope]||!fixture||!(knownKickoff(fixture)>started)){
+  status.textContent='Veri yetersiz. Piyasa karşılaştırması için kapsamdaki bir sonraki maçın saatli fikstürü gerekli.';return;
+ }
+ status.textContent='Maç önü piyasa kaydı kontrol ediliyor…';
+ try{
+  const feed=JSON.parse(await getText('./market-snapshot.json'));
+  if(feed.version!==MARKET_VERSION||!Array.isArray(feed.events))throw Error('Geçersiz piyasa kaydı');
+  if(feed.state==='unconfigured'){status.textContent='Güncel piyasa kaynağı bağlı değil. Tarihsel karşılaştırma Tahmin geçmişi bölümünde.';return;}
+  const now=Date.now();
+  const row=findMarketQuote(feed,scope,fixture,now);
+  if(!row){status.textContent='Veri yetersiz. Bu fikstür için zaman doğrulamasından geçen güncel piyasa kaydı yok.';return;}
+  let weight;
+  try{weight=marketWeight(await loadMarketReport(),now);}
+  catch{/* Piyasa karşılaştırması ağırlık olmadan da gösterilebilir. */}
+  const result=marketScoreDistribution(base,row.power), p=base.outcomes;
+  const kickoff=knownKickoff(fixture);
+  if(!(kickoff>Date.now())||!findMarketQuote(feed,scope,fixture,Date.now())){
+   status.textContent='Veri yetersiz. Maç saati veya piyasa kaydının geçerliliği doldu.';return;
+  }
+  const headers=['Yöntem',fixture.home,'Beraberlik',fixture.away,'Tutarlı skor'];
+  const item=(name,d,delta)=>[name,...d.outcomes.map((x,i)=>probabilityLabel(x)+(delta?' ('+formatDelta(x-p[i])+')':'')),
+   describeScore(forecastDecision(d).score[0],fixture.home,fixture.away)];
+  const entries=[item('Yayın modeli',base,false),item('Piyasa · power',result,true)];
+  if(weight!=null){
+   const blend=marketScoreDistribution(base,marketBlend(p,row.power,weight));
+   entries.push(item('Harman · deney, piyasa ağırlığı '+probabilityLabel(weight),blend,true));
+  }else entries.push(['Harman · veri yetersiz','—','—','—','—']);
+  table.replaceChildren(dataTable(headers,entries,true));
+  status.textContent='The Odds API · '+row.books+' kaynak · Yakalama '+new Date(feed.capturedAt).toLocaleString('tr-TR')+
+   ' · En eski kullanılan oran '+new Date(row.quotedAt).toLocaleString('tr-TR')+
+   ' · Parantezler yayın modeline göre fark. Piyasa skoru, yayın modelinin koşullu skor dağılımından üretilir.';
+  const goals=marketGoalFit(row.power,row.over25);
+  totals.textContent=goals?'2,5 üst '+probabilityLabel(row.over25)+' · Piyasa Poisson toplam gol '+fmt(goals.total)+
+   ' · Ev eksi deplasman gol farkı '+fmt(goals.difference)+' · Poisson beraberlik farkı '+formatDelta(goals.drawResidual)+'.':
+   '2,5 alt/üst için veri yetersiz.';
+ }catch{
+  status.textContent='Piyasa kaydı yüklenemedi. Skor tahmini önceki yöntemle devam ediyor.';
+ }
+}
+async function renderMarketAudit(){
+ const status=$('marketAuditStatus'),select=$('marketAuditLeague');
+ try{
+  const report=await loadMarketReport();
+  for(const [name,label] of Object.entries(report.leagueLabels)){
+   if(select.querySelector('option[value="'+name+'"]'))continue;
+   const option=document.createElement('option');option.value=name;option.textContent=label;select.append(option);
+  }
+  const rows=select.value==='all'?report:report.leagues[select.value];
+  const headers=['Model','Maç','Log loss','RPS','1X2','Tutarlı tam skor','İlk üç skor'];
+  const table=(id,metrics)=>{
+   const container=$(id);
+   if(!metrics?.length){container.textContent='Karşılaştırma için veri yetersiz.';return;}
+   container.replaceChildren(dataTable(headers,metrics.map(row=>[row.name,row.n,fmt(row.logLoss,5),fmt(row.rps,5),
+    ...[row.result,row.score,row.top3].map(x=>accuracyLabel(x.hits,x.n))])));
+  };
+  table('marketAuditClose',rows?.closing);table('marketAuditBlend',rows?.blend);
+  status.textContent=(rows?.closing?.[0]?.n??0)+' ortak kapanış kaydı · Tarihsel test. Alt/üst arşivi bağlı değil. '+
+   'Kapanış satırlarının dakika damgası sağlayıcı arşivinde yok.';
+ }catch{status.textContent='Piyasa test raporu yüklenemedi.';}
+}
 function renderLearningForecast(home,away,fixture,data,date,baseline,shots,candidates,rates){
  const scope=historyScope(data);
  const local=readHistory().rows;
@@ -2317,6 +2509,8 @@ async function analyze(){const btn=$('go');if(btn.disabled)return;scenarioContro
 function selfTest(){try{const t=csv('date,home,away,ft_home,ft_away\n2026-01-01,Besiktas,Galatasaray,1,0\n');if(t.length!==1||findTeam('Beşiktaş',t)!=='Besiktas')throw new Error('motor testi');setStatus('Motor hazır ✓','ok');setStep(0,'Motor hazır. İki takım yazıp butona bas.')}catch(e){setStatus('Motor hatası','bad');setStep(0,'Motor başlatılamadı: '+e.message)}}
 $('go').addEventListener('click',analyze);$('a').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});$('b').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('historyPanel').open){void refreshHistory();void renderAutoForecasts();}});$('historyPanel').addEventListener('toggle',()=>{if($('historyPanel').open){void renderLeagueAudit();void renderAutoForecasts();if(readHistory().rows.some(row=>!row.actual))void refreshHistory();}});window.addEventListener('error',e=>{setStatus('JavaScript hatası','bad');$('step').textContent=e.message});$('refreshHistory').addEventListener('click',refreshHistory);$('turkeyAudit').addEventListener('toggle',()=>{if($('turkeyAudit').open){void renderTurkeyAudit();void renderTurkeySignals();}});$('shotAudit').addEventListener('toggle',()=>{if($('shotAudit').open)void renderShotAudit();});
 $('lineupAudit').addEventListener('toggle',()=>{if($('lineupAudit').open)void renderLineupArchive();});
+$('marketAudit').addEventListener('toggle',()=>{if($('marketAudit').open)void renderMarketAudit();});
+$('marketAuditLeague').addEventListener('change',()=>void renderMarketAudit());
 $('phase1Audit').addEventListener('toggle',()=>{if($('phase1Audit').open)void renderPhase1Audit();});
 $('phase1League').addEventListener('change',()=>void renderPhase1Audit());
 $('historyLink').addEventListener('click',()=>{$('historyPanel').open=true;});

@@ -10,6 +10,11 @@ on:
       - tests/phase1-backtest.cjs
       - tests/phase1-inputs.json
       - phase1-summary.json
+      - 'tests/phase2-*.cjs'
+      - tests/phase2-inputs.json
+      - phase2-market-report.json
+      - scripts/market-snapshot.cjs
+      - .github/workflows/market-snapshot.yml
       - tests/forecast-learning-test.cjs
       - .github/workflows/forecast-integrity.yml
 permissions:
@@ -25,3 +30,5 @@ jobs:
       - run: node tests/phase0-forecast-test.cjs
       - run: node tests/forecast-learning-test.cjs
       - run: node tests/phase1-backtest.cjs --self-test
+      - run: node tests/phase2-backtest.cjs --self-test
+      - run: node tests/phase2-market-test.cjs

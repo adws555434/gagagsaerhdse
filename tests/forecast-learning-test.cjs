@@ -141,6 +141,20 @@ test('scheduled ledger deduplicates and settles, rejects unknown or late kickoff
   assert.ok(Math.abs(snapshot.probabilities.reduce((a,b)=>a+b,0)-1)<1e-12);
  }
  assert.equal(rows[0].simulationCount,0);
+ const odds={version:'2026.11-phase-2',state:'ready',capturedAt:'2026-11-16T11:45:00Z',dataSha256:'a'.repeat(64),events:[{
+  scope,home:'Beşiktaş JK',away:'Galatasaray',kickoff:'2026-11-16T17:00:00Z',quotedAt:'2026-11-16T11:40:00Z',
+  power:[.60,.25,.15],proportional:[.55,.27,.18]
+ }]};
+ const weights={version:odds.version,cutoff:'2026-11-16',experimentalWeights:{preMatch:{weight:.4}}};
+ const withMarket=buildLeague([],scope,'Süper Lig',covered,fixtures,now,odds,weights);
+ assert.equal(withMarket[0].market.weight,.4);
+ assert.equal(withMarket[0].market.simulationCount,0);
+ assert.deepEqual(withMarket[0].comparison.release.probabilities,rows[0].comparison.release.probabilities);
+ assert.equal(buildLeague(rows,scope,'Süper Lig',covered,fixtures,now,odds,weights)[0].market,undefined);
+ assert.deepEqual(buildLeague(withMarket,scope,'Süper Lig',covered,fixtures,now)[0].market,withMarket[0].market);
+ const futureWeights={...weights,cutoff:'2026-11-17'};
+ assert.equal(buildLeague([],scope,'Süper Lig',covered,fixtures,now,odds,futureWeights)[0].market.blend,undefined);
+
  assert.equal(buildLeague(rows,scope,'Süper Lig',history,fixtures,now).length,1);
  const result=[...history,{...fixtures[0],ft_home:'2',ft_away:'0'}];
  const settled=buildLeague(rows,scope,'Süper Lig',result,fixtures,new Date('2026-11-17T12:00:00Z'));
