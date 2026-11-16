@@ -1,0 +1,185 @@
+:root {
+  --bg: #0e1210;
+  --p: #161c18;
+  --p2: #1c241e;
+  --line: #343d35;
+  --t: #f3f6ec;
+  --m: #aebbb0;
+  --accent: #d5fa8b;
+  --accent-ink: #1c260e;
+  --blue: #b7d4f6;
+}
+body { background: radial-gradient(ellipse at 65% -10%, #212d24, transparent 58rem), var(--bg); }
+.wrap { width: min(calc(100% - 72px), 1280px); }
+.site-header { background: #101612; }
+.site-header .wrap { min-height: 70px; }
+.brand { font-weight: 700; gap: 12px; line-height: .98; }
+.brand-name { display: block; color: var(--m); margin-top: 3px; }
+.brand-mark { width: 36px; height: 36px; flex-basis: 36px; border-radius: 10px; }
+.brand-mark::after { content: ""; position: absolute; width: 5px; height: 5px; border: 1px solid; border-radius: 50%; }
+.site-nav { gap: 25px; }
+.site-nav a, .header-method { min-height: 44px; display: inline-flex; align-items: center; }
+.header-method { text-decoration: none; gap: 11px; color: var(--t); font-weight: 650; font-size: 13px; }
+.header-method span, .fixture-more span, .performance-link span { color: var(--accent); }
+main.wrap { padding-top: 24px; }
+.hero {
+  min-height: clamp(348px, 37vw, 470px);
+  padding: clamp(29px, 5vw, 72px);
+  border-radius: 23px;
+  border-color: #3b4a3e;
+  background: #142319;
+}
+.hero::before {
+  background: url("./matchday-stadium.webp") 72% 59% / cover no-repeat,
+    radial-gradient(ellipse at 78% 17%, #4b6c56, #182b1e 45%, #101913 75%);
+}
+.hero::after { background: linear-gradient(90deg, #0b130dde, #0b130d77 46%, transparent 74%), linear-gradient(0deg,#0a120b6b,transparent 60%); }
+.hero-copy { max-width: 620px; }
+.hero .hero-kicker {
+  color: var(--accent); margin: 0 0 15px; display: flex; align-items: center; gap: 10px;
+  font-size: 12px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+}
+.hero-kicker::before { content: ""; width: 17px; height: 1px; background: currentColor; }
+.hero h1 { font-size: clamp(62px, 8.3vw, 120px); font-weight: 800; line-height: .87; letter-spacing: -.026em; text-wrap: wrap; }
+.hero h1 span { margin-top: 2px; }
+.hero .hero-description { margin-top: 22px; max-width: 350px; color: #dce7dc; }
+.hero-action {
+  display: inline-flex; align-items: center; gap: 15px; min-height: 44px; margin-top: 17px;
+  color: var(--t); text-decoration: none; font-weight: 700; font-size: 13px;
+}
+.hero-action span { color: var(--accent); font-size: 18px; }
+.hero-action:hover, .header-method:hover { color: var(--accent); }
+.matchday-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.56fr) minmax(0, 1fr);
+  align-items: stretch; gap: 16px; margin-top: 17px;
+}
+.card { border-radius: 17px; }
+.matchday-grid > .card { margin: 0; padding: clamp(17px, 2.15vw, 30px); }
+.panel-heading h2, .performance-intro h2 { font: 700 clamp(29px, 3vw, 40px)/.95 var(--display); letter-spacing: -.01em; }
+.match-search { background: linear-gradient(145deg, #1c251d, var(--p) 60%); }
+.badge { background: #111813; }
+.match-row { grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr); margin-top: 23px; }
+.match-row input { background: #101611; border-color: #48584b; border-radius: 11px; }
+.match-row input::placeholder { color: #a0ada0; }
+.match-row input:focus { border-color: var(--accent); }
+.versus { color: #b6c3b7; font-size: 15px; }
+.match-actions { display: grid; gap: 7px; margin-top: 12px; }
+.match-actions button { min-height: 53px; border-radius: 11px; }
+.match-actions .primary { justify-content: space-between; }
+.mode-option { font-size: 12px; flex-shrink: 0; }
+.example { border-color: #465346; background: #1b261c; }
+.analysis-feedback { min-height: 22px; align-items: center; }
+.analysis-feedback #step { margin-top: 5px; }
+.league-label { padding: 4px 8px; border: 1px solid #4c5e4a; border-radius: 5px; background: #273822; color: #deefcf; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.fixture-panel .panel-heading { gap: 9px; }
+.fixture-panel > p:empty { display: none; }
+.fixture-panel > p { margin-top: 13px; }
+.fixture-panel > div.fixture-list { margin-top: 11px; }
+.fixture-list { display: grid; }
+.fixture-choice {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%;
+  padding: 7px 0; text-align: left; background: transparent; border: 0; border-bottom: 1px solid #3b473c; border-radius: 0;
+}
+.fixture-choice:not(:disabled):hover { background: #243124; }
+.fixture-teams { min-width: 0; display: grid; gap: 2px; }
+.fixture-team { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.26; overflow-wrap: anywhere; }
+.fixture-team i {
+  flex: 0 0 22px; height: 21px; display: grid; place-items: center; border-radius: 4px;
+  background: #314730; color: #e6f4da; font: normal 700 10px/1 var(--body);
+}
+.fixture-team:nth-child(2) i { background: #293a42; color: #deedf8; }
+.fixture-date { color: var(--m); font-size: 12px; font-weight: 550; }
+.fixture-more, .performance-link { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; text-decoration: none; color: var(--t); font-size: 13px; font-weight: 650; }
+.fixture-more:hover,.performance-link:hover { color: var(--accent); }
+.event-panel { margin-top: 16px; }
+.event-panel > p { margin-top: 9px; }
+.event-progress-row { display: flex; align-items: center; gap: 14px; }
+.event-progress-row progress { flex: 1; height: 8px; appearance: none; border: 0; border-radius: 99px; overflow: hidden; background: #303832; accent-color: var(--accent); }
+.event-progress-row progress::-webkit-progress-bar { background: #303832; }
+.event-progress-row progress::-webkit-progress-value { background: var(--accent); }
+.event-progress-row progress::-moz-progress-bar { background: var(--accent); }
+#eventOutput { margin-top: 19px; }
+.event-headline {
+  border: 1px solid #566a4b; border-radius: 13px;
+  padding: clamp(14px, 2.6vw, 30px);
+  background: linear-gradient(110deg, #263c25, #1b2a1c 61%, #202c21);
+}
+#eventAnswer { color: var(--accent); font: 700 clamp(37px, 6vw, 73px)/.99 var(--display); margin: 6px 0; overflow-wrap: anywhere; }
+.event-breakdown { margin-top: 11px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.event-data { min-width: 0; border: 1px solid var(--line); border-radius: 11px; overflow: hidden; background: #131914; }
+.event-data .tbl { font-size: 12px; }
+.event-data th, .event-data td { white-space: normal; padding: 10px 12px; }
+#eventCombined { padding: 10px 12px; color: var(--accent); font-size: 13px; font-weight: 600; }
+.event-history { margin-top: 12px; border-top: 1px solid var(--line); }
+#forecast { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.15fr) repeat(3, minmax(0, 1fr)); }
+#forecast .score-primary { background: linear-gradient(145deg, #354d2b, #203322); border-color: #617e51; }
+#forecast .metric { border-color: #404c41; }
+#forecast .winner-primary { display: flex; flex-direction: column; justify-content: center; background: #18291d; }
+#forecast .winner-primary b { color: #e5f8d9; }
+.score-primary .score-value { font-size: clamp(51px, 6vw, 80px); }
+#forecast .outcome-metric { --outcome-color: var(--accent); }
+#forecast .outcome-metric:nth-child(4) { --outcome-color: #aeb9c2; }
+#forecast .outcome-metric:nth-child(5) { --outcome-color: var(--blue); }
+#scorelines .item, .metric, .item, .note { background: #111813; border-color: #38463b; }
+.tbl th { background: #263229; }
+.tbl th, .tbl td { border-color: #354339; }
+.tbl tbody tr:nth-child(even) { background: #1b251e; }
+.performance-panel {
+  display: grid; align-items: center; grid-template-columns: 1.35fr repeat(3, 1fr) auto; gap: 15px;
+  margin-top: 16px; background: linear-gradient(115deg, #253321, var(--p) 74%);
+}
+.performance-intro p { margin-top: 7px; }
+.performance-stat { min-width: 0; padding-left: 15px; border-left: 1px solid #52614a; }
+.performance-stat strong { display: block; font: 700 clamp(35px, 4vw, 53px)/1 var(--display); color: var(--accent); font-variant-numeric: tabular-nums; }
+.performance-stat span { display: block; margin-top: 6px; color: #dfe7db; font-size: 13px; }
+.dashboard-details { margin-top: 12px; padding-block: 9px; }
+.dashboard-details[open] { padding-bottom: 22px; }
+.dashboard-details > h3 { margin-top: 16px; }
+.dashboard-details > summary { min-height: 50px; font-size: 17px; }
+@media (max-width: 900px) {
+  .site-nav a[href="#matchSearch"] { display: none; }
+}
+@media (max-width: 1000px) {
+  #forecast { grid-template-columns: repeat(6, minmax(0,1fr)); }
+  #forecast .score-primary, #forecast .winner-primary { grid-column: span 3; }
+  #forecast .outcome-metric { grid-column: span 2; }
+  .performance-panel { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .performance-intro { grid-column: 1/-1; }
+  .performance-link { grid-column: 1/-1; }
+}
+@media (max-width: 760px) {
+  .wrap { width: calc(100% - 32px); }
+  .matchday-grid { grid-template-columns: 1fr; gap: 11px; }
+  .hero { min-height: 330px; }
+  .hero h1 { font-size: clamp(56px,11vw,83px); }
+  .event-breakdown { grid-template-columns: 1fr; }
+}
+@media (max-width: 540px) {
+  .site-header .wrap { gap: 9px; min-height: 60px; }
+  .header-method { display: none; }
+  .site-nav { gap: 11px; }
+  .site-nav a { font-size: 11px; }
+  main.wrap { padding-top: 12px; }
+  .hero { border-radius: 17px; min-height: 318px; padding: 23px 18px; }
+  .hero::before { background-image: url("./matchday-stadium-small.webp"), radial-gradient(ellipse at 84% 10%,#385f43,#192d1e 44%,#101913); background-position: 60% 53%; }
+  .hero::after { background: linear-gradient(90deg,#0c140edb,#0c140e5e 78%),linear-gradient(0deg,#0c140e40,transparent 65%); }
+  .hero h1 { font-size: clamp(47px,11.8vw,62px); }
+  .hero .hero-description { max-width: 235px; margin-top: 15px; }
+  .hero-action { margin-top: 9px; }
+  .match-row { margin-top: 16px; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .match-row .versus { display:none; }
+  .match-options { margin-top: 4px; }
+  .match-actions .primary { padding-inline: 12px; gap: 6px; }
+  .fixture-date { text-align: right; }
+  .performance-panel { gap: 12px 9px; }
+  .performance-stat { padding-left: 8px; }
+  .performance-stat strong { font-size: 34px; }
+  .performance-stat span { font-size: 11px; line-height: 1.32; }
+}
+@media (max-width: 350px) {
+  .wrap { width: calc(100% - 22px); }
+  .match-row { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 44px; }
+  .performance-stat strong { font-size: 29px; }
+}

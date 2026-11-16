@@ -9,7 +9,7 @@ const percent=new Intl.NumberFormat('tr-TR',{style:'percent',maximumFractionDigi
 const historicalPercent=new Intl.NumberFormat('tr-TR',{style:'percent',maximumFractionDigits:2,minimumFractionDigits:2});
 export function connectEventMode(app){
  const $=id=>document.getElementById(id);
- const run=$('eventRun'),cancel=$('eventCancel'),panel=$('eventPanel'),progress=$('eventProgress');
+ const cancel=$('eventCancel'),panel=$('eventPanel'),progress=$('eventProgress');
  const status=$('eventStatus'),answer=$('eventAnswer'),output=$('eventOutput'),history=$('eventHistory');
  let controller,archiveRequest;
  const outcomes=fixture=>[fixture.home+' kazanır','Beraberlik',fixture.away+' kazanır'];
@@ -92,34 +92,20 @@ export function connectEventMode(app){
   }
  });
  cancel.addEventListener('click',()=>controller?.abort());
- run.addEventListener('click',async()=>{
-  if(run.disabled||$('go').disabled)return;
-  const a=$('a').value.trim(),b=$('b').value.trim();
-  if(!a||!b||app.clubModelKey(a)===app.clubModelKey(b)){
-   panel.classList.remove('hidden');
-   status.textContent='İki farklı Süper Lig takımı yaz.';
-   output.classList.add('hidden');
-   return;
-  }
+ return async ({a:home,b:away,results,fixtures,partial,cached})=>{
+  if(controller)return;
   panel.classList.remove('hidden');
   output.classList.add('hidden');
   answer.textContent='';
   progress.value=0;
   const abort=new AbortController();
   controller=abort;
-  run.disabled=true;
   cancel.disabled=false;
   status.textContent='Süper Lig fikstürü ve geçmiş maçlar kontrol ediliyor…';
   try{
-   if($('nationalOnly').checked)throw Error('Bu mod şu anda yalnızca Süper Lig için çalışıyor.');
    if(!globalThis.Worker)throw Error('Bu tarayıcı paralel simülasyonu desteklemiyor.');
-   const data=await app.loadFolder(SCOPE);
-   abort.signal.throwIfAborted();
-   if(data.partial||data.cached)throw Error('Veri yetersiz. Güncel Süper Lig kaynağına ulaşılamadı.');
-   const rows=data.results.concat(data.fixtures);
-   const home=app.findTeam(a,rows),away=app.findTeam(b,rows);
-   if(!home||!away||home===away)throw Error('Veri yetersiz. İki farklı Süper Lig takımı bulunamadı.');
-   const scheduled=app.direct(home,away,data.fixtures.filter(fixture=>app.knownKickoff(fixture)>Date.now()));
+   if(partial||cached)throw Error('Veri yetersiz. Güncel Süper Lig kaynağına ulaşılamadı.');
+   const scheduled=app.direct(home,away,fixtures.filter(fixture=>app.knownKickoff(fixture)>Date.now()));
    const fixture=scheduled??{home,away,date:new Date().toISOString().slice(0,10)};
    if(scheduled){
     const saved=await ledger();
@@ -131,11 +117,13 @@ export function connectEventMode(app){
    abort.signal.throwIfAborted();
    const price=scheduled?oddsFor(quotes,fixture,Date.now()):null;
    const today=new Date().toISOString().slice(0,10);
-   const input=await buildInputs(data.results,today,app,state)(fixture,price);
+   const input=await buildInputs(results,today,app,state)(fixture,price);
+   abort.signal.throwIfAborted();
    if(!input)throw Error('Veri yetersiz. İki takımın da en az beş geçmiş maçı gerekli.');
    status.textContent=(scheduled?'':'Fikstür bulunamadı, yazdığın sıra ev sahibi ve deplasman olarak kullanılıyor. ')+'Maç simüle ediliyor…';
    const start=performance.now();
    const result=await runWorkers({...input,signal:abort.signal,WorkerClass:globalThis.Worker,
+    workerUrl:app.workerUrl,
     workerCount:Math.max(1,Math.min(8,navigator.hardwareConcurrency??2)),
     onProgress:(done,total)=>{
      progress.value=done;
@@ -145,9 +133,8 @@ export function connectEventMode(app){
   }catch(error){
    status.textContent=abort.signal.aborted?'Simülasyon iptal edildi.':error.message||'Simülasyon tamamlanamadı.';
   }finally{
-   run.disabled=false;
    cancel.disabled=true;
    controller=null;
   }
- });
+ };
 }

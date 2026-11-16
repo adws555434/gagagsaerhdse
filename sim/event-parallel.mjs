@@ -1,7 +1,8 @@
 import {BLOCK,TRIALS} from './super-lig-model.mjs';
 import {addCounts,emptyCounts} from './event-engine.mjs';
 
-export function runWorkers({input,seed,WorkerClass,workerCount,signal,onProgress=()=>{},count=TRIALS,check=true}){
+export function runWorkers({input,seed,WorkerClass,workerCount,signal,onProgress=()=>{},count=TRIALS,check=true,
+ workerUrl=new URL('./event-worker.mjs',import.meta.url)}){
  const workers=[],counts=emptyCounts();
  const blocks=Math.ceil(count/BLOCK);
  let next=0,finished=0,proposals=0,closed=false;
@@ -22,7 +23,7 @@ export function runWorkers({input,seed,WorkerClass,workerCount,signal,onProgress
   };
   try{
    for(let i=0;i<Math.min(workerCount,blocks);i++){
-    const worker=new WorkerClass(new URL('./event-worker.mjs',import.meta.url),{type:'module'});
+    const worker=new WorkerClass(workerUrl,{type:'module'});
     workers.push(worker);
     const message=({out,error,block})=>{
      if(closed)return;

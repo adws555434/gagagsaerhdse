@@ -6,9 +6,9 @@
 <meta name="color-scheme" content="dark">
 <meta name="referrer" content="no-referrer">
 <meta name="app-version" content="2026.11-phase-0">
-<meta name="theme-color" content="#0c1013">
+<meta name="theme-color" content="#0e1210">
 <title>Football Intelligence — Maç analizi</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&amp;family=Instrument+Sans:wght@400..700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&amp;family=Instrument+Sans:wght@400..700&amp;display=swap">
 <style>
 :root {
   color-scheme: dark;
@@ -285,30 +285,35 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
   *, *::before, *::after { transition: none !important; }
 }
 </style>
+<link rel="stylesheet" href="./assets/matchday.css">
 </head>
 <body>
 <a class="skip-link" href="#matchSearch">Takım seçimine geç</a>
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="./" aria-label="Football Intelligence ana sayfa"><span class="brand-mark" aria-hidden="true"></span>Football Intelligence</a>
+    <a class="brand" href="./" aria-label="Football Intelligence ana sayfa"><span class="brand-mark" aria-hidden="true"></span><span>Football<span class="brand-name">Intelligence</span></span></a>
     <nav class="site-nav" aria-label="Ana menü">
       <a href="#matchSearch">Maç analizi</a>
       <a href="#predictableMatches" id="predictableLink">Tahmin edilebilir maçlar</a>
       <a href="#historyPanel" id="historyLink">Tahmin geçmişi</a>
     </nav>
+    <a class="header-method" href="https://github.com/adws555434/gagagsaerhdse/blob/main/EVENT_CALIBRATION.md">Test raporu <span aria-hidden="true">↗</span></a>
   </div>
 </header>
 <main class="wrap">
   <section class="hero" aria-labelledby="heroTitle">
     <div class="hero-copy">
-      <h1 id="heroTitle">Maç öncesi <span>futbol analizi</span></h1>
-      <p>İki takımı karşılaştır, en olası skoru ve kazanma ihtimallerini gör.</p>
+      <p class="hero-kicker">Maç önü analiz merkezi</p>
+      <h1 id="heroTitle">Maçı oynamadan <span>analiz et.</span></h1>
+      <p class="hero-description">Takımları karşılaştır. Kimin önde olduğunu, en olası skorları ve bu tahminlerin geçmişte ne kadar tuttuğunu gör.</p>
+      <a class="hero-action" href="#matchSearch">Maç seç <span aria-hidden="true">↓</span></a>
     </div>
   </section>
+  <div class="matchday-grid">
   <section class="card match-search" id="matchSearch" aria-labelledby="matchSearchTitle">
     <div class="panel-heading">
       <h2 id="matchSearchTitle">Eşleşme seç</h2>
-      <span id="status" class="badge warn">Motor yükleniyor…</span>
+      <span id="status" class="badge warn" role="status">JavaScript etkinleştiriliyor…</span>
     </div>
     <div class="match-row">
       <label class="field" for="a">Ev sahibi veya ilk takım
@@ -318,10 +323,12 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       <label class="field" for="b">Deplasman veya ikinci takım
         <input id="b" placeholder="Örn. Galatasaray" autocomplete="off">
       </label>
-      <button id="go" class="primary" type="button">Tam analiz yap <span class="button-arrow" aria-hidden="true"></span></button>
+    </div>
+    <div class="match-actions">
+      <button id="go" class="primary" type="button" disabled>Tam analiz yap <span class="button-arrow" aria-hidden="true"></span></button>
+      <p class="muted tiny">Süper Lig’de istatistikler, skor tahmini ve 100 milyon maçlık simülasyon birlikte çalışır.</p>
     </div>
     <div class="match-options">
-      <button id="eventRun" type="button">Kesin Tahmin · 100 milyon simülasyon</button>
       <label class="mode-option"><input id="nationalOnly" type="checkbox"> Erkek A milli takımları</label>
       <div class="examples" aria-label="Örnek eşleşmeler">
         <button class="example" type="button" data-home="Beşiktaş" data-away="Galatasaray">Beşiktaş – Galatasaray</button>
@@ -331,41 +338,42 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
     <div class="analysis-status">
       <div class="progress" aria-hidden="true"><i id="bar"></i></div>
       <div class="analysis-feedback">
-        <div id="step" role="status" class="muted tiny">Motor hazırlanıyor…</div>
+        <div id="step" role="status" class="muted tiny">Sayfa burada açılmazsa dosyayı indirip Safari veya Chrome’da aç.</div>
         <a class="tiny hidden" id="resultJump" href="#forecastPanel">Sonuca git ↓</a>
       </div>
     </div>
   </section>
-  <section class="card hidden" id="eventPanel" aria-labelledby="eventTitle">
-    <h2 id="eventTitle">Kesin Tahmin · Süper Lig</h2>
+  <aside class="card fixture-panel" aria-labelledby="fixturePreviewTitle">
+    <div class="panel-heading"><h2 id="fixturePreviewTitle">Yaklaşan maçlar</h2><span class="league-label">Süper Lig</span></div>
+    <p id="fixturePreviewStatus" class="muted tiny" role="status">Fikstür yükleniyor…</p>
+    <div id="fixturePreview" class="fixture-list"></div>
+    <a class="fixture-more" id="fixtureMore" href="#predictableMatches">Skor ihtimallerine göre sırala <span aria-hidden="true">↗</span></a>
+  </aside>
+  </div>
+  <section class="card event-panel hidden" id="eventPanel" aria-labelledby="eventTitle">
+    <div class="panel-heading"><h2 id="eventTitle">100 milyonluk maç simülasyonu</h2><span class="league-label">Süper Lig</span></div>
     <p class="muted tiny">Önce en sık çıkan maç sonucu, sonra o sonuca uyan en sık skor gösterilir.</p>
-    <progress id="eventProgress" max="100000000" value="0" aria-label="Simülasyon ilerlemesi"></progress>
-    <button id="eventCancel" type="button" disabled>İptal et</button>
-    <p id="eventStatus" role="status"></p>
+    <div class="event-progress-row">
+      <progress id="eventProgress" max="100000000" value="0" aria-label="Simülasyon ilerlemesi"></progress>
+      <button id="eventCancel" type="button" disabled>İptal et</button>
+    </div>
+    <p class="muted tiny" id="eventStatus" role="status"></p>
     <div class="hidden" id="eventOutput">
-      <p class="muted tiny" id="eventFixture"></p>
-      <h3 id="eventAnswer"></h3>
-      <p id="eventPickCount"></p>
-      <div class="tablewrap" id="eventScores"></div>
-      <p id="eventCombined"></p>
-      <div class="tablewrap" id="eventOutcomes"></div>
-      <p class="muted tiny" id="eventHistory"></p>
-      <p class="muted tiny"><a href="https://github.com/adws555434/gagagsaerhdse/blob/main/EVENT_CALIBRATION.md">Süper Lig geçmiş testinin tamamı</a></p>
+      <div class="event-headline">
+        <p class="muted tiny" id="eventFixture"></p>
+        <h3 id="eventAnswer"></h3>
+        <p id="eventPickCount"></p>
+      </div>
+      <div class="event-breakdown">
+        <div class="event-data"><div class="tablewrap" id="eventOutcomes"></div></div>
+        <div class="event-data"><div class="tablewrap" id="eventScores"></div><p id="eventCombined"></p></div>
+      </div>
+      <details class="event-history"><summary>Geçmiş Süper Lig performansı</summary>
+        <p class="muted tiny" id="eventHistory"></p>
+        <p class="muted tiny"><a href="https://github.com/adws555434/gagagsaerhdse/blob/main/EVENT_CALIBRATION.md">Süper Lig geçmiş testinin tamamı</a></p>
+      </details>
     </div>
   </section>
-  <details class="card" id="predictableMatches">
-    <summary>Skoru en tahmin edilebilir maçlar · Süper Lig</summary>
-    <h3>Kesin Tahmin</h3>
-    <p class="muted tiny" id="eventPredictableStatus" role="status"></p>
-    <div class="tablewrap" id="eventPredictableList"></div>
-    <h3>Normal tahmin</h3>
-    <p class="muted tiny" id="predictableStatus" role="status"></p>
-    <div id="predictableList"></div>
-  </details>
-  <details class="card" id="scoreCalibrationAudit">
-    <summary>Skor tahmini geçmiş testi · Süper Lig</summary>
-    <div id="scoreCalibrationAuditContent"></div>
-  </details>
   <div id="err" role="alert" class="card hidden"><div id="errText" class="err"></div></div>
   <div id="out" class="grid hidden">
     <section class="card full match-heading" aria-labelledby="title">
@@ -465,7 +473,27 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
     <section id="dataQuality" class="card full"><h3>Veri kapsamı</h3><p id="quality" class="muted"></p><p id="archiveStatus" class="muted"></p></section>
   </div>
 
-  <details class="card" id="historyPanel">
+  <section class="card performance-panel hidden" id="performanceSummary" aria-labelledby="performanceTitle">
+    <div class="performance-intro"><h2 id="performanceTitle">Geçmiş performans</h2><p class="muted tiny" id="performanceScope"></p></div>
+    <div class="performance-stat"><strong id="performanceWinner"></strong><span>Maç sonucu isabeti</span></div>
+    <div class="performance-stat"><strong id="performanceScore"></strong><span>Tek skor isabeti</span></div>
+    <div class="performance-stat"><strong id="performanceTopThree"></strong><span>İlk üç skor isabeti</span></div>
+    <a href="https://github.com/adws555434/gagagsaerhdse/blob/main/EVENT_CALIBRATION.md" class="performance-link">Test raporu <span aria-hidden="true">↗</span></a>
+  </section>
+  <details class="card dashboard-details" id="predictableMatches">
+    <summary>Skoru en tahmin edilebilir maçlar · Süper Lig</summary>
+    <h3>Kesin Tahmin</h3>
+    <p class="muted tiny" id="eventPredictableStatus" role="status"></p>
+    <div class="tablewrap" id="eventPredictableList"></div>
+    <h3>Normal tahmin</h3>
+    <p class="muted tiny" id="predictableStatus" role="status"></p>
+    <div id="predictableList"></div>
+  </details>
+  <details class="card dashboard-details" id="scoreCalibrationAudit">
+    <summary>Skor tahmini geçmiş testi · Süper Lig</summary>
+    <div id="scoreCalibrationAuditContent"></div>
+  </details>
+  <details class="card dashboard-details" id="historyPanel">
     <summary>Tahmin geçmişi ve başarı</summary>
     <p class="muted tiny">Kayıtlar bu tarayıcıda tutulur. Tarihi belli maçlar için ilk maç önü tahmini kaydedilir.</p>
     <button id="refreshHistory" type="button">Sonuçları güncelle</button>
@@ -1266,6 +1294,7 @@ function forecastInputPayload(rows,home,away,fixture,scope,cutoff){
 }
 async function forecastDataVersion(payload){
  const binary=new TextEncoder().encode(payload);
+ if(!globalThis.crypto?.subtle)return null;
  const digest=await globalThis.crypto.subtle.digest('SHA-256',binary);
  return Array.from(new Uint8Array(digest),value=>value.toString(16).padStart(2,'0')).join('');
 }
@@ -1382,9 +1411,10 @@ async function renderForecast(home,away,results,fixture,contextData){
  const scoreCard=metric('En olası skor',score,probabilityLabel(prob)+' · '+(chosen.scoreMethod==='marketScore'?'Piyasa':'Yayın modeli'));
  scoreCard.classList.add('score-primary');
  scoreCard.querySelector('b').className='score-value';
- panel.append(metric('Kim kazanır?', [home,'Beraberlik',away][resultDecision],
-  probabilityLabel(chosen.probabilities[resultDecision])+' · '+(chosen.method==='market'?'Piyasa':'Yayın modeli')),
-  scoreCard,
+ const winnerCard=metric('Kim kazanır?', [home,'Beraberlik',away][resultDecision],
+  probabilityLabel(chosen.probabilities[resultDecision])+' · '+(chosen.method==='market'?'Piyasa':'Yayın modeli'));
+ winnerCard.classList.add('winner-primary');
+ panel.append(scoreCard,winnerCard,
   ...[home+' kazanır','Beraberlik',away+' kazanır'].map((label,i)=>
    outcomeMetric(label,chosen.probabilities[i],chosen.method==='market'?'Yayın modeli '+probabilityLabel(probabilities[i]):
     i===1?'':neutral?'Tarafsız saha':i===0?'Ev sahibi':'Deplasman')));
@@ -1437,12 +1467,12 @@ async function renderForecast(home,away,results,fixture,contextData){
  const versionPayload=forecastInputPayload(results,home,away,fixture,historyScope(contextData),forecastDate);
  let dataSha256;
  try{dataSha256=await forecastDataVersion(versionPayload);}
- catch{$('simulationAudit').append(' Veri özeti hesaplanamadı.');}
+  catch{/* The forecast can still be displayed without a saved audit record. */}
  if(dataSha256){
   $('simulationAudit').append(' Sürüm '+ENGINE_VERSION+' · Veri SHA-256 '+dataSha256+'.');
   saveForecast(fixture,contextData,probabilities,decision.top.slice(0,3).map(([value])=>value),name,candidates,[homeGoals,awayGoals],
    {engineVersion:ENGINE_VERSION,modelVersion:MODEL_VERSION,dataSha256,simulationCount:SIMULATIONS,seed:SIMULATION_SEED,consistentScore:decision.score[0]});
- }
+ }else $('simulationAudit').append(' Veri özeti hesaplanamadı.');
  renderMarketForecast(fixture,fixed,marketData);
  return {home,away,base,rates,fixture};
 }
@@ -2848,8 +2878,123 @@ function render(R){const {a,b,results,fixtures,national}=R,A=summary(a,results),
  if(!national)renderTable(T,a,b);
  return Promise.all([renderForecast(N?N.home:a,N?N.away:b,forecastRows,N,R),renderPlayerGoals(R,cutoff),renderWorkload(R,cutoff)]);
 }
-async function analyze(){const btn=$('go');if(btn.disabled)return;scenarioController?.abort();$('err').classList.add('hidden');$('out').classList.add('hidden');const qa=$('a').value.trim(),qb=$('b').value.trim();if(qa.length<2||qb.length<2||qnorm(qa)===qnorm(qb)){$('errText').textContent='İki farklı takımın adını yaz.';$('err').classList.remove('hidden');setStatus('Motor hazır ✓','ok');setStep(0,'Takım adlarını kontrol et.');return}btn.disabled=true;try{setStatus('Analiz ediliyor…','warn');setStep(4,'Takımlar aranıyor…');const R=await resolve(qa,qb,$('nationalOnly').checked);setStep(75,'İstatistikler hesaplanıyor…');const cutoff=new Date().toISOString().slice(0,10);$('longForecast').replaceChildren();const [[forecast],archive]=await Promise.all([render(R),R.national?renderNationalArchive(R,cutoff):renderArchive(R,cutoff)]);renderArchiveModel(R,forecast,archive);renderLongHistoryForecast(R,archive||[],cutoff);setStep(100,'Analiz tamamlandı.');setStatus('Tamamlandı ✓','ok')}catch(e){console.error(e);$('errText').textContent=e.message||String(e);$('err').classList.remove('hidden');setStatus('Hata','bad');setStep(0,'Analiz tamamlanamadı.')}finally{btn.disabled=false}}
-function selfTest(){try{const t=csv('date,home,away,ft_home,ft_away\n2026-01-01,Besiktas,Galatasaray,1,0\n');if(t.length!==1||findTeam('Beşiktaş',t)!=='Besiktas')throw new Error('motor testi');setStatus('Motor hazır ✓','ok');setStep(0,'Motor hazır. İki takım yazıp butona bas.')}catch(e){setStatus('Motor hatası','bad');setStep(0,'Motor başlatılamadı: '+e.message)}}
+let eventMode;
+
+async function runMatchSimulation(match){
+ if(match.folder!=='TUR_1_super-lig'||match.national)return;
+ $('eventPanel').classList.remove('hidden');
+ $('eventStatus').textContent='Simülasyon hazırlanıyor…';
+ $('eventProgress').value=0;
+ const run=await eventMode;
+ if(run){await run(match);return;}
+ $('eventStatus').textContent='Simülasyon motoru açılamadı. Sayfayı Safari veya Chrome’da yeniden açmayı dene.';
+}
+async function analyze(){
+ const btn=$('go');
+ if(btn.disabled)return;
+ scenarioController?.abort();
+ for(const id of ['err','out','eventPanel','eventOutput'])$(id).classList.add('hidden');
+ const qa=$('a').value.trim(),qb=$('b').value.trim();
+ if(qa.length<2||qb.length<2||qnorm(qa)===qnorm(qb)){
+  $('errText').textContent='İki farklı takımın adını yaz.';
+  $('err').classList.remove('hidden');
+  setStatus('Motor hazır ✓','ok');
+  setStep(0,'Takım adlarını kontrol et.');
+  return;
+ }
+ btn.disabled=true;
+ try{
+  setStatus('Analiz ediliyor…','warn');
+  setStep(4,'Takımlar aranıyor…');
+  const match=await resolve(qa,qb,$('nationalOnly').checked);
+  setStep(75,'İstatistikler hesaplanıyor…');
+  const cutoff=new Date().toISOString().slice(0,10);
+  $('longForecast').replaceChildren();
+  const simulation=runMatchSimulation(match);
+  try{
+   const [[forecast],archive]=await Promise.all([
+    render(match),match.national?renderNationalArchive(match,cutoff):renderArchive(match,cutoff)
+   ]);
+   renderArchiveModel(match,forecast,archive);
+   renderLongHistoryForecast(match,archive||[],cutoff);
+   setStep(100,'Maç analizi hazır.');
+  }finally{await simulation;}
+  setStatus('Tamamlandı ✓','ok');
+ }catch(error){
+  console.error(error);
+  $('errText').textContent=error.message||String(error);
+  $('err').classList.remove('hidden');
+  setStatus('Hata','bad');
+  setStep(0,'Analiz tamamlanamadı.');
+ }finally{btn.disabled=false;}
+}
+function selfTest(){
+ try{
+  const fixture=csv('date,home,away,ft_home,ft_away\n2026-01-01,Besiktas,Galatasaray,1,0\n');
+  if(fixture.length!==1||findTeam('Beşiktaş',fixture)!=='Besiktas')throw Error('motor testi');
+  $('go').disabled=false;
+  setStatus('Motor hazır ✓','ok');
+  setStep(0,'');
+ }catch(error){
+  setStatus('Motor hatası','bad');
+  setStep(0,'Motor başlatılamadı: '+error.message);
+ }
+}
+function selectMatch(home,away,national=false){
+ if($('go').disabled||!$('eventCancel').disabled)return;
+ $('a').value=home;
+ $('b').value=away;
+ $('nationalOnly').checked=national;
+ $('go').focus();
+}
+async function renderFixturePreview(){
+ const message=$('fixturePreviewStatus'),list=$('fixturePreview');
+ try{
+  const {fixtures,partial,cached}=await loadFolder('TUR_1_super-lig');
+  if(partial||cached)throw Error('Fikstür doğrulanamadı.');
+  const now=Date.now(),day=new Intl.DateTimeFormat('tr-TR',{day:'numeric',month:'short',timeZone:'Europe/Istanbul'});
+  const matches=fixtures.map(row=>({row,kickoff:knownKickoff(row)})).filter(item=>item.kickoff>now)
+   .sort((a,b)=>a.kickoff-b.kickoff).slice(0,3);
+  const label=name=>({'Besiktas':'Beşiktaş','Kasimpasa':'Kasımpaşa','Istanbul Basaksehir':'İstanbul Başakşehir',
+   'Gençlerbirligi':'Gençlerbirliği'}[name]??name);
+  for(const {row,kickoff} of matches){
+   const button=document.createElement('button');
+   button.type='button';
+   button.className='fixture-choice';
+   const teams=document.createElement('span');
+   teams.className='fixture-teams';
+   for(const name of [row.home,row.away]){
+    const team=document.createElement('span'),abbr=document.createElement('i');
+    team.className='fixture-team';
+    abbr.setAttribute('aria-hidden','true');
+    abbr.textContent=label(name).slice(0,2).toLocaleUpperCase('tr-TR');
+    team.append(abbr,label(name));teams.append(team);
+   }
+   const date=document.createElement('time');
+   date.dateTime=new Date(kickoff).toISOString();
+   date.className='fixture-date';
+   date.textContent=day.format(kickoff);
+   button.append(teams,date);
+   button.addEventListener('click',()=>selectMatch(label(row.home),label(row.away)));
+   list.append(button);
+  }
+  message.textContent=matches.length?'':'Başlama saati doğrulanmış maç bulunamadı.';
+ }catch{message.textContent='Güncel Süper Lig fikstürüne ulaşılamadı.';}
+}
+async function renderPerformanceSummary(){
+ try{
+  const report=JSON.parse(await getText('./event-validation.json'));
+  const {eligible,winner,score,top3}=report.analytic??{};
+  if(!eligible||![winner,score,top3].every(row=>row?.n===eligible&&Number.isFinite(row.rate)&&row.rate>=0&&row.rate<=1))return;
+  const count=new Intl.NumberFormat('tr-TR');
+  const rate=new Intl.NumberFormat('tr-TR',{style:'percent',minimumFractionDigits:2,maximumFractionDigits:2});
+  $('performanceScope').textContent=count.format(eligible)+' Süper Lig maçı · Kesin Tahmin';
+  for(const [id,row] of [['performanceWinner',winner],['performanceScore',score],['performanceTopThree',top3]]){
+   $(id).textContent=rate.format(row.rate);
+  }
+  $('performanceSummary').classList.remove('hidden');
+ }catch{/* Keep the audit link available when the summary cannot be fetched. */}
+}
 $('go').addEventListener('click',analyze);$('a').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});$('b').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('historyPanel').open){void refreshHistory();void renderAutoForecasts();}});$('historyPanel').addEventListener('toggle',()=>{if($('historyPanel').open){void renderLeagueAudit();void renderAutoForecasts();if(readHistory().rows.some(row=>!row.actual))void refreshHistory();}});window.addEventListener('error',e=>{setStatus('JavaScript hatası','bad');$('step').textContent=e.message});$('refreshHistory').addEventListener('click',refreshHistory);$('turkeyAudit').addEventListener('toggle',()=>{if($('turkeyAudit').open){void renderTurkeyAudit();void renderTurkeySignals();}});$('shotAudit').addEventListener('toggle',()=>{if($('shotAudit').open)void renderShotAudit();});
 $('lineupAudit').addEventListener('toggle',()=>{if($('lineupAudit').open)void renderLineupArchive();});
 $('marketAudit').addEventListener('toggle',()=>{if($('marketAudit').open)void renderMarketAudit();});
@@ -2858,26 +3003,17 @@ $('phase1Audit').addEventListener('toggle',()=>{if($('phase1Audit').open)void re
 $('phase1League').addEventListener('change',()=>void renderPhase1Audit());
 $('historyLink').addEventListener('click',()=>{$('historyPanel').open=true;});
 $('predictableLink').addEventListener('click',()=>{$('predictableMatches').open=true;});
+$('fixtureMore').addEventListener('click',()=>{$('predictableMatches').open=true;});
 $('predictableMatches').addEventListener('toggle',()=>{if($('predictableMatches').open)void showPredictableMatches();});
 $('scoreCalibrationAudit').addEventListener('toggle',()=>{if($('scoreCalibrationAudit').open)void showScoreCalibrationAudit();});
 for(const button of document.querySelectorAll('.example')){
- button.addEventListener('click',()=>{
-  if($('go').disabled)return;
-  $('a').value=button.dataset.home;
-  $('b').value=button.dataset.away;
-  $('nationalOnly').checked=button.hasAttribute('data-national');
-  $('go').focus();
- });
+ button.addEventListener('click',()=>selectMatch(button.dataset.home,button.dataset.away,button.hasAttribute('data-national')));
 }
-selfTest();renderHistory();void renderAutoForecasts();
-import('./sim/event-ui.mjs').then(({connectEventMode})=>connectEventMode({
-  archiveRows,clubModelKey,csv,loadFolder,findTeam,direct,knownKickoff,findMarketQuote,
-  MARKET_SNAPSHOT_URLS,MARKET_VERSION,marketTotalsDistribution,getText,dataTable
-})).catch(()=>{
- const button=$('eventRun');
- button.disabled=true;
- button.textContent='Kesin Tahmin yüklenemedi';
-});
+eventMode=import('./sim/event-ui.mjs').then(({connectEventMode})=>connectEventMode({
+ archiveRows,clubModelKey,csv,loadFolder,direct,knownKickoff,findMarketQuote,
+ MARKET_SNAPSHOT_URLS,MARKET_VERSION,marketTotalsDistribution,getText,dataTable
+})).catch(()=>null);
+selfTest();renderHistory();void renderAutoForecasts();void renderFixturePreview();void renderPerformanceSummary();
 
 </script>
 </body>

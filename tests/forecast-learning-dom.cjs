@@ -14,6 +14,7 @@ const phase2Report=fs.readFileSync(path.join(root,'phase2-market-report.json'),'
 const marketSnapshot=fs.readFileSync(path.join(root,'market-snapshot.json'),'utf8');
 const phase1Summary=JSON.parse(fs.readFileSync(path.join(root,'phase1-summary.json'),'utf8'));
 const scoreCalibration=fs.readFileSync(path.join(root,'score-calibration.json'),'utf8');
+const eventValidation=fs.readFileSync(path.join(root,'event-validation.json'),'utf8');
 const lineupArchive=fs.readFileSync(path.join(root,'lineup-samples.json'),'utf8');
 const errors=[];
 const consoleSink=new VirtualConsole();
@@ -50,6 +51,7 @@ async function mock(url){
  }
  if(url.includes('phase1-summary.json'))return response(JSON.stringify(phase1Summary));
  if(url.includes('score-calibration.json'))return response(scoreCalibration);
+ if(url.includes('event-validation.json'))return response(eventValidation);
  if(url.includes('lineup-samples.json'))return response(lineupArchive);
  if(url.includes('super-lig-data/results'))return response(JSON.stringify(signalAudit));
  if(url.includes('super-lig-research/results'))return response(JSON.stringify(turkeyReport));
@@ -75,12 +77,16 @@ async function until(fn){
  }
 }
 async function run(){
- const app=live?await (await fetch(site)).text():html;
+ const simulationCalls=[];
+ const app=live?await (await fetch(site)).text():
+  html.replace(/eventMode=import\('\.\/sim\/event-ui\.mjs'\)[\s\S]*?\.catch\(\(\)=>null\);/,
+   'eventMode=Promise.resolve(window.testMatchSimulation);');
  if(live)assert.match(app,/id="lineupAudit"/);
  const dom=new JSDOM(app,{url:site,runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:consoleSink,beforeParse(w){
   w.TextEncoder=TextEncoder;
   Object.defineProperty(w.crypto,'subtle',{value:globalThis.crypto.subtle});
   w.fetch=(url,options)=>live?fetch(new URL(url,site),{cache:options?.cache,signal:AbortSignal.timeout(12000)}):mock(String(url));
+  w.testMatchSimulation=async match=>simulationCalls.push(match);
  }});
  const {window}=dom,$=id=>window.document.getElementById(id);
  try{
@@ -90,16 +96,32 @@ async function run(){
    assert.match($('status').textContent,/Tamamlandı/,$('errText').textContent);
   }
   const examples=window.document.querySelectorAll('.example');
+  await until(()=>$('fixturePreview').querySelector('.fixture-choice')&&!$('performanceSummary').classList.contains('hidden'));
+  assert.match($('performanceScope').textContent,/9\.924 Süper Lig maçı/);
+  assert.equal($('performanceWinner').textContent,'%53,25');
   examples[1].click();
   assert.equal($('a').value,'Türkiye');
   assert.equal($('b').value,'Almanya');
   assert.equal($('nationalOnly').checked,true);
+  if(!live){
+   $('fixturePreview').querySelector('.fixture-choice').click();
+   assert.equal($('a').value,'Beşiktaş');
+   assert.equal($('b').value,'Galatasaray');
+   assert.equal($('nationalOnly').checked,false);
+  }
   examples[0].click();
   assert.equal($('a').value,'Beşiktaş');
   assert.equal($('b').value,'Galatasaray');
   assert.equal($('nationalOnly').checked,false);
   assert.equal(window.document.activeElement,$('go'));
   await submit('Beşiktaş','Galatasaray');
+  if(!live){
+   assert.equal($('go').textContent.trim(),'Tam analiz yap');
+   assert.equal($('eventRun'),null);
+   assert.equal(simulationCalls.length,1);
+   assert.equal(simulationCalls[0].folder,'TUR_1_super-lig');
+   assert.deepEqual([simulationCalls[0].a,simulationCalls[0].b],['Besiktas','Galatasaray']);
+  }
   assert.equal($('archiveForm').querySelectorAll('section').length,2);
   assert.match($('matchHistoryScope').textContent,/Süper Lig maçları/);
   assert.match($('longForecast').textContent,/Uzun dönem tahmini · deneme/);

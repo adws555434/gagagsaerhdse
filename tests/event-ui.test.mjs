@@ -53,19 +53,18 @@ test('new mode cancels, rejects insufficient data, runs 100 million, and reuses 
  };
  let frozen={records:[]};
  try{
-  connectEventMode(app);
-  $('eventRun').click();
-  assert.match($('eventStatus').textContent,/İki farklı/);
-  $('a').value='Besiktas';$('b').value='Galatasaray';
-  $('eventRun').click();
+  const run=connectEventMode(app);
+  const match={...data,a:fixture.home,b:fixture.away};
+  await run({...match,partial:true});
+  assert.match($('eventStatus').textContent,/Veri yetersiz/);
+  const cancelled=run(match);
   await wait(()=>$('eventProgress').value>0);
   $('eventCancel').click();
-  await wait(()=>$('eventRun').disabled===false);
+  await cancelled;
   assert.match($('eventStatus').textContent,/iptal/);
   assert.ok($('eventOutput').classList.contains('hidden'));
   const started=Date.now();
-  $('eventRun').click();
-  await wait(()=>$('eventRun').disabled===false);
+  await run(match);
   assert.equal($('eventProgress').value,TRIALS);
   assert.match($('eventStatus').textContent,/100\.000\.000/);
   assert.match($('eventAnswer').textContent,/\d+–\d+/);
@@ -77,8 +76,7 @@ test('new mode cancels, rejects insufficient data, runs 100 million, and reuses 
    n:TRIALS,outcomes:[47_000_000,29_000_000,24_000_000],winner:0,pick:{home:2,away:1,count:10_000_000},
    top:[{home:1,away:1,count:15_000_000},{home:2,away:1,count:10_000_000},{home:1,away:0,count:9_000_000}]
   }}]};
-  $('eventRun').click();
-  await wait(()=>$('eventRun').disabled===false);
+  await run(match);
   assert.equal(browserWorkers,running);
   assert.equal($('eventAnswer').textContent,'Besiktas kazanır · 2–1');
   assert.match($('eventScores').textContent,/^1–1/);
