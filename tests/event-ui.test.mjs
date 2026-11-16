@@ -10,7 +10,7 @@ import {VERSION,TRIALS} from '../sim/super-lig-model.mjs';
 const {JSDOM}=createRequire(import.meta.url)('jsdom');
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const model=JSON.parse(fs.readFileSync(new URL('../event-model-state.json',import.meta.url),'utf8'));
-const validation=JSON.parse(fs.readFileSync(new URL('../event-validation.json',import.meta.url),'utf8'));
+const validation=JSON.parse(fs.readFileSync(process.env.EVENT_VALIDATION_PATH??new URL('../event-validation.json',import.meta.url),'utf8'));
 const before=Date.now();
 const fixture={home:'Besiktas',away:'Galatasaray',date:'2098-12-01',time:'19:00'};
 const kickoff=Date.parse(fixture.date+'T18:00:00Z');
@@ -49,7 +49,6 @@ test('new mode cancels, rejects insufficient data, runs 100 million, and reuses 
   findTeam:(q,rows)=>rows.some(r=>r.home===q||r.away===q)?q:null,
   direct:()=>fixture,knownKickoff:()=>kickoff,findMarketQuote:()=>null,
   MARKET_SNAPSHOT_URLS:[],dataTable:(headers,rows)=>{const t=document.createElement('div');t.textContent=rows.flat().join(' ');return t;},
-  accuracyLabel:(hits,n)=>hits+'/'+n,
   getText:async url=>JSON.stringify(url.includes('model-state')?model:url.includes('validation')?validation:frozen)
  };
  let frozen={records:[]};
@@ -72,17 +71,22 @@ test('new mode cancels, rejects insufficient data, runs 100 million, and reuses 
   assert.match($('eventAnswer').textContent,/\d+–\d+/);
   assert.match($('eventPickCount').textContent,/kez/);
   assert.match($('eventCombined').textContent,/üç skordan/);
-  await wait(()=>$('eventHistory').textContent.includes('9924'));
+  await wait(()=>$('eventHistory').textContent.includes('%53,25'));
   const running=browserWorkers;
   frozen={records:[{id:fixtureId(fixture,app),version:VERSION,kickoff,savedAt:before,result:{
-   n:TRIALS,outcomes:[47_000_000,29_000_000,24_000_000],
+   n:TRIALS,outcomes:[47_000_000,29_000_000,24_000_000],winner:0,pick:{home:2,away:1,count:10_000_000},
    top:[{home:1,away:1,count:15_000_000},{home:2,away:1,count:10_000_000},{home:1,away:0,count:9_000_000}]
   }}]};
   $('eventRun').click();
   await wait(()=>$('eventRun').disabled===false);
   assert.equal(browserWorkers,running);
-  assert.equal($('eventAnswer').textContent,'Beraberlik · 1–1');
+  assert.equal($('eventAnswer').textContent,'Besiktas kazanır · 2–1');
+  assert.match($('eventScores').textContent,/^1–1/);
   assert.match($('eventStatus').textContent,/önce kaydedilen/);
+  $('predictableMatches').open=true;
+  await wait(()=>$('eventPredictableList').textContent.includes('Besiktas'));
+  assert.match($('eventPredictableList').textContent,/34/);
+  assert.equal(browserWorkers,running);
   console.log(JSON.stringify({trials:TRIALS,workers:running,seconds:(Date.now()-started)/1000}));
  }finally{
   dom.window.close();

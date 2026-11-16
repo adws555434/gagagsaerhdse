@@ -1,12 +1,29 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {Worker} from 'node:worker_threads';
-import {analyticMatrix,runSerial,verify,SIZE,emptyCounts} from '../sim/event-engine.mjs';
+import {analyticMatrix,runSerial,verify,SIZE,emptyCounts,summarize,NO_EFFECTS} from '../sim/event-engine.mjs';
 import {runWorkers} from '../sim/event-parallel.mjs';
 import {historyRows,trainChronologically,TRIALS,VERSION,withMarket} from '../sim/super-lig-model.mjs';
 import {collectEventLedger,scoreLedger} from '../sim/event-ledger.mjs';
 
 const input={rates:[1.6,1.15],rho:-.12,uncertainty:[.16,.13]};
+test('winner uses outcome totals; the headline score stays in that outcome',()=>{
+ const buckets=emptyCounts();
+ buckets[SIZE+1]=32;
+ buckets[2*SIZE+1]=25;
+ buckets[SIZE]=24;
+ buckets[1]=19;
+ const result=summarize(buckets);
+ assert.deepEqual(result.outcomes,[49,32,19]);
+ assert.equal(result.winner,0);
+ assert.deepEqual(result.pick,{home:2,away:1,count:25});
+ assert.deepEqual(result.top[0],{home:1,away:1,count:32});
+});
+test('no-event closed form agrees with generic transition matrix',()=>{
+ const matrix=analyticMatrix({...input,effects:NO_EFFECTS}).matrix;
+ const generic=analyticMatrix({...input,effects:{...NO_EFFECTS}}).matrix;
+ assert.ok(matrix.every((p,i)=>Math.abs(p-generic[i])<1e-12));
+});
 test('analytic score mass is normalized and agrees with event paths',()=>{
  const {matrix,tail}=analyticMatrix(input);
  assert.ok(Math.abs(matrix.reduce((a,b)=>a+b,0)-1)<1e-12);
@@ -51,7 +68,8 @@ test('pre-match event records freeze once, settle automatically and reject unfin
  const fixture={home:'H',away:'A',date:'2026-11-16',kickoff:2000};
  const app={clubModelKey:s=>s,knownKickoff:r=>r.kickoff,validScore:r=>Number.isInteger(r.ft_home),findMarketQuote:()=>null};
  let now=1000,simulations=0;
- const simulate=async()=>{simulations++;return {n:TRIALS,top:[{home:2,away:1},{home:1,away:1},{home:1,away:0}]};};
+ const simulate=async()=>{simulations++;return {n:TRIALS,winner:0,pick:{home:2,away:1},
+  top:[{home:1,away:1},{home:2,away:1},{home:1,away:0}]};};
  const common={fixtures:[fixture],app,clock:()=>now,prepare:async()=>({digest:'test',input:{}}),simulate};
  const first=await collectEventLedger({...common,prior:[],results:[]});
  assert.equal(first.length,1);assert.equal(first[0].version,VERSION);
@@ -59,7 +77,7 @@ test('pre-match event records freeze once, settle automatically and reject unfin
  assert.equal(simulations,1);
  now=4000;
  const scored=await collectEventLedger({...common,prior:first,results:[{...fixture,ft_home:2,ft_away:1}]});
- assert.deepEqual(scoreLedger(scored),{n:1,winner:1,score:1,top3:1});
+ assert.deepEqual(scoreLedger(scored),{n:1,winner:1,score:1,globalScore:0,top3:1});
  now=1000;
  assert.deepEqual(await collectEventLedger({...common,prior:[],results:[],simulate:async()=>{
   now=2000;return simulate();

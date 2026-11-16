@@ -1,8 +1,9 @@
 import {BLOCK,TRIALS,dcFactor} from './super-lig-model.mjs';
 
-const segments=[.88,.93,.98,1.02,1.07,1.12];
-const ownRed=.72, opponentRed=1.20, redRate=.09;
-const pursuit=[1.05,1.12], ahead=[.96,.92];
+export const ASSUMED_EFFECTS={segments:[.88,.93,.98,1.02,1.07,1.12],ownRed:.72,opponentRed:1.20,
+ redRate:.09,pursuit:[1.05,1.12],ahead:[.96,.92]};
+export const NO_EFFECTS={segments:[1,1,1,1,1,1],ownRed:1,opponentRed:1,redRate:0,pursuit:[1,1],ahead:[1,1]};
+
 export const SIZE=24;
 const slots=SIZE*SIZE;
 export const AGREEMENT=.0005;
@@ -28,7 +29,8 @@ function randomStream(seed,block) {
 function rates(input,i,j){
  return [input.rates[0]*(1+(i-1)*input.uncertainty[0]),input.rates[1]*(1+(j-1)*input.uncertainty[1])];
 }
-function dynamics(rh,ra,segment,difference,cards){
+function dynamics(rh,ra,segment,difference,cards,effects){
+ const {segments,ownRed,opponentRed,redRate,pursuit,ahead}=effects;
  const homeRed=cards&1,awayRed=cards&2;
  const stage=Number(segment>=3);
  const h=rh*segments[segment]*(difference<0?pursuit[stage]:difference>0?ahead[stage]:1)*
@@ -38,13 +40,13 @@ function dynamics(rh,ra,segment,difference,cards){
  const redHome=homeRed?0:redRate,redAway=awayRed?0:redRate;
  return [h,a,redHome,redAway];
 }
-function transitionTable(rh,ra){
- return segments.map((_,segment)=>{
+function transitionTable(rh,ra,effects){
+ return effects.segments.map((_,segment)=>{
   const values=new Float64Array(5*4*4);
   for(let diff=-2;diff<=2;diff++)for(let cards=0;cards<4;cards++){
    let cumul=0;
    const from=((diff+2)*4+cards)*4;
-   for(const [i,r] of dynamics(rh,ra,segment,diff,cards).entries())values[from+i]=cumul+=r;
+   for(const [i,r] of dynamics(rh,ra,segment,diff,cards,effects).entries())values[from+i]=cumul+=r;
   }
   return values;
  });
@@ -75,7 +77,7 @@ function sampleTime(random,table){
  }
 }
 export function simulateBlock(input,seed,block,count=BLOCK){
- const tables=draws.flatMap((_,i)=>draws.map((__,j)=>transitionTable(...rates(input,i,j))));
+ const tables=draws.flatMap((_,i)=>draws.map((__,j)=>transitionTable(...rates(input,i,j),input.effects??ASSUMED_EFFECTS)));
  const corrections=Float64Array.from({length:slots+1},(_,i)=>i===slots?1:
   dcFactor(Math.floor(i/SIZE),i%SIZE,...input.rates,input.rho));
  const bound=corrections.reduce((peak,n)=>Math.max(peak,n),1);
@@ -94,17 +96,20 @@ export function simulateBlock(input,seed,block,count=BLOCK){
 export function addCounts(target,source){
  for(let i=0;i<target.length;i++)target[i]+=source[i];
 }
+export const outcomeOf=(home,away)=>home>away?0:home===away?1:2;
 export function summarize(counts){
  const outcomes=[0,0,0],top=[];
  let n=0;
  for(let i=0;i<slots;i++){
   const count=counts[i],home=Math.floor(i/SIZE),away=i%SIZE;
   n+=count;
-  outcomes[home>away?0:home===away?1:2]+=count;
+  outcomes[outcomeOf(home,away)]+=count;
   if(count)top.push({home,away,count});
  }
  top.sort((a,b)=>b.count-a.count||a.home-b.home||a.away-b.away);
- return {n,outcomes,top:top.slice(0,3),overflow:counts[slots]};
+ const winner=outcomes.indexOf(Math.max(...outcomes));
+ const pick=top.find(row=>outcomeOf(row.home,row.away)===winner);
+ return {n,outcomes,winner,pick,top:top.slice(0,3),overflow:counts[slots]??0};
 }
 export function emptyCounts(){return new Uint32Array(slots+1);}
 export function runSerial(input,seed,count=TRIALS){
@@ -118,10 +123,10 @@ export function runSerial(input,seed,count=TRIALS){
 }
 
 // Uniformization computes each segment's continuous-time transition matrix action.
-function exactComponent(rh,ra){
+function exactComponent(rh,ra,effects){
  let state=new Float64Array(slots*4);
  state[0]=1;
- const transitions=transitionTable(rh,ra);
+ const transitions=transitionTable(rh,ra,effects);
  for(const table of transitions){
   let ceiling=0;
   for(let s=3;s<table.length;s+=4)ceiling=Math.max(ceiling,table[s]);
@@ -154,9 +159,25 @@ function exactComponent(rh,ra){
 }
 export function analyticMatrix(input){
  const matrix=new Float64Array(slots);
- for(let i=0;i<3;i++)for(let j=0;j<3;j++){
-  const component=exactComponent(...rates(input,i,j));
-  for(let k=0;k<slots;k++)matrix[k]+=component[k]*draws[i]*draws[j];
+ if(input.effects===NO_EFFECTS){
+  const margins=input.rates.map((rate,side)=>{
+   const mass=new Float64Array(SIZE);
+   for(const [i,weight] of draws.entries()){
+    const mu=rate*(1+(i-1)*input.uncertainty[side]);
+    let p=Math.exp(-mu);
+    for(let goals=0;goals<SIZE;goals++){
+     mass[goals]+=p*weight;
+     p*=mu/(goals+1);
+    }
+   }
+   return mass;
+  });
+  for(let h=0;h<SIZE;h++)for(let a=0;a<SIZE;a++)matrix[h*SIZE+a]=margins[0][h]*margins[1][a];
+ }else{
+  for(let i=0;i<3;i++)for(let j=0;j<3;j++){
+   const component=exactComponent(...rates(input,i,j),input.effects??ASSUMED_EFFECTS);
+   for(let k=0;k<slots;k++)matrix[k]+=component[k]*draws[i]*draws[j];
+  }
  }
  const tail=1-matrix.reduce((a,b)=>a+b,0);
  for(let i=0;i<slots;i++)matrix[i]*=dcFactor(Math.floor(i/SIZE),i%SIZE,...input.rates,input.rho);

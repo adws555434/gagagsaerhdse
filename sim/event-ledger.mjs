@@ -1,18 +1,20 @@
+import {outcomeOf} from './event-engine.mjs';
 import {SCOPE,TRIALS,VERSION,historyKey} from './super-lig-model.mjs';
 
 export function fixtureId(row,app){
  return [row.date,historyKey(row.home,app.clubModelKey),historyKey(row.away,app.clubModelKey)].join('|');
 }
 export function scoreLedger(rows){
- const totals={n:0,winner:0,score:0,top3:0};
+ const totals={n:0,winner:0,score:0,globalScore:0,top3:0};
  for(const row of rows){
-  if(row.version!==VERSION||row.result.n!==TRIALS||!row.actual)continue;
+  if(row.version!==VERSION||row.result.n!==TRIALS||!row.result.pick||!row.actual)continue;
   const [h,a]=row.actual;
-  const pick=row.result.top[0];
+  const {pick,winner,top}=row.result;
   totals.n++;
-  totals.winner+=Number(Math.sign(pick.home-pick.away)===Math.sign(h-a));
+  totals.winner+=Number(winner===outcomeOf(h,a));
   totals.score+=Number(pick.home===h&&pick.away===a);
-  totals.top3+=Number(row.result.top.some(p=>p.home===h&&p.away===a));
+  totals.globalScore+=Number(top[0].home===h&&top[0].away===a);
+  totals.top3+=Number(top.some(p=>p.home===h&&p.away===a));
  }
  return totals;
 }
@@ -24,7 +26,7 @@ export async function collectEventLedger({prior,results,fixtures,market,app,prep
    ?{...row,actual:[Number(match.ft_home),Number(match.ft_away)]}:row;
  });
  if(records.some((record,i)=>record!==prior[i]))await onRecord(records);
- const keys=new Set(records.map(row=>row.id));
+ const keys=new Set(records.filter(row=>row.version===VERSION&&row.result.pick).map(row=>row.id));
  const sorted=fixtures.map(fixture=>({fixture,kickoff:app.knownKickoff(fixture)})).sort((a,b)=>a.kickoff-b.kickoff);
  for(const {fixture,kickoff} of sorted){
   const now=clock(),id=fixtureId(fixture,app);
@@ -33,7 +35,7 @@ export async function collectEventLedger({prior,results,fixtures,market,app,prep
   const prepared=await prepare(fixture,quote);
   if(!prepared)continue;
   const result=await simulate(prepared);
-  if(result.n!==TRIALS||!result.top?.length)throw Error('Eksik simülasyon kaydı.');
+  if(result.n!==TRIALS||!result.pick||!result.top?.length)throw Error('Eksik simülasyon kaydı.');
   const savedAt=clock();
   if(savedAt>=kickoff)continue;
   const record={id,home:fixture.home,away:fixture.away,kickoff,savedAt,version:VERSION,
