@@ -30,6 +30,10 @@ const source='https://the-odds-api.com/';
 const digest=text=>createHash('sha256').update(text).digest('hex');
 const time=text=>typeof text==='string'&&/^\d{4}-\d\d-\d\dT/.test(text)?Date.parse(text):NaN;
 const iso=ms=>new Date(ms).toISOString();
+function creditHeader(headers,name){
+ const value=headers?.get('x-requests-'+name);
+ return value!=null&&/^\d+$/.test(value)&&Number.isSafeInteger(Number(value))?Number(value):null;
+}
 
 function selectPrices(group,names,point){
  if(!Array.isArray(group?.outcomes))return null;
@@ -93,19 +97,22 @@ async function fetchBook(scope,key,clock,fetcher){
  if(!Array.isArray(data)||data.some(x=>!x||typeof x.id!=='string'||x.sport_key!==SPORTS[scope]||!Array.isArray(x.bookmakers))){
   throw Error('schema');
  }
- const remaining=response.headers.get('x-requests-remaining');
- return {scope,sha256:digest(payload),data,captured:clock(),remaining:remaining!=null&&/^\d+$/.test(remaining)?Number(remaining):null};
+ const usage={scope,cost:creditHeader(response.headers,'last'),used:creditHeader(response.headers,'used'),
+  remaining:creditHeader(response.headers,'remaining')};
+ return {scope,sha256:digest(payload),data,captured:clock(),usage};
 }
 
-async function buildSnapshot({key,scopes=['TUR_1_super-lig'],clock=Date.now,fetcher=fetch}={}){
+async function buildSnapshot({key,scopes=['TUR_1_super-lig'],clock=Date.now,fetcher=fetch,onUsage=()=>{}}={}){
  if(!key)return {version:model.MARKET_VERSION,source,state:'unconfigured',capturedAt:null,dataSha256:null,events:[]};
  if(!scopes.length||scopes.some(scope=>!Object.hasOwn(SPORTS,scope))||new Set(scopes).size!==scopes.length)throw Error('Geçersiz oran lig listesi');
  const successes=[],failures=[];
  for(const scope of scopes){
   try{
    const last=successes.at(-1);
-   if(last?.remaining!=null&&last.remaining<markets.length){failures.push({scope,reason:'quota'});break;}
-   successes.push(await fetchBook(scope,key,clock,fetcher));
+   if(last?.usage.remaining!=null&&last.usage.remaining<markets.length){failures.push({scope,reason:'quota'});break;}
+   const response=await fetchBook(scope,key,clock,fetcher);
+   successes.push(response);
+   onUsage(response.usage);
   }catch(error){
    failures.push({scope,reason:error.message});
    if(['HTTP 401','HTTP 403','HTTP 429'].includes(error.message))break;
@@ -146,13 +153,20 @@ async function run(){
    return;
   }
  }
- const snapshot=await buildSnapshot({key:process.env.ODDS_API_KEY,scopes});
+ const usage=[];
+ const snapshot=await buildSnapshot({key:process.env.ODDS_API_KEY,scopes,onUsage:row=>usage.push(row)});
+ const report={state:snapshot.state,scopes,events:snapshot.events.length,
+  eventsWithTotals:snapshot.events.filter(event=>event.over25!=null).length,capturedAt:snapshot.capturedAt,plan,
+  successfulResponses:usage.length,creditUsage:usage,
+  creditsConsumed:snapshot.state==='unconfigured'?0:
+   snapshot.state==='ready'&&usage.every(row=>row.cost!=null)?usage.reduce((sum,row)=>sum+row.cost,0):null};
  const output=path.join(root,'market-snapshot.json');
- if(snapshot.state==='unconfigured'&&fs.existsSync(output)){console.log('Oran kaynağı bağlı değil. Var olan dosya korundu.');return;}
- const data=JSON.stringify(snapshot,null,2)+'\n';
- fs.writeFileSync(output+'.tmp',data);
- fs.renameSync(output+'.tmp',output);
- console.log(JSON.stringify({state:snapshot.state,events:snapshot.events.length,capturedAt:snapshot.capturedAt,plan}));
+ if(snapshot.state!=='unconfigured'||!fs.existsSync(output)){
+  const data=JSON.stringify(snapshot,null,2)+'\n';
+  fs.writeFileSync(output+'.tmp',data);
+  fs.renameSync(output+'.tmp',output);
+ }
+ console.log(JSON.stringify(report));
 }
 
 module.exports={buildSnapshot,summarizeEvent,quotaPlan,SPORTS};

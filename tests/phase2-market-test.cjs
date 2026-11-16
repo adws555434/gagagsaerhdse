@@ -21,12 +21,25 @@ async function main(){
  const disabled=await buildSnapshot({fetcher:()=>assert.fail('Key is required')});
  assert.equal(disabled.state,'unconfigured');
  assert.deepEqual(disabled.events,[]);
- const report=await buildSnapshot({key:'test-key',clock:()=>now,fetcher:async url=>{
+ const usage=[];
+ const report=await buildSnapshot({key:'test-key',clock:()=>now,onUsage:row=>usage.push(row),fetcher:async url=>{
   assert.equal(url.hostname,'api.the-odds-api.com');
+  assert.equal(url.pathname,'/v4/sports/soccer_turkey_super_league/odds');
+  assert.equal(url.searchParams.get('regions'),'eu');
   assert.equal(url.searchParams.get('markets'),'h2h,totals');
   assert.equal(url.searchParams.get('apiKey'),'test-key');
-  return {ok:true,text:async()=>JSON.stringify([payload]),headers:new Headers({'x-requests-remaining':'1'})};
+  return {ok:true,text:async()=>JSON.stringify([payload]),headers:new Headers({
+   'x-requests-last':'2','x-requests-used':'12','x-requests-remaining':'488'
+  })};
  }});
+ assert.deepEqual(usage,[{scope,cost:2,used:12,remaining:488}]);
+ assert.equal(Object.hasOwn(report,'creditUsage'),false);
+ const emptyUsage=[];
+ const empty=await buildSnapshot({key:'test-key',onUsage:row=>emptyUsage.push(row),fetcher:async()=>({
+  ok:true,text:async()=>'[]',headers:new Headers({'x-requests-last':'0','x-requests-used':'invalid'})
+ })});
+ assert.deepEqual(empty.events,[]);
+ assert.deepEqual(emptyUsage,[{scope,cost:0,used:null,remaining:null}]);
  const quote=report.events[0];
  assert.equal(report.events.length,1);
  assert.equal(report.state,'ready');

@@ -30,8 +30,22 @@ async function run(){
   return;
  }
  const fixtures=(await pinnedInput(inputDir,manifest.fixtures)).toString('utf8');
- const plan=requestPlan(app,fixtures);
+ const plan=requestPlan(app,fixtures,{dayBefore:scope==='TUR_1_super-lig'});
  if(command==='plan'){
+  if(scope==='TUR_1_super-lig'){
+   const total=plan.leagues[scope];
+   const seasons=Object.fromEntries(Object.entries(plan.counts).filter(([key])=>key.startsWith(scope+'|')).map(([key,fixtures])=>{
+    const season=key.split('|')[1];
+    const calls=plan.requests.filter(row=>row.scope===scope&&row.kickoff>=season.slice(0,4)+'-07-01'&&
+     row.kickoff<season.slice(5)+'-07-01').length;
+    return [season,{fixtures,kickoffGroups:calls/2,calls,creditCeiling:calls*20}];
+   }));
+   const summary={sportKey:'soccer_turkey_super_league',hoursBeforeKickoff:24,closingSecondsBeforeKickoff:1,
+    usableBudget:20000,...total,seasons};
+   write({...summary,fixtureSource:manifest.fixtures});
+   console.log(JSON.stringify(summary));
+   return;
+  }
   const {requests,...summary}=plan;
   write({...summary,fixtureSource:manifest.fixtures});
   console.log(JSON.stringify(summary));

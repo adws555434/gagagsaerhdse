@@ -11,6 +11,7 @@ const {summarizeEvent,SPORTS}=require(path.join(scripts,'market-snapshot.cjs'));
 const hour=3600000;
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 const iso=ms=>new Date(ms).toISOString();
+const captureWindows={early:6*hour,dayBefore:24*hour,preKickoff:1000};
 const fixtures={
  turkey1:'TUR_1_super-lig',premier:'ENG_1_premier-league',spain1:'ESP_1_la-liga',
  germany1:'GER_1_bundesliga',italy1:'ITA_1_serie-a',france1:'FRA_1_ligue-1'
@@ -72,7 +73,7 @@ function inspectHistorical(scope,payload,requested,maxLag){
  return accepted;
 }
 
-function requestPlan(app,text){
+function requestPlan(app,text,{dayBefore=false}={}){
  const rows=app.checkedCsv(text,['league','season','kickoff_utc','home_team','away_team','home_goals','away_goals']);
  const kickoffGroups=new Map();
  const counts={};
@@ -88,10 +89,10 @@ function requestPlan(app,text){
   kickoffGroups.get(key).fixtures++;
  }
  const groups=[...kickoffGroups.values()].sort((a,b)=>a.kickoff-b.kickoff||a.scope.localeCompare(b.scope));
- const requests=groups.flatMap(({scope,kickoff,fixtures})=>[
-  {scope,kind:'early',kickoff:iso(kickoff),asOf:iso(kickoff-6*hour),fixtures},
-  {scope,kind:'preKickoff',kickoff:iso(kickoff),asOf:iso(kickoff-60000),fixtures}
- ]);
+ const windows=dayBefore?[['dayBefore',captureWindows.dayBefore],['preKickoff',captureWindows.preKickoff]]:
+  [['early',captureWindows.early],['preKickoff',60000]];
+ const requests=groups.flatMap(({scope,kickoff,fixtures})=>windows.map(([kind,lead])=>
+  ({scope,kind,kickoff:iso(kickoff),asOf:iso(kickoff-lead),fixtures})));
  const leagues=Object.fromEntries(Object.keys(SPORTS).map(scope=>{
   const teamGroups=groups.filter(g=>g.scope===scope);
   const count=teamGroups.reduce((sum,g)=>sum+g.fixtures,0);
@@ -102,6 +103,10 @@ function requestPlan(app,text){
   calls:requests.length,creditCeiling:requests.length*20,requests};
 }
 
+function validWindow(kind,lead){
+ return Object.hasOwn(captureWindows,kind)&&(lead===captureWindows[kind]||(kind==='preKickoff'&&lead===60000));
+}
+
 async function collectHistorical(plan,{key,budget,fetcher=fetch,onSnapshot=()=>{}}){
  if(!key)throw Error('Tarihsel API anahtarı tanımlı değil');
  if(!Number.isInteger(budget)||budget<20)throw Error('Tarihsel çağrılar için geçerli kredi sınırı gerekiyor');
@@ -110,8 +115,7 @@ async function collectHistorical(plan,{key,budget,fetcher=fetch,onSnapshot=()=>{
  for(const request of plan){
   if(reserved+20>budget)break;
   const kickoff=Date.parse(request.kickoff),asOf=Date.parse(request.asOf);
-  const lead=request.kind==='early'?6*hour:request.kind==='preKickoff'?60000:null;
-  if(!Object.hasOwn(SPORTS,request.scope)||!Number.isFinite(kickoff)||lead==null||kickoff-asOf!==lead){
+  if(!Object.hasOwn(SPORTS,request.scope)||!validWindow(request.kind,kickoff-asOf)){
    throw Error('Tarihsel sorgu planı geçersiz');
   }
   const endpoint=new URL('https://api.the-odds-api.com/v4/historical/sports/'+SPORTS[request.scope]+'/odds');
@@ -143,7 +147,7 @@ function licensedOdds(app,snapshots){
   const kickoff=Date.parse(snapshot.kickoff),cutoff=Date.parse(snapshot.asOf),captured=Date.parse(snapshot.capturedAt);
   if(!Object.hasOwn(SPORTS,snapshot.scope)||!/^[a-f0-9]{64}$/.test(snapshot.sourceSha256??'')||
    !Number.isFinite(captured)||captured>cutoff||cutoff>=kickoff||cutoff-captured>15*60000||
-   (snapshot.kind==='early'?kickoff-cutoff!==6*hour:snapshot.kind==='preKickoff'?kickoff-cutoff!==60000:true)||
+   !validWindow(snapshot.kind,kickoff-cutoff)||
    !Array.isArray(snapshot.rows))throw Error('Sabit tarihsel görüntü doğrulanamadı');
   for(const row of snapshot.rows){
    if(row.scope!==snapshot.scope||row.kickoff!==snapshot.kickoff||row.capturedAt!==snapshot.capturedAt||
@@ -157,7 +161,7 @@ function licensedOdds(app,snapshots){
    const key=[league,row.kickoff,app.marketTeamKey(row.home),app.marketTeamKey(row.away)].join('|');
    const result=events.get(key)??{league,season,date,home:row.home,away:row.away,
     kickoff,verified:true,early:null,close:null};
-   const label=snapshot.kind==='early'?'early':'close';
+   const label=snapshot.kind==='early'?'early':snapshot.kind==='dayBefore'?'dayBefore':'close';
    if(result[label])throw Error('Aynı maç ve zamanda mükerrer oran');
    result[label]={p:row.power,over25:row.over25};
    events.set(key,result);

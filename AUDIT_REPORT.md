@@ -1,5 +1,26 @@
 # Football Intelligence · Sürüm denetimi
 
+## Süper Lig · The Odds API alım planı
+
+Güncel oran akışının kapsamı `soccer_turkey_super_league`, bölgesi `eu`, piyasaları `h2h,totals`. GitHub Actions alım kaydı sağlayıcının `x-requests-last`, `x-requests-used` ve `x-requests-remaining` başlıklarını gösterir. Eksik başlık için bilinmeyen değer kullanılır. Anahtar yapılandırılmadığında işin tüketimi sıfırdır. Sağlayıcı hesabındaki bakiye bu durumda doğrulanamaz.
+
+SHA-256 ile sabit [Football Charts fikstür arşivinden](tests/phase2-timing-inputs.json) aynı UTC başlama saatindeki maçlar birleştirildi. İki hedef an maç başlangıcından 24 saat ve 1 saniye öncedir. API hedef an veya öncesindeki en yakın arşiv görüntüsünü döndürür. Arşivdeki son maç önü görüntüsü, bahis sağlayıcısının yayımladığı son fiyat için yaklaşık ölçüdür. Arşiv anı, maç ve fiyat zamanları ayrıca doğrulanır.
+
+| Sezon | Maç | Başlama saati grubu | Çağrı | Kredi tavanı |
+| --- | ---: | ---: | ---: | ---: |
+| 2023/24 | 380 | 254 | 508 | 10.160 |
+| 2024/25 | 342 | 257 | 514 | 10.280 |
+| 2025/26 | 306 | 227 | 454 | 9.080 |
+| Toplam | 1.028 | 738 | 1.476 | 29.520 |
+
+Tek bölge ve iki piyasa ile tarihsel çağrı başına 20 kredi bütçelenir. Üç sezonun tamamı için 20.000 kredinin 9.520 kredi üzerinde bir tavan var. Boş tarihsel yanıtlar ücret kotasına sayılmayabilir. Bu hesap planlanan çağrıları kapsar. Yeniden denemeler ve zaman uyuşmazlığı araştırması bu sayıya dahil değildir. [API tarihsel belgeleri](https://the-odds-api.com/liveapi/guides/v4/#historical-odds)
+
+```sh
+node tests/phase2-fetch-history.cjs plan /veri/girdi /veri/plan.json TUR_1_super-lig
+```
+
+Ücretli çağrı kullanıcı onayı bekliyor. Arşiv edinilince SHA-256 ile sabitlenecek. Yayın modeli, kapanış piyasası, 24 saat öncesi piyasa ve yalnızca daha önceki maçlarda öğrenilen harman aynı eşleşmelerde ileri yürüyen testle ölçülecek. 1X2 log loss ve RPS için haftalık eşleştirilmiş bootstrap, isabet için Wilson %95 aralıkları raporlanacak. Ham geçmiş arşiv özel tutulur. Açık depoya toplu metrik, kapsam ve veri özetleri girer. [The Odds API kullanım şartları](https://the-odds-api.com/terms-and-conditions.html#restrictions)
+
 ## Faz 2 · Arşiv genişletme ve erken oran denetimi
 
 | Bileşen | Durum |

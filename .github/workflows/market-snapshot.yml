@@ -1,5 +1,10 @@
 name: Market probability snapshot
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/market-snapshot.yml'
+      - 'scripts/market-snapshot.cjs'
   schedule:
     - cron: '23 1 * * *'
     - cron: '23 7 * * *'
@@ -25,7 +30,7 @@ jobs:
         env:
           ODDS_API_SCHEDULE: ${{ github.event.schedule }}
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
-          ODDS_API_SCOPES: ${{ vars.ODDS_API_SCOPES }}
+          ODDS_API_SCOPES: TUR_1_super-lig
         run: node scripts/market-snapshot.cjs
       - name: Publish derived probabilities
         run: |

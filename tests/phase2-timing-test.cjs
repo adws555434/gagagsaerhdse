@@ -34,6 +34,11 @@ async function main(){
  assert.equal(plan.creditCeiling,80);
  assert.equal(plan.fixtures,3);
  assert.equal(plan.requests[0].asOf,'2026-04-16T11:00:00.000Z');
+ const dayBefore=requestPlan(app,csv,{dayBefore:true});
+ assert.equal(dayBefore.calls,4);
+ assert.equal(dayBefore.requests[0].kind,'dayBefore');
+ assert.equal(dayBefore.requests[0].asOf,'2026-04-15T17:00:00.000Z');
+ assert.equal(dayBefore.requests[1].asOf,'2026-04-16T16:59:59.000Z');
  assert.equal(promotionCheck([],new Set(['2024-25']),0).eligible,false);
 
  const early={scope,kind:'early',kickoff,asOf:stamp};
@@ -52,6 +57,12 @@ async function main(){
  const normalized=licensedOdds(app,records.snapshots);
  assert.equal(normalized.rows[0].season,'2026-27');
  assert.deepEqual(normalized.rows[0].early.p,records.snapshots[0].rows[0].power);
+ const daySnapshot={...records.snapshots[0],kind:'dayBefore',asOf:'2026-10-15T17:00:00.000Z',
+  capturedAt:'2026-10-15T17:00:00.000Z',rows:[{...records.snapshots[0].rows[0],capturedAt:'2026-10-15T17:00:00.000Z',
+   quotedAt:'2026-10-15T16:59:00.000Z',totalQuotedAt:'2026-10-15T16:59:00.000Z'}]};
+ const twoHorizons=licensedOdds(app,[records.snapshots[0],daySnapshot]).rows[0];
+ assert.deepEqual(twoHorizons.dayBefore,twoHorizons.early);
+ assert.throws(()=>licensedOdds(app,[{...daySnapshot,asOf:stamp}]),/doğrulanamadı/);
  assert.throws(()=>licensedOdds(app,[records.snapshots[0],records.snapshots[0]]),/mükerrer/);
  await assert.rejects(collectHistorical([early],{key:'fixture-key',budget:19}),/kredi sınırı/);
  await assert.rejects(collectHistorical([early],{key:'fixture-key',budget:20,fetcher:async()=>{throw Error('fixture-key');}}),
