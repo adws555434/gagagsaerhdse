@@ -47,7 +47,31 @@
 
 - Firefox ve WebKit'te 32 otomatik senaryo. Motor açılışı, iki takım girişi, boş giriş, aynı takım, bilinmeyen takım, Türkçe karakter ve kısaltma, 320 px görünüm, tekrar üretim, önceki maç arşivi, çift kayıt ve ileri tarih filtresi, bozuk kaynak yedeği, eksik fikstür, yetersiz örneklem, internet kesilmesi, gol senaryosu, tarayıcı JavaScript hataları.
 - Canlı veriyle 16 organizasyon kontrolü. 13'ünde skor simülasyonu, üçünde veri yetersizliği davranışı doğrulandı.
-- Canlı dağıtımın kimliği ve özel 404 sayfasındaki ana sayfa bağlantısı kontrol edildi.
+- Firefox ve WebKit'te yayımlanan sürüm üzerinde 16 ek uçtan uca senaryo geçti. İki tarayıcıda da Süper Lig ve Premier League, gol senaryosu, sabit sonuç, giriş doğrulaması ve JavaScript hataları kontrol edildi.
+- Canlı dağıtımın kimliği ve özel 404 sayfasındaki ana sayfa bağlantısı kontrol edildi. Sayfa gerçek 404 yanıtı verir.
+- 32 yerel tarayıcı + 16 canlı tarayıcı + 16 veri kaynağı denetimi = 64/64 geçen son kontrol. Gerçek iPhone testi, kodun tüm olası durumlarını veya gelecekteki kaynak değişikliklerini kapsamaz.
+
+## Geçmiş testi yeniden çalıştırma
+
+[Arşiv dosya listesi ve SHA-256 değerleri](tests/backtest-data-manifest.json) kullanılan 17 arşiv dosyasını ve kaynak sürümünü sabitler. Node.js 18+ ve internet bağlantısıyla repo kökünde aşağıdaki komutları çalıştır.
+
+```bash
+python3 - <<'PYTHON'
+import hashlib, json, pathlib, urllib.request
+manifest = json.loads(pathlib.Path('tests/backtest-data-manifest.json').read_text())
+target = pathlib.Path('audit-data')
+target.mkdir(exist_ok=True)
+for entry in manifest['files']:
+    with urllib.request.urlopen(manifest['source'] + entry['source'], timeout=20) as response:
+        data = response.read()
+    if hashlib.sha256(data).hexdigest() != entry['sha256']:
+        raise ValueError(entry['file'])
+    (target / entry['file']).write_bytes(data)
+PYTHON
+node tests/backtest.cjs audit-data
+```
+
+[Ölçüm çıktısı](tests/backtest-summary.json) lig bazında sayaçları ve arşiv kapsamını içerir.
 
 ## Veri ve gizlilik
 
