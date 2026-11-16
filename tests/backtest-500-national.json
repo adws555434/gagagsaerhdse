@@ -1,0 +1,16 @@
+{
+  "100000": {
+    "games": 3238,
+    "resultCorrect": 1800,
+    "scoreCorrect": 382,
+    "logLoss": 3070.7273741117147,
+    "brier": 1819.7829397768019
+  },
+  "500000": {
+    "games": 3238,
+    "resultCorrect": 1800,
+    "scoreCorrect": 383,
+    "logLoss": 3070.658749770723,
+    "brier": 1819.7119505299002
+  }
+}
