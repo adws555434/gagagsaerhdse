@@ -4,6 +4,25 @@
 
 [Uygulamayı aç](https://adws555434.github.io/gagagsaerhdse/)
 
+## Poisson + Elo, tahmin geçmişi ve devre analizi
+
+Ana model altı test edilmiş kulüp liginde ve erkek A milli takımlarında Poisson + Elo kullanır. Diğer liglerde Poisson ana seçenek olarak gösterilir. Elo her maç sonucu ile güncellenir. Poisson gol toplamı korunur ve takımlar arasındaki payın %35'i Elo beklentisiyle hesaplanır. Ana maç ve gol senaryosu 100 milyon deneme yapmaya devam eder.
+
+| Örneklem | Model | Maç sonucu | Tam skor | İlk üç skor | Log loss |
+|---|---|---:|---:|---:|---:|
+| 4.719 kulüp maçı | Poisson | %52,11 | %11,34 | %31,17 | 1,00273 |
+| 4.719 kulüp maçı | Poisson + Elo | %52,32 | %11,87 | %31,83 | 0,99628 |
+| 3.238 milli maç | Poisson | %55,56 | %11,89 | %32,92 | 0,94837 |
+| 3.238 milli maç | Poisson + Elo | %56,89 | %11,49 | %33,66 | 0,92221 |
+
+Takımların maç tarihinden önce tamamlanan sonuçları kullanıldı. Karşılaştırma doğrudan Poisson olasılıklarıyla yapıldı. Daha yeni dönem kontrolünde (2025/26 kulüp sezonu, 2025 milli maçlar) de log loss kulüp maçlarında 1,00360 → 0,99727 ve milli maçlarda 0,91364 → 0,88339 oldu. Milli maçlarda tüm arşivde tek skor isabeti düşse de sonuç olasılıkları ve ilk üç skor iyileşti. Bu tarih aralığı bağımsız bir gelecek sezonu deneyi değildir.
+
+Tahmin kartında önceki model, Elo ve arşivde benzer olasılık bandındaki isabet gösterilir. Olasılık bandının küçük örneklemlerinde güvenilir karşılaştırma yapılmaz. Açıklama puan ve gol ortalaması gibi model girdilerine dayanır. [Ölçüm kodu](tests/model-evaluation.cjs) · [Ham sonuçlar](tests/model-evaluation.json).
+
+- Tarihi belirli fikstürlerde ilk maç önü tahmini tarayıcıya kaydedilir. Kaydın tarihi ve model sürümü görünür. Kullanıcı **Sonuçları güncelle** düğmesi ile sonuç, tam skor ve ilk üç skor isabetini toplam ve lig bazında görür. Aynı eşleşme tekrar çalıştırıldığında ilk tahmin korunur.
+- İki takım için en az beş geçerli devre sonucu varsa ilk ve ikinci yarı skor tahmini hesaplanır. Gol dakikalarında yalnızca gol sayısıyla tutarlı kayıtlar kullanılır. Dakika dağılımı geçmiş maç gözlemidir.
+- Bundesliga'da açık kaynakta isim bulunan son maç golcüleri gösterilir. Kadro senaryosu, oyuncu başına dakika, sakatlık, canlı akış ve xG bu güncellemenin kapsamında değildir.
+
 ## 100 milyon simülasyon sürümü
 
 Yayındaki maç analizi ve gol senaryosu 100.000.000 deneme yapar. Hesap kısa parçalar halinde yürür ve ilerleme görünür. Yeni analiz başlatıldığında önceki gol senaryosu iptal edilir.
