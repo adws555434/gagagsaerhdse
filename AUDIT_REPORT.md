@@ -4,7 +4,30 @@
 
 [Uygulamayı aç](https://adws555434.github.io/gagagsaerhdse/)
 
-## Poisson + Elo, tahmin geçmişi ve devre analizi
+## Rakip gücüne göre model seçimi
+
+[300 fikir ve 100 öncelik](FORECAST_ROADMAP.md) · [Değerlendirme kodu](tests/candidate-evaluation.cjs) · [Ham sonuçlar](tests/candidate-results.json)
+
+100 yapılandırma, beş zaman ağırlığı (tüm maçlar, 90, 180, 360, 720 gün yarı ömrü), beş rakip gücü ağırlığı ve dört Elo ağırlığı ile kuruldu. Bir referansla birlikte 101 yapılandırma karşılaştırıldı. Her aday yalnızca maç gününden önce biten sonuçları kullanır. Rakip gücü modeli hücum ve savunmayı ayrı tahmin eder. Az maçlı takımlarda değerler lig ortalamasına yakın başlar.
+
+Kulüplerde 3.292 ve milli maçlarda 2.251 önceki tahminle aday seçildi. Daha yeni dönemde 1.427 kulüp ve 987 milli maç yalnızca karşılaştırma ve yayına alma eşiği için kullanıldı. Gelecek sezon bağımsız ölçüm için saklanır. Ayrı raporlanmış geçmiş bir dönemin sonuçları gelecekte aynı kazanımı garanti etmez.
+
+| Yeni dönem | Metrik | Önceki sürüm | Rakip gücü modeli |
+|---|---|---:|---:|
+| Kulüp | Log loss | 0,99727 | 0,98939 |
+| Kulüp | Brier | 0,59456 | 0,58919 |
+| Kulüp | Maç sonucu | %54,24 | %53,82 |
+| Kulüp | Tam skor | %11,63 | %11,70 |
+| Kulüp | İlk üç skor | %30,90 | %32,94 |
+| Milli | Log loss | 0,88339 | 0,82714 |
+| Milli | Brier | 0,51956 | 0,48402 |
+| Milli | Maç sonucu | %59,07 | %61,30 |
+| Milli | Tam skor | %11,65 | %13,17 |
+| Milli | İlk üç skor | %34,14 | %36,07 |
+
+Her iki grupta log loss ve Brier daha düşük olduğu için rakip gücü modeli yayına alındı. Kulüp maçlarında en yüksek olasılıklı tek sonuç isabeti 774'ten 768'e düştü. Uygulamada önceki modelin olasılıkları da görülebilir. Test edilen altı kulüp liginde seçilen model rakip gücüne %75 ağırlık ve gol paylaşımında %20 Elo kullanır. Milli maçlarda seçilen model rakip gücünü kullanır. Diğer liglerde mevcut Poisson modeli çalışır. Ana tahmin ve gol senaryosu 100 milyon simülasyon üretir. Geçmiş test doğrudan Poisson olasılıklarını kullanır.
+
+## Önceki sürüm · Poisson + Elo, tahmin geçmişi ve devre analizi
 
 Ana model altı test edilmiş kulüp liginde ve erkek A milli takımlarında Poisson + Elo kullanır. Diğer liglerde Poisson ana seçenek olarak gösterilir. Elo her maç sonucu ile güncellenir. Poisson gol toplamı korunur ve takımlar arasındaki payın %35'i Elo beklentisiyle hesaplanır. Ana maç ve gol senaryosu 100 milyon deneme yapmaya devam eder.
 
