@@ -72,6 +72,7 @@ const BASES=[
 const LEAGUES=[
  ['TUR_1_super-lig','Süper Lig'],['ENG_1_premier-league','Premier League'],['ESP_1_la-liga','La Liga'],
  ['GER_1_bundesliga','Bundesliga'],['ITA_1_serie-a','Serie A'],['FRA_1_ligue-1','Ligue 1'],
+ ['NOR_1_eliteserien','Norveç Eliteserien'],
  ['NED_1_eredivisie','Eredivisie'],['POR_1_primeira-liga','Primeira Liga'],['BEL_1_pro-league','Belgian Pro League'],
  ['AUT_1_bundesliga','Austrian Bundesliga'],['GRE_1_super-league','Super League Greece'],['SCO_1_premiership','Scottish Premiership'],
  ['ENG_2_championship','Championship'],['UEFA_1_champions-league','Champions League'],['UEFA_1_europa-league','Europa League'],
@@ -83,10 +84,11 @@ const ARCHIVE_LEAGUES={
  'ITA_1_serie-a':'it.1','FRA_1_ligue-1':'fr.1'
 };
 const archiveAliases={gaziantepfk:'gaziantep',kasimpasask:'kasimpasa',parissaintgermain:'psg',internazionalemilano:'inter',intermilan:'inter'};
-const aliases={bjk:'besiktas',besiktasjk:'besiktas',gs:'galatasaray',galatasaraysk:'galatasaray',fb:'fenerbahce',fenerbahcesk:'fenerbahce',ts:'trabzonspor'};
+const aliases={bjk:'besiktas',besiktasjk:'besiktas',gs:'galatasaray',galatasaraysk:'galatasaray',fb:'fenerbahce',fenerbahcesk:'fenerbahce',ts:'trabzonspor',moldefk:'molde',fkbodoglimt:'bodoglimt'};
+const norwayNames=new Map([['molde','Molde FK'],['bodoglimt','Bodø/Glimt']]);
 const cache=new Map();
 const CACHE_TTL=5*60*1000;
-function norm(s){return String(s||'').toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i').replace(/[^a-z0-9]/g,'')}
+function norm(s){return String(s||'').toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i').replace(/ø/g,'o').replace(/æ/g,'ae').replace(/[^a-z0-9]/g,'')}
 function qnorm(s){let n=norm(s);return aliases[n]||n}
 function csv(text){text=text.replace(/^\uFEFF/,'');const rows=[];let row=[],field='',q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'&&text[i+1]==='"'){field+='"';i++}else if(c==='"')q=false;else field+=c}else if(c==='"')q=true;else if(c===','){row.push(field);field=''}else if(c==='\n'){row.push(field.replace(/\r$/,''));rows.push(row);row=[];field=''}else field+=c}if(field||row.length){row.push(field.replace(/\r$/,''));rows.push(row)}if(q)throw new Error('CSV satırı kapanmıyor.');if(rows.length<2)return[];const h=rows[0];return rows.slice(1).filter(r=>r.some(Boolean)).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]??''])))}
 function num(v){if(v==null||String(v).trim()==='')return null;const n=Number(v);return Number.isFinite(n)?n:null}
@@ -271,9 +273,13 @@ async function loadFolder(folder){
  ]);
  if(scores.status==='rejected'&&scheduled.status==='rejected')throw scores.reason;
  const today=new Date().toISOString().slice(0,10);
- const results=cleanRows(scores.value||[],today,true);
+ const displayNames=row=>{
+  if(folder!=='NOR_1_eliteserien')return row;
+  return {...row,home:norwayNames.get(qnorm(row.home))??row.home,away:norwayNames.get(qnorm(row.away))??row.away};
+ };
+ const results=cleanRows((scores.value||[]).map(displayNames),today,true);
  const played=new Set(results.map(rowKey));
- const fixtures=cleanRows(scheduled.value||[],today,false).filter(row=>!played.has(rowKey(row)));
+ const fixtures=cleanRows((scheduled.value||[]).map(displayNames),today,false).filter(row=>!played.has(rowKey(row)));
  return {results,fixtures,partial:scores.status==='rejected'||scheduled.status==='rejected'};
 }
 function archiveName(name){const key=norm(name);return archiveAliases[key]||key}
@@ -341,7 +347,7 @@ async function resolve(qa,qb){
   if(hit)return hit;
   i+=batch.length;
  }
- throw new Error(loaded?'İki farklı takımı aynı desteklenen lig veya kupada bulamadım. Takım adlarını tam yazmayı dene.':'Maç verisine şu anda ulaşılamıyor. Biraz sonra tekrar dene.');
+ throw new Error(loaded?'Bu iki takımı aynı lig veya kupa verisinde bulamadım. Takım adı eşleşmemiş olabilir ya da organizasyon veri kapsamı dışında olabilir.':'Maç verisine şu anda ulaşılamıyor. Biraz sonra tekrar dene.');
 }
 function metric(label,val,sub=''){const d=document.createElement('div');d.className='metric';d.innerHTML='<div class="muted tiny"></div><b></b><div class="muted tiny"></div>';d.children[0].textContent=label;d.children[1].textContent=val;d.children[2].textContent=sub;return d}
 function list(el,arr,empty='Veri yok'){el.textContent='';const box=document.createElement('div');box.className='list';(arr.length?arr:[{t:empty,s:''}]).forEach(x=>{const d=document.createElement('div');d.className='item';const t=document.createElement('div');t.textContent=x.t;d.append(t);if(x.s){const s=document.createElement('div');s.className='muted tiny';s.textContent=x.s;d.append(s)}box.append(d)});el.append(box)}
