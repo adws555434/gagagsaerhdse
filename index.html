@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="referrer" content="no-referrer">
-<meta name="app-version" content="2026.11-archive-comparison">
+<meta name="app-version" content="2026.11-balanced-comparison">
 <title>Football Intelligence</title>
 <style>
 :root{--bg:#071019;--p:#0d1a27;--p2:#142433;--line:#294157;--t:#eef6ff;--m:#9eb1c3;--b:#4d8dff;--g:#3ac878;--r:#ef6e78}
@@ -52,6 +52,7 @@
         <summary>Tahminin gerekçesi ve model karşılaştırması</summary>
         <div id="modelWhy" class="list"></div>
         <p id="modelCalibration" class="muted tiny"></p>
+        <div id="balancedModel" class="list"></div>
         <div id="archiveModel" class="list"></div>
       </details>
       <details id="scenarios" class="hidden">
@@ -293,22 +294,51 @@ function resultDistribution(homeRate,awayRate){
  }
  return [home,draw,away];
 }
-function poissonDistribution(homeRate,awayRate,rho=0){
+const SCORE_GRID_SIZE=41;
+function poissonScoreGrid(homeRate,awayRate,rho=0){
  rho=boundedRho(rho,homeRate,awayRate);
  const terms=rate=>{
   const values=[Math.exp(-rate)];
-  for(let goals=1;goals<=40;goals++)values.push(values[goals-1]*rate/goals);
+  for(let goals=1;goals<SCORE_GRID_SIZE;goals++)values.push(values[goals-1]*rate/goals);
   return values;
  };
  const h=terms(homeRate),a=terms(awayRate);
- const outcomes=[0,0,0];
- const scores=[];
+ const grid=[];
  for(let home=0;home<h.length;home++)for(let away=0;away<a.length;away++){
-  const p=h[home]*a[away]*lowScoreFactor(home,away,homeRate,awayRate,rho);
-  outcomes[matchOutcome(home,away)]+=p;
-  scores.push([home+'–'+away,p]);
+  grid.push(h[home]*a[away]*lowScoreFactor(home,away,homeRate,awayRate,rho));
  }
+ return grid;
+}
+function scoreGridDistribution(grid){
+ const outcomes=[0,0,0];
+ const scores=grid.map((p,i)=>{
+  const home=Math.floor(i/SCORE_GRID_SIZE),away=i%SCORE_GRID_SIZE;
+  outcomes[matchOutcome(home,away)]+=p;
+  return [home+'–'+away,p];
+ });
  return {outcomes,scores:scores.sort((first,second)=>second[1]-first[1])};
+}
+function poissonDistribution(homeRate,awayRate,rho=0){
+ return scoreGridDistribution(poissonScoreGrid(homeRate,awayRate,rho));
+}
+const BALANCED_MODEL={archiveWeight:.85,rho:-.07,venueTilt:.03,goalScale:1.09,scoreMargin:.05};
+function balancedScoreGrid(homeRate,awayRate,archivedRates,neutral=false){
+ const current=poissonScoreGrid(homeRate,awayRate);
+ if(!archivedRates)return current;
+ const {archiveWeight,rho,venueTilt,goalScale,scoreMargin}=BALANCED_MODEL;
+ const tilt=neutral?0:venueTilt;
+ const archive=poissonScoreGrid(archivedRates[0]*goalScale*Math.exp(tilt),archivedRates[1]*goalScale*Math.exp(-tilt),rho);
+ const currentTop=current.indexOf(Math.max(...current));
+ let weight=archiveWeight;
+ // Limit the archive contribution when its preferred score has only a small advantage.
+ if(Math.max(...archive)-archive[currentTop]<scoreMargin){
+  const leadingChange=archive[currentTop]-current[currentTop];
+  for(let i=0;i<current.length;i++){
+   const relativeChange=archive[i]-current[i]-leadingChange;
+   if(relativeChange>0)weight=Math.min(weight,.999999*(current[currentTop]-current[i])/relativeChange);
+  }
+ }
+ return current.map((p,i)=>p+weight*(archive[i]-p));
 }
 const probabilityLabel=p=>percent(p*SIMULATIONS);
 function strongestOutcome(probabilities){return probabilities.indexOf(Math.max(...probabilities))}
@@ -461,6 +491,7 @@ async function renderForecast(home,away,results,fixture,contextData){
  scores.textContent='';
  $('firstGoal').textContent='';
  $('archiveModel').textContent='';
+ $('balancedModel').textContent='';
  $('modelPanel').open=false;
  $('modelPanel').classList.add('hidden');
  const neutral=fixture?.neutral===true;
@@ -500,7 +531,7 @@ async function renderForecast(home,away,results,fixture,contextData){
  renderModel(home,away,base,model,neutral,probabilities);
  renderHalves(home,away,rates,results);
  saveForecast(fixture,contextData,probabilities,sim.scores.slice(0,3).map(([value])=>value),name);
- return {home,away,base,fixture};
+ return {home,away,base,rates,fixture};
 }
 async function getText(url){
  const stored=cache.get(url);
@@ -759,7 +790,7 @@ async function renderArchive({folder,a,b,results}){
 }
 function renderArchiveModel(data,forecast,archive){
  if(data.national||!ARCHIVE_LEAGUES[data.folder]||!forecast)return;
- const {home,away,base,fixture}=forecast;
+ const {home,away,base,rates:currentRates,fixture}=forecast;
  const cutoff=fixture?.date||new Date().toISOString().slice(0,10);
  const today=new Date().toISOString().slice(0,10);
  const forecastDate=cutoff<today?cutoff:today;
@@ -787,12 +818,18 @@ function renderArchiveModel(data,forecast,archive){
  if(!rates)return;
  const d=poissonDistribution(...rates,ARCHIVE_MODEL.rho);
  const labels=[home,'Beraberlik',away];
- const probabilities=d.outcomes.map((p,i)=>labels[i]+' '+probabilityLabel(p)).join(' · ');
- const options=d.scores.slice(0,3).map(([score,p])=>describeScore(score,home,away)+' '+probabilityLabel(p)).join(' · ');
+ const probabilities=distribution=>distribution.outcomes.map((p,i)=>labels[i]+' '+probabilityLabel(p)).join(' · ');
+ const options=distribution=>distribution.scores.slice(0,3).map(([score,p])=>describeScore(score,home,away)+' '+probabilityLabel(p)).join(' · ');
+ const balanced=scoreGridDistribution(balancedScoreGrid(currentRates.homeGoals,currentRates.awayGoals,rates,fixture?.neutral===true));
+ list($('balancedModel'),[
+  {t:'Dengeli model · skor ve maç sonucu',s:'Güncel sezon ve önceki iki sezon birleştirilir. Arşivdeki alternatif skorun üstünlüğü küçükse güncel sezonun önde gelen skoru korunur.'},
+  {t:'Maç sonucu',s:probabilities(balanced)},
+  {t:'En olası üç skor',s:options(balanced)}
+ ]);
  list($('archiveModel'),[
   {t:'Geçmiş sezonlu Dixon–Coles · karşılaştırma',s:'Arşivde '+home+' '+counts[0]+' / '+away+' '+counts[1]+' maç. Tahmin, düşük skorlu maçlar için Dixon–Coles düzeltmesi kullanır.'},
-  {t:'Maç sonucu',s:probabilities},
-  {t:'En olası üç skor',s:options}
+  {t:'Maç sonucu',s:probabilities(d)},
+  {t:'En olası üç skor',s:options(d)}
  ]);
 }
 function renderNationalArchive({results,a,b,fixtureChecked}){

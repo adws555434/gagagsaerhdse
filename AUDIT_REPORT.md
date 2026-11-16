@@ -4,6 +4,27 @@
 
 [Uygulamayı aç](https://adws555434.github.io/gagagsaerhdse/)
 
+## Dengeli model karşılaştırması
+
+Arşiv modelinin bazı dönemlerde daha fazla maç sonucu bilmesine rağmen daha az tam skor bildiği doğrulandı. Yeni karşılaştırma güncel sezon ve arşiv skor dağılımlarını tek dağılımda birleştirir. Arşivin önde gelen skorunun güncel modelin önde gelen skoruna üstünlüğü 5 yüzde puanından azsa, arşiv ağırlığı güncel modelin ilk skorunu koruyacak şekilde sınırlandırılır. Maç sonucu ve skor olasılıkları aynı tablodan çıkar. Önceki iki model de ekranda erişilebilir.
+
+| Dönem | Maç | Sonuç isabeti | Tam skor | İlk üç skor | Log loss | Brier |
+|---|---:|---:|---:|---:|---:|---:|
+| 2012/13–2015/16 · bu turda ayar seçiminde kullanılmadı | 5.333 | %50,87 → %52,22 | %11,85 → %12,04 | %31,41 → %31,73 | 0,9988 → 0,9869 | 0,5962 → 0,5881 |
+| 2016/17–2017/18 | 3.160 | %54,30 → %55,19 | %13,23 → %13,23 | %32,97 → %33,83 | 0,9705 → 0,9615 | 0,5761 → 0,5703 |
+| 2018/19–2019/20 | 3.573 | %50,32 → %51,72 | %12,48 → %12,59 | %31,88 → %33,05 | 1,0066 → 0,9965 | 0,6011 → 0,5943 |
+| 2020/21–2024/25 | 8.387 | %51,39 → %52,20 | %12,33 → %12,36 | %32,49 → %32,80 | 1,0045 → 0,9957 | 0,5998 → 0,5937 |
+| 2025/26 | 1.561 | %50,29 → %50,86 | %11,34 → %11,40 | %30,17 → %32,74 | 1,0187 → 1,0078 | 0,6099 → 0,6020 |
+| 2026/27 sezon başı | 313 | %53,67 → %57,83 | %10,22 → %10,86 | %30,67 → %31,31 | 0,9611 → 0,9384 | 0,5704 → 0,5537 |
+
+Tablo ana modelden dengeli modele geçişi gösterir. 22.327 geriye dönük tahminin her biri için yalnızca önceki günlere ait maç sonuçları kullanıldı. Ayarlar 2016/17 ve sonrasındaki dönemler üzerinde incelendi. 2012/13–2015/16 grubu ayarlar belirlendikten sonra açıldı. Eski arşivde Süper Lig bu grupta yer almıyor. Düzeltilmiş ana dağılımların önceki kodla eşitliği ayrıca kontrol edildi.
+
+2026/27 grubunda geçmiş sezonlu Dixon–Coles 186 maç sonucu, 31 tam skor ve 92 ilk üç skor isabeti elde etti. Dengeli model 181, 34 ve 98 isabet elde etti. Aynı dönemin 54 Süper Lig maçında ana model 34, 3, 15, yeni model 35, 3, 12 isabet elde etti. Bu nedenle dengeli model karşılaştırma olarak yayınlandı ve ana modelin 100 milyon simülasyonlu tahmini varsayılan olarak kaldı. Geçmiş başarı, gelecekte garanti değildir.
+
+[Değerlendirme kodu](tests/balanced-model-evaluation.cjs) · [Sabit veri kaynakları ve SHA-256 değerleri](tests/balanced-model-data.json) · [Liglere göre ham sonuçlar](tests/balanced-model-results.json)
+
+Veri listesindeki dosyaları bir klasöre indirip depo kökünde `node tests/balanced-model-evaluation.cjs /veri/klasoru` komutunu çalıştırarak sonuçları yeniden üretebilirsin.
+
 ## Geçmiş sezonlu model karşılaştırması
 
 Arşiv ayrıştırıcısı, `score.ft` alanının yanı sıra kaynakta doğrudan `score` dizisi olarak gelen tamamlanmış skorları da okur. Düz `[0, 0]` biçiminde gelen 122 maç, 2025/26 döneminde altı ligde geçmiş maç listelerine geri eklendi. Süper Lig dosyasındaki geçerli skor sayısı 90'dan 99'a çıktı. Bazı sezon dosyaları eksik olduğundan kapsama ligin bütün maçları dahil olmayabilir. Testteki 2025/26 örneklemi yeni ayrıştırıcıyla 1.561 maça çıktı. Aşağıdaki iki model aynı örneklemde ölçüldü.
