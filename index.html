@@ -121,7 +121,14 @@ function poissonDraw(lambda,random){
  while(product>stop){product*=random();goals++}
  return goals;
 }
-function simulateScore(homeGoals,awayGoals,count=SIMULATIONS,random=Math.random){
+function createSimulationRandom(){
+ let state=260127;
+ return ()=>{
+  state=(Math.imul(state,1664525)+1013904223)>>>0;
+  return state/4294967296;
+ };
+}
+function simulateScore(homeGoals,awayGoals,count=SIMULATIONS,random=createSimulationRandom()){
  const outcomes={home:0,draw:0,away:0};
  const scores=new Map();
  for(let i=0;i<count;i++){
