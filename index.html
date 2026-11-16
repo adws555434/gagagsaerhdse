@@ -5,33 +5,404 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="referrer" content="no-referrer">
-<meta name="app-version" content="2026.11-super-lig-signal-audit">
-<title>Football Intelligence</title>
+<meta name="app-version" content="2026.11-match-dashboard">
+<meta name="theme-color" content="#0c1013">
+<title>Football Intelligence — Maç analizi</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&amp;family=Instrument+Sans:wght@400..700&amp;display=swap">
 <style>
-:root{--bg:#071019;--p:#0d1a27;--p2:#142433;--line:#294157;--t:#eef6ff;--m:#9eb1c3;--b:#4d8dff;--g:#3ac878;--r:#ef6e78}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#0c1d2c,#071019 50%);color:var(--t);font:15px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-.wrap{max-width:1100px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.top h1{margin:0;font-size:clamp(30px,7vw,48px)}.muted{color:var(--m)}.badge{border:1px solid var(--line);border-radius:999px;padding:8px 11px;white-space:nowrap}.ok{color:#c8ffdc;border-color:#347b57}.warn{color:#ffe0a3}.bad{color:#ffc3c7;border-color:#8d4a50}
-.card{margin-top:14px;background:linear-gradient(180deg,var(--p2),var(--p));border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:0 10px 28px #0003}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}input,button{min-height:50px;border-radius:12px;border:1px solid #314b61;background:#081520;color:var(--t);padding:11px 13px;font:inherit}input{flex:1;min-width:min(190px,100%);max-width:100%;font-size:max(16px,1em)}button{background:#245fc2;border-color:#3c7ae3;font-weight:800;cursor:pointer}button:disabled{opacity:.55}.progress{height:8px;background:#07131d;border:1px solid #21384b;border-radius:999px;overflow:hidden;margin-top:11px}.progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,#3e80ff,#78adff);transition:.15s}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:13px}.half{grid-column:span 6}.full{grid-column:span 12}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.metric{background:#091722;border:1px solid #263d50;border-radius:13px;padding:11px}.metric{min-width:0;overflow-wrap:anywhere}#scenarioMinute{width:85px;min-width:0}#scenarioHome,#scenarioAway{width:68px;min-width:0;margin-left:5px}#scenarioTeam,#scenarioRed{font:inherit;padding:10px;color:var(--t);background:var(--bg);border:1px solid var(--line);border-radius:8px}summary{cursor:pointer}.metric b{display:block;font-size:21px;margin-top:4px}.tiny{font-size:12px}.hidden{display:none!important}.err{padding:12px;background:#2a1519;border:1px solid #814047;color:#ffc8cc;border-radius:12px}.list{display:grid;gap:8px}.item{background:#091722;border:1px solid #22384a;border-radius:11px;padding:9px 10px}.tablewrap{overflow:auto}.tbl{width:100%;border-collapse:collapse;font-size:13px}.tbl th,.tbl td{padding:8px;border-bottom:1px solid #203649;text-align:right;white-space:nowrap}.tbl th:first-child,.tbl td:first-child{text-align:left}.hi{background:#15304a}.bars{display:grid;gap:8px}.barrow{display:grid;grid-template-columns:minmax(95px,1fr) 2fr 55px;gap:8px;align-items:center}.bar{height:8px;background:#07121a;border:1px solid #203447;border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;background:#4d8dff}.note{padding:11px;background:#091722;border:1px solid #2a455b;border-radius:12px}.source{font-size:12px;color:#abc0d2}@media(max-width:760px){.half{grid-column:span 12}.metrics{grid-template-columns:repeat(2,1fr)}.top{display:block}.top .badge{display:inline-block;margin-top:10px}}
+:root {
+  color-scheme: dark;
+  --bg: #0c1013;
+  --p: #151a1f;
+  --p2: #1a2026;
+  --line: #303943;
+  --t: #f4f7f5;
+  --m: #a9b5bb;
+  --accent: #c9fa79;
+  --accent-ink: #162408;
+  --blue: #b3c6ff;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  min-width: 0;
+  margin: 0;
+  background: radial-gradient(ellipse at 53% 0, #192125 0, transparent 62rem), var(--bg);
+  color: var(--t);
+  font: 400 15px/1.55 var(--body);
+}
+button, input, select { font: inherit; }
+button, summary, a, input, select { -webkit-tap-highlight-color: transparent; }
+button, summary { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+a { color: var(--blue); text-underline-offset: .24em; }
+a:hover { color: var(--t); }
+img { display: block; max-width: 100%; }
+h1, h2, h3, h4, p { margin: 0; }
+p + p { margin-top: .65em; }
+h2, h3, h4 { line-height: 1.16; font-weight: 700; }
+h2 { font-size: clamp(25px, 3.2vw, 42px); letter-spacing: -.035em; }
+h3 { font-size: clamp(19px, 2vw, 24px); letter-spacing: -.026em; }
+h4 { font-size: 16px; }
+.wrap { width: min(calc(100% - 56px), 1176px); margin: 0 auto; }
+.site-header { border-bottom: 1px solid #ffffff15; }
+.site-header .wrap, .site-footer .wrap {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+}
+.site-header .wrap { min-height: 72px; }
+.brand {
+  display: inline-flex; align-items: center; gap: 11px;
+  color: var(--t); font-size: 15px; font-weight: 700; text-decoration: none;
+  letter-spacing: -.015em;
+}
+.brand-mark {
+  display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px;
+  border-radius: 9px; background: var(--accent); color: var(--accent-ink);
+}
+.brand-mark::before {
+  content: ""; width: 17px; height: 12px; border: 1.5px solid currentColor; border-radius: 2px;
+  background: linear-gradient(90deg, transparent calc(50% - .75px), currentColor calc(50% - .75px), currentColor calc(50% + .75px), transparent calc(50% + .75px));
+}
+.site-nav { display: flex; align-items: center; gap: 24px; }
+.site-nav a { color: var(--m); font-size: 13px; font-weight: 600; text-decoration: none; }
+.site-nav a:hover { color: var(--t); }
+.site-nav a[href="#matchSearch"] { color: var(--accent); }
+.skip-link {
+  position: absolute; z-index: 5; top: 12px; left: 12px; padding: 9px 13px;
+  background: var(--accent); color: var(--accent-ink); border-radius: 7px;
+  transform: translateY(-160%);
+}
+.skip-link:focus { transform: translateY(0); }
+main.wrap { padding: 28px 0 42px; }
+.hero {
+  display: flex; align-items: center; position: relative; isolation: isolate;
+  min-height: clamp(302px, 36vw, 420px); overflow: hidden;
+  padding: clamp(30px, 5vw, 64px); border: 1px solid #3b4750; border-radius: 22px;
+  background: #172326;
+}
+.hero::before, .hero::after { content: ""; position: absolute; inset: 0; z-index: -1; }
+.hero::before {
+  background: url("./assets/stadium-dusk.webp") 70% 57% / cover no-repeat,
+    radial-gradient(ellipse at 84% 12%, #85938b, #2b3d39 23%, #142321 58%, #101919);
+}
+.hero::after {
+  background: linear-gradient(90deg, #101619f5 0%, #101619d9 30%, #10161958 66%, #10161912),
+    linear-gradient(0deg, #10161965, transparent 45%);
+}
+.hero-copy { max-width: 580px; }
+.hero h1 {
+  font: 700 clamp(56px, 7.5vw, 109px)/.91 var(--display);
+  letter-spacing: -.035em; text-wrap: balance;
+}
+.hero h1 span { color: var(--accent); display: block; }
+.hero p { color: #d0dad8; margin-top: 22px; max-width: 375px; font-size: clamp(14px, 1.5vw, 17px); }
+.card {
+  min-width: 0; padding: clamp(16px, 2.2vw, 28px); border: 1px solid var(--line);
+  background: var(--p); border-radius: 16px;
+}
+.card > h3 + div, .card > h3 + p { margin-top: 15px; }
+.card > p + div { margin-top: 12px; }
+.match-search { position: relative; z-index: 1; margin-top: 16px; margin-bottom: 14px; box-shadow: 0 14px 35px #0002; }
+.panel-heading h2 { font-size: clamp(26px, 3vw, 33px); }
+.panel-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 28px;
+  border: 1px solid var(--line); border-radius: 40px; padding: 3px 10px;
+  background: #10151a; color: var(--m); font-size: 12px; font-weight: 600;
+}
+.badge::before { content: ""; flex: 0 0 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge.ok { color: #caedaa; }
+.badge.warn { color: #f6d8a1; }
+.badge.bad { color: #ffafb1; }
+.match-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto; align-items: end; gap: 13px; margin-top: 16px; }
+.field { display: grid; gap: 6px; min-width: 0; color: var(--m); font-size: 13px; font-weight: 600; }
+.match-row input { width: 100%; }
+.versus { align-self: end; display: grid; place-items: center; height: 51px; padding: 0 4px; color: var(--m); font: 700 17px/1 var(--display); letter-spacing: .06em; }
+.row { display: flex; flex-wrap: wrap; gap: 11px; align-items: center; }
+input, button, select {
+  max-width: 100%; min-width: 0; min-height: 46px; margin: 0; border-radius: 9px;
+  border: 1px solid #3b4651; padding: 9px 13px; background: #10151a; color: var(--t);
+}
+input, select { font-size: 16px; }
+input::placeholder { color: #89969d; }
+button {
+  font-weight: 700; background: #232b32;
+  transition: background .16s ease, border-color .16s ease;
+}
+button:not(:disabled):hover { background: #303d45; border-color: #66747b; }
+button:disabled { opacity: .56; cursor: wait; }
+button[disabled]#saveLineupTrial { cursor: default; }
+.primary {
+  min-height: 51px; padding-inline: 20px; display: inline-flex; align-items: center;
+  justify-content: center; gap: 13px; background: var(--accent); color: var(--accent-ink); border-color: var(--accent);
+}
+.primary:not(:disabled):hover { background: #dcffa6; border-color: #dcffa6; }
+.match-row input { min-height: 51px; }
+.match-options { display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; gap: 7px 14px; margin-top: 9px; }
+.mode-option { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; color: var(--m); font-size: 13px; cursor: pointer; }
+.mode-option input { min-height: 0; width: 18px; height: 18px; accent-color: var(--accent); }
+.examples { display: flex; flex-wrap: wrap; gap: 6px; }
+.example { min-height: 44px; padding: 4px 11px; font-size: 12px; background: transparent; border-color: #ffffff1c; color: #d2dadf; }
+.analysis-status { margin-top: 8px; }
+.analysis-feedback { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.analysis-feedback a { flex: 0 0 auto; color: var(--accent); padding: 5px 0; }
+.progress { height: 4px; overflow: hidden; background: #ffffff12; border-radius: 10px; }
+.progress i { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width .18s; }
+#step { margin-top: 7px; }
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+.half { grid-column: span 6; }
+.full { grid-column: 1 / -1; }
+.match-heading { border-color: #3b473d; background: linear-gradient(110deg, #202a1f, var(--p) 62%); }
+.match-heading .source { margin-top: 9px; }
+.match-heading h2 + div { margin-top: 6px; }
+.result-links { display: flex; flex-wrap: wrap; gap: 3px 17px; margin-top: 12px; }
+.result-links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); font-size: 13px; text-decoration: none; }
+.result-links a:hover { text-decoration: underline; }
+.metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+.metric { min-width: 0; overflow-wrap: anywhere; background: #10151a; border: 1px solid #2e3740; border-radius: 11px; padding: 13px; }
+.metric b { display: block; font-size: clamp(19px, 2.6vw, 30px); line-height: 1.06; margin-top: 6px; font-variant-numeric: tabular-nums; letter-spacing: -.028em; }
+.metric > .tiny:last-of-type:not(:empty) { margin-top: 7px; }
+.outcome-metric > .tiny:nth-child(3):not(:empty) { margin-top: 7px; }
+#forecast { grid-template-columns: minmax(0, 1.45fr) repeat(3, minmax(0, 1fr)); }
+#forecast .score-primary {
+  background: radial-gradient(ellipse at top right, #344730, #202b20 66%);
+  border-color: #516643;
+}
+.score-primary .score-value { font: 700 clamp(46px, 5.4vw, 78px)/.87 var(--display); color: var(--accent); }
+.score-winner { margin-top: 9px; font-size: 14px; font-weight: 700; }
+.outcome-metric { --outcome-color: var(--accent); display: flex; flex-direction: column; justify-content: center; }
+.outcome-metric:nth-child(3) { --outcome-color: #aeb9c2; }
+.outcome-metric:nth-child(4) { --outcome-color: var(--blue); }
+.outcome-meter { height: 4px; margin-top: 14px; border-radius: 20px; background: #ffffff14; overflow: hidden; }
+.outcome-meter span { display: block; height: 100%; border-radius: inherit; background: var(--outcome-color); }
+#forecastNote:not(:empty), #firstGoal:not(:empty) { margin: 13px 0; }
+#scorelines .list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#scorelines .item { min-width: 0; overflow-wrap: anywhere; font-size: 13px; }
+#analysisOverview #narrative { margin-top: 13px; }
+.submetric { margin-top: 11px; }
+.muted { color: var(--m); }
+.tiny, .source { font-size: 12px; }
+.hidden { display: none !important; }
+.err { padding: 10px 13px; background: #321f22; border: 1px solid #7a464c; color: #ffd2d3; border-radius: 9px; }
+.list { display: grid; gap: 7px; }
+.item { background: #10151a; border: 1px solid #2c353e; border-radius: 9px; padding: 10px 12px; line-height: 1.4; }
+.item .tiny { margin-top: 4px; }
+#stats { display: grid; gap: 7px; }
+.tablewrap { max-width: 100%; overflow: auto; }
+.tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; font-variant-numeric: tabular-nums; }
+.tbl th, .tbl td { padding: 9px 10px; border-bottom: 1px solid #2d363e; text-align: right; white-space: nowrap; }
+.tbl th { color: #d6dedf; background: #20272d; }
+.tbl th:first-child, .tbl td:first-child { text-align: left; }
+.tbl tbody tr:nth-child(even) { background: #181e24; }
+.tbl tr.hi { background: #2c3d2a; }
+.score-heatmap tbody td { background: var(--cell-background, #10151a); }
+.score-heatmap tbody td.score-peak { color: #efffdc; outline: 1px solid #aed774; outline-offset: -2px; border-radius: 5px; font-weight: 700; }
+details > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  min-height: 44px; padding: 9px 0; color: var(--t); font-weight: 650; list-style: none;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::after {
+  content: ""; flex: 0 0 7px; height: 7px;
+  border: solid var(--m); border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg) translate(-2px, 2px); margin-right: 4px;
+}
+details[open] > summary::after { transform: rotate(225deg) translate(-2px, 2px); }
+details > details, .card > details, #lineupArchiveList > details { border-top: 1px solid #ffffff17; margin-top: 8px; }
+details[open] > summary { margin-bottom: 7px; }
+details > p { margin-top: 9px; }
+details > p:empty { display: none; }
+details > .row, details > .tablewrap, details > .metrics { margin-top: 9px; }
+#historyPanel { margin-top: 14px; padding-block: 8px; }
+#historyPanel > summary { font-size: 17px; min-height: 48px; }
+#historyPanel[open] { padding-bottom: 23px; }
+#historyPanel h3, #historyPanel h4 { margin-top: 20px; }
+#historyPanel #refreshHistory { margin-top: 9px; }
+#historyList, #modelPanel > div:not(:empty), #evidenceOutput:not(:empty), #saveLineupTrial, #lineupAuditHistory, #autoForecastList { margin-top: 9px; }
+.option-row { margin-top: 12px; align-items: end; }
+.option-row label { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; color: #d4dddf; font-size: 13px; }
+.option-row input[type="number"] { width: 77px; }
+#evidenceFile { flex: 1 1 240px; width: min(100%, 342px); }
+input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t); background: #29343d; border: 0; border-radius: 5px; padding: 4px 7px; }
+.bars { display: grid; gap: 8px; }
+.barrow { display: grid; grid-template-columns: minmax(95px, 1fr) 2fr 55px; gap: 8px; align-items: center; }
+.bar { height: 8px; background: #10151a; border: 1px solid #2c353e; border-radius: 999px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.note { padding: 10px 12px; background: #10151a; border: 1px solid #2c353e; border-radius: 9px; }
+.site-footer { color: var(--m); border-top: 1px solid #ffffff18; font-size: 12px; }
+.site-footer .wrap { min-height: 62px; }
+.site-footer a { color: var(--m); }
+@media (max-width: 900px) {
+  .match-row { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .match-row .primary { grid-column: 1 / -1; }
+  #forecast { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #forecast .score-primary { grid-column: 1 / -1; }
+}
+@media (max-width: 650px) {
+  .wrap { width: calc(100% - 28px); }
+  .site-header .wrap { min-height: 60px; gap: 10px; }
+  .site-nav { gap: 10px; }
+  .site-nav a { font-size: 12px; }
+  .site-nav a[href="#matchSearch"] { display: none; }
+  .brand { font-size: 13px; gap: 8px; }
+  .brand-mark { width: 27px; height: 27px; flex-basis: 27px; }
+  main.wrap { padding: 14px 0 28px; }
+  .hero { min-height: 278px; padding: 25px 21px; border-radius: 16px; }
+  .hero::before { background-image: url("./assets/stadium-dusk-small.webp"), radial-gradient(ellipse at 84% 12%, #85938b, #2b3d39 23%, #142321 58%, #101919); background-position: 65% 55%; }
+  .hero::after { background: linear-gradient(90deg, #101619ee, #101619a0 53%, #10161920), linear-gradient(0deg, #10161985, transparent 62%); }
+  .hero h1 { font-size: clamp(44px, 12vw, 64px); }
+  .hero p { max-width: 245px; margin-top: 17px; }
+  .card { border-radius: 13px; }
+  .match-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .versus { display: none; }
+  .match-row input { padding-inline: 9px; }
+  .match-options { gap: 3px 8px; }
+  .example { min-height: 44px; padding-inline: 8px; }
+  .half { grid-column: 1 / -1; }
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric { padding: 10px 9px; }
+  .outcome-metric { justify-content: flex-start; }
+  .outcome-metric .tiny:first-child { line-height: 1.24; }
+  .outcome-metric b { margin-top: auto; padding-top: 9px; }
+  .score-primary { padding: 14px; }
+  .site-footer .wrap { min-height: 55px; }
+}
+@media (max-width: 360px) {
+  .match-row { grid-template-columns: minmax(0, 1fr); }
+  #scorelines .list { grid-template-columns: minmax(0, 1fr); }
+  .hero h1 { font-size: 43px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="top">
-    <div><h1>Football Intelligence</h1><div class="muted">İki takım yaz, gerisini sistem yapsın.</div></div>
-    <div id="status" class="badge warn">Motor yükleniyor…</div>
+<a class="skip-link" href="#matchSearch">Takım seçimine geç</a>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="Football Intelligence ana sayfa"><span class="brand-mark" aria-hidden="true"></span>Football Intelligence</a>
+    <nav class="site-nav" aria-label="Ana menü">
+      <a href="#matchSearch">Maç analizi</a>
+      <a href="#historyPanel" id="historyLink">Tahmin geçmişi</a>
+    </nav>
   </div>
-  <div class="card">
-    <div class="row">
-      <input aria-label="Ev sahibi aday takım" id="a" placeholder="Takım 1 — ör. Beşiktaş" autocomplete="off">
-      <b>VS</b>
-      <input aria-label="Deplasman aday takım" id="b" placeholder="Takım 2 — ör. Galatasaray" autocomplete="off">
-      <button id="go" type="button">Tam analiz yap</button>
+</header>
+<main class="wrap">
+  <section class="hero" aria-labelledby="heroTitle">
+    <div class="hero-copy">
+      <h1 id="heroTitle">Maç öncesi <span>futbol analizi</span></h1>
+      <p>İki takımı karşılaştır, en olası skoru ve kazanma ihtimallerini gör.</p>
     </div>
-    <label class="muted tiny" style="display:block;margin-top:10px"><input id="nationalOnly" type="checkbox" style="min-height:0;min-width:0;margin:0 5px 0 0"> Erkek A milli takımları</label>
-    <div class="progress"><i id="bar"></i></div>
-    <div id="step" role="status" class="muted tiny" style="margin-top:7px">Motor hazırlanıyor…</div>
-  </div>
+  </section>
+  <section class="card match-search" id="matchSearch" aria-labelledby="matchSearchTitle">
+    <div class="panel-heading">
+      <h2 id="matchSearchTitle">Eşleşme seç</h2>
+      <span id="status" class="badge warn">Motor yükleniyor…</span>
+    </div>
+    <div class="match-row">
+      <label class="field" for="a">Ev sahibi veya ilk takım
+        <input id="a" placeholder="Örn. Beşiktaş" autocomplete="off">
+      </label>
+      <span class="versus" aria-hidden="true">VS</span>
+      <label class="field" for="b">Deplasman veya ikinci takım
+        <input id="b" placeholder="Örn. Galatasaray" autocomplete="off">
+      </label>
+      <button id="go" class="primary" type="button">Tam analiz yap <span aria-hidden="true">↗</span></button>
+    </div>
+    <div class="match-options">
+      <label class="mode-option"><input id="nationalOnly" type="checkbox"> Erkek A milli takımları</label>
+      <div class="examples" aria-label="Örnek eşleşmeler">
+        <button class="example" type="button" data-home="Beşiktaş" data-away="Galatasaray">Beşiktaş – Galatasaray</button>
+        <button class="example" type="button" data-home="Türkiye" data-away="Almanya" data-national>Türkiye – Almanya</button>
+      </div>
+    </div>
+    <div class="analysis-status">
+      <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+      <div class="analysis-feedback">
+        <div id="step" role="status" class="muted tiny">Motor hazırlanıyor…</div>
+        <a class="tiny hidden" id="resultJump" href="#forecastPanel">Sonuca git ↓</a>
+      </div>
+    </div>
+  </section>
   <div id="err" role="alert" class="card hidden"><div id="errText" class="err"></div></div>
+  <div id="out" class="grid hidden">
+    <section class="card full match-heading" aria-labelledby="title">
+      <h2 id="title"></h2>
+      <div id="meta" class="muted"></div>
+      <nav class="result-links" aria-label="Analiz bölümleri">
+        <a href="#forecastPanel">Skor tahmini</a>
+        <a href="#analysisOverview">Takım karşılaştırması</a>
+        <a href="#lineupPanel">Kadro senaryosu</a>
+        <a href="#dataQuality">Veri kapsamı</a>
+      </nav>
+      <div id="source" class="source"></div>
+    </section>
+    <section id="forecastPanel" class="card full" aria-labelledby="forecastTitle">
+      <h3 id="forecastTitle">Skor tahmini</h3>
+      <div id="forecast" class="metrics"></div>
+      <p id="forecastNote" class="muted"></p>
+      <div id="scorelines"></div>
+      <p id="firstGoal" class="muted"></p>
+      <details id="modelPanel" class="hidden">
+        <summary>Tahminin gerekçesi ve model karşılaştırması</summary>
+        <div id="modelWhy" class="list"></div>
+        <p id="modelCalibration" class="muted tiny"></p>
+        <div id="balancedModel" class="list"></div>
+        <div id="archiveModel" class="list"></div>
+        <div id="learningModel"></div>
+        <div id="forecastChanges"></div>
+      </details>
+      <details id="scoreGrid"><summary>Tam skor olasılık tablosu</summary><div id="scoreGridContent" class="tablewrap"></div></details>
+      <details id="scenarios" class="hidden">
+        <summary>Gol senaryosu</summary>
+        <p class="muted tiny">Dakika, skor ve sahadaki oyuncu sayısını ayarla. Oyuncu eksikliğinde gol hızları senaryo varsayımıyla değiştirilir.</p>
+        <div class="row option-row">
+          <label>Dakika <input id="scenarioMinute" type="number" min="0" max="90" value="20"></label>
+          <label>Skor durumu <select id="scenarioTeam"><option value="home">1–0</option><option value="away">0–1</option><option value="custom">Elle gir</option></select></label>
+          <label class="hidden" id="scenarioScoreLabel">Skor <input id="scenarioHome" type="number" min="0" max="20" value="0" aria-label="Ev sahibi golü"><input id="scenarioAway" type="number" min="0" max="20" value="0" aria-label="Deplasman golü"></label>
+          <label>Kırmızı kart <select id="scenarioRed"><option value="none">Yok</option><option value="home">Ev sahibi</option><option value="away">Deplasman</option><option value="both">İki takım</option></select></label>
+          <button id="scenarioRun" type="button">Senaryoyu hesapla</button>
+        </div>
+        <p id="scenarioResult" role="status"></p>
+      </details>
+    </section>
+    <section id="analysisOverview" class="card full"><h3>Genel karşılaştırma</h3><div id="metrics" class="metrics"></div><div id="narrative"></div></section>
+    <section class="card half"><h3>Form</h3><div id="form"></div></section>
+    <section class="card half"><h3>İç saha / deplasman</h3><div id="split"></div></section>
+    <section class="card half"><h3>Geçmiş karşılaşmalar</h3><div id="h2h"></div></section>
+    <section class="card half"><h3>Dinlenme ve fikstür</h3><div id="rest"></div><div id="workload" class="submetric"></div></section>
+    <section class="card half"><h3>Maç başına istatistikler</h3><div id="stats"></div></section>
+    <section class="card half"><h3>İlk ve ikinci yarı</h3><div id="half"></div><div id="halfForecast" class="submetric"></div></section>
+    <section class="card half"><h3>Gol dakikaları</h3><div id="goalTiming"></div></section>
+    <section id="lineupPanel" class="card full">
+      <h3>Kadro senaryosu</h3>
+      <p class="muted tiny">Resmî ilk 11 kaynağı bulunmadığında elle girilen hücum etkisini karşılaştır. Girdiğin oran bir varsayımdır.</p>
+      <div class="row option-row">
+        <label>Ev sahibi hücum etkisi (%) <input id="lineupHome" type="number" min="-50" max="50" value="0"></label>
+        <label>Deplasman hücum etkisi (%) <input id="lineupAway" type="number" min="-50" max="50" value="0"></label>
+        <button id="lineupRun" type="button">Kadro senaryosunu karşılaştır</button>
+      </div>
+      <p id="lineupResult" role="status"></p>
+      <details>
+        <summary>Kaynaklı ilk 11, oyuncu formu ve xG yükle</summary>
+        <p class="muted tiny">Resmî kadro ya da izinli istatistik kaynağından hazırlanmış JSON dosyası seç. <a style="color:inherit" href="https://github.com/adws555434/gagagsaerhdse/blob/main/FORECAST_LEARNING.md" target="_blank" rel="noopener">Dosya biçimi</a></p>
+        <div class="row"><input type="file" id="evidenceFile" accept=".json,application/json" aria-label="Maç önü veri dosyası"><button id="evidenceApply" type="button">Veriyi oku</button></div>
+        <p id="evidenceStatus" role="status" class="muted tiny"></p>
+        <div id="evidenceOutput"></div>
+        <p id="evidenceSources" class="muted tiny"></p>
+        <p class="muted tiny">İki takımın ilk 11’i açıklandıysa hücum etkisini yukarıdaki alanlarda ayarla. İlk tahmin kadrolardan önce kaydedildiyse aynı maça bir deneme tahmini ekleyebilirsin.</p>
+        <button id="saveLineupTrial" type="button" disabled>Kadro denemesini kaydet</button>
+        <p id="lineupTrialStatus" role="status" class="muted tiny"></p>
+      </details>
+    </section>
+    <section id="playerGoalsPanel" class="card full hidden"><h3>Oyuncuların son maçlardaki golleri</h3><div id="playerGoals"></div></section>
+    <section id="leagueTable" class="card full"><h3>Maç sonuçlarından hesaplanan tablo</h3><p class="muted tiny">Puan cezaları, resmi eşitlik kuralları ve kupa grup ayrımları hesaba katılmaz.</p><div id="table" class="tablewrap"></div></section>
+    <section id="dataQuality" class="card full"><h3>Veri kapsamı</h3><p id="quality" class="muted"></p><p id="archiveStatus" class="muted"></p><div id="archiveForm"></div></section>
+  </div>
+
   <details class="card" id="historyPanel">
     <summary>Tahmin geçmişi ve başarı</summary>
     <p class="muted tiny">Kayıtlar bu tarayıcıda tutulur. Tarihi belli maçlar için ilk maç önü tahmini kaydedilir.</p>
@@ -66,72 +437,8 @@
     <p id="autoForecastStatus" class="muted tiny"></p>
     <div id="autoForecastList"></div>
   </details>
-  <div id="out" class="grid hidden">
-    <section class="card full"><h2 id="title" style="margin:0 0 5px"></h2><div id="meta" class="muted"></div><div id="source" class="source" style="margin-top:7px"></div></section>
-    <section class="card full" aria-labelledby="forecastTitle">
-      <h3 id="forecastTitle">Skor tahmini</h3>
-      <div id="forecast" class="metrics"></div>
-      <p id="forecastNote" class="muted"></p>
-      <div id="scorelines"></div>
-      <p id="firstGoal" class="muted"></p>
-      <details id="modelPanel" class="hidden">
-        <summary>Tahminin gerekçesi ve model karşılaştırması</summary>
-        <div id="modelWhy" class="list"></div>
-        <p id="modelCalibration" class="muted tiny"></p>
-        <div id="balancedModel" class="list"></div>
-        <div id="archiveModel" class="list"></div>
-        <div id="learningModel"></div>
-        <div id="forecastChanges"></div>
-      </details>
-      <details id="scoreGrid"><summary>Tam skor olasılık tablosu</summary><div id="scoreGridContent" class="tablewrap"></div></details>
-      <details id="scenarios" class="hidden">
-        <summary>Gol senaryosu</summary>
-        <p class="muted tiny">Dakika, skor ve sahadaki oyuncu sayısını ayarla. Oyuncu eksikliğinde gol hızları senaryo varsayımıyla değiştirilir.</p>
-        <div class="row">
-          <label>Dakika <input id="scenarioMinute" type="number" min="0" max="90" value="20"></label>
-          <label>Skor durumu <select id="scenarioTeam"><option value="home">1–0</option><option value="away">0–1</option><option value="custom">Elle gir</option></select></label>
-          <label class="hidden" id="scenarioScoreLabel">Skor <input id="scenarioHome" type="number" min="0" max="20" value="0" aria-label="Ev sahibi golü"><input id="scenarioAway" type="number" min="0" max="20" value="0" aria-label="Deplasman golü"></label>
-          <label>Kırmızı kart <select id="scenarioRed"><option value="none">Yok</option><option value="home">Ev sahibi</option><option value="away">Deplasman</option><option value="both">İki takım</option></select></label>
-          <button id="scenarioRun" type="button">Senaryoyu hesapla</button>
-        </div>
-        <p id="scenarioResult" role="status"></p>
-      </details>
-    </section>
-    <section class="card full"><h3>Genel karşılaştırma</h3><div id="metrics" class="metrics"></div><div id="narrative" style="line-height:1.6;margin-top:12px"></div></section>
-    <section class="card half"><h3>Form</h3><div id="form"></div></section>
-    <section class="card half"><h3>İç saha / deplasman</h3><div id="split"></div></section>
-    <section class="card half"><h3>Geçmiş karşılaşmalar</h3><div id="h2h"></div></section>
-    <section class="card half"><h3>Dinlenme ve fikstür</h3><div id="rest"></div><div id="workload"></div></section>
-    <section class="card half"><h3>Maç başına istatistikler</h3><div id="stats"></div></section>
-    <section class="card half"><h3>İlk ve ikinci yarı</h3><div id="half"></div><div id="halfForecast"></div></section>
-    <section class="card half"><h3>Gol dakikaları</h3><div id="goalTiming"></div></section>
-    <section class="card full">
-      <h3>Kadro senaryosu</h3>
-      <p class="muted tiny">Resmî ilk 11 kaynağı bulunmadığında elle girilen hücum etkisini karşılaştır. Girdiğin oran bir varsayımdır.</p>
-      <div class="row">
-        <label>Ev sahibi hücum etkisi (%) <input id="lineupHome" type="number" min="-50" max="50" value="0"></label>
-        <label>Deplasman hücum etkisi (%) <input id="lineupAway" type="number" min="-50" max="50" value="0"></label>
-        <button id="lineupRun" type="button">Kadro senaryosunu karşılaştır</button>
-      </div>
-      <p id="lineupResult" role="status"></p>
-      <details>
-        <summary>Kaynaklı ilk 11, oyuncu formu ve xG yükle</summary>
-        <p class="muted tiny">Resmî kadro ya da izinli istatistik kaynağından hazırlanmış JSON dosyası seç. <a style="color:inherit" href="https://github.com/adws555434/gagagsaerhdse/blob/main/FORECAST_LEARNING.md" target="_blank" rel="noopener">Dosya biçimi</a></p>
-        <div class="row"><input type="file" id="evidenceFile" accept=".json,application/json" aria-label="Maç önü veri dosyası"><button id="evidenceApply" type="button">Veriyi oku</button></div>
-        <p id="evidenceStatus" role="status" class="muted tiny"></p>
-        <div id="evidenceOutput"></div>
-        <p id="evidenceSources" class="muted tiny"></p>
-        <p class="muted tiny">İki takımın ilk 11’i açıklandıysa hücum etkisini yukarıdaki alanlarda ayarla. İlk tahmin kadrolardan önce kaydedildiyse aynı maça bir deneme tahmini ekleyebilirsin.</p>
-        <button id="saveLineupTrial" type="button" disabled>Kadro denemesini kaydet</button>
-        <p id="lineupTrialStatus" role="status" class="muted tiny"></p>
-      </details>
-    </section>
-    <section id="playerGoalsPanel" class="card full hidden"><h3>Oyuncuların son maçlardaki golleri</h3><div id="playerGoals"></div></section>
-    <section id="leagueTable" class="card full"><h3>Maç sonuçlarından hesaplanan tablo</h3><p class="muted tiny">Puan cezaları, resmi eşitlik kuralları ve kupa grup ayrımları hesaba katılmaz.</p><div id="table" class="tablewrap"></div></section>
-    <section class="card full"><h3>Veri kapsamı</h3><p id="quality" class="muted"></p><p id="archiveStatus" class="muted"></p><div id="archiveForm"></div></section>
-    <section class="card full"><div class="note muted">Bu sürüm futbol analitiği içindir. Kaynakta olmayan veri uydurulmaz; eksik alanlar “—” olarak kalır.</div></section>
-  </div>
-</div>
+</main>
+<footer class="site-footer"><div class="wrap"><span>Football Intelligence</span><a href="#matchSearch">Takım seçimine dön ↑</a></div></footer>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -650,10 +957,18 @@ async function renderForecast(home,away,results,fixture,contextData){
  showScenarios(home,away,rates);
  const pct=percent;
  const [score,count]=sim.scores[0];
- panel.append(metric('En olası skor',describeScore(score,home,away),'Bu skorun olasılığı '+pct(count)),
-  metric(home+' kazanır',pct(sim.outcomes.home),neutral?'Tarafsız saha':'Ev sahibi'),
-  metric('Beraberlik',pct(sim.outcomes.draw)),
-  metric(away+' kazanır',pct(sim.outcomes.away),neutral?'Tarafsız saha':'Deplasman'));
+ const resultCard=metric('En olası skor',score,'Bu skorun olasılığı '+pct(count));
+ resultCard.classList.add('score-primary');
+ const scoreValue=resultCard.querySelector('b');
+ scoreValue.className='score-value';
+ const winner=document.createElement('div');
+ winner.className='score-winner';
+ winner.textContent=describeScore(score,home,away).slice(score.length+1);
+ scoreValue.after(winner);
+ panel.append(resultCard,
+  outcomeMetric(home+' kazanır',sim.outcomes.home,neutral?'Tarafsız saha':'Ev sahibi'),
+  outcomeMetric('Beraberlik',sim.outcomes.draw),
+  outcomeMetric(away+' kazanır',sim.outcomes.away,neutral?'Tarafsız saha':'Deplasman'));
  const context=neutral?'Tarafsız saha.':fixture?'Fikstürdeki ev sahibi '+home+'.':'Fikstürde eşleşme bulunamadı. Senaryoda '+home+' ev sahibi.';
  note.textContent=context+' '+name+' modeli · '+simulationLabel+' · Son maç örneklemi '+H.matches+' / '+A.matches+
   (neutral?'':' (ilgili saha '+H.venueMatches+' / '+A.venueMatches+')')+'. Model gol ortalaması '+fmt(homeGoals)+' / '+fmt(awayGoals)+
@@ -1048,7 +1363,7 @@ function renderNationalArchive({results,a,b,fixtureChecked}){
   return {t:team+' · uzun dönem formu',s:form.played+' maç · '+form.w+'G '+form.d+'B '+form.l+'M'};
  }));
 }
-function setStep(p,s){$('bar').style.width=p+'%';$('step').textContent=s}
+function setStep(p,s){$('bar').style.width=p+'%';$('step').textContent=s;$('resultJump').classList.toggle('hidden',p!==100)}
 function setStatus(s,c){$('status').textContent=s;$('status').className='badge '+c}
 async function resolve(qa,qb,nationalOnly=false){
  const looksNational=[qa,qb].every(name=>nationalNames.has(nationalKey(name)));
@@ -1082,6 +1397,18 @@ async function resolve(qa,qb,nationalOnly=false){
  throw new Error(loaded?'Bu iki takımı aynı lig veya kupa verisinde bulamadım. Milli maç arıyorsan erkek A milli takımları seçeneğini kullan.':'Maç verisine şu anda ulaşılamıyor. Biraz sonra tekrar dene.');
 }
 function metric(label,val,sub=''){const d=document.createElement('div');d.className='metric';d.innerHTML='<div class="muted tiny"></div><b></b><div class="muted tiny"></div>';d.children[0].textContent=label;d.children[1].textContent=val;d.children[2].textContent=sub;return d}
+function outcomeMetric(label,total,caption){
+ const card=metric(label,percent(total),caption);
+ card.classList.add('outcome-metric');
+ const meter=document.createElement('div');
+ meter.className='outcome-meter';
+ meter.setAttribute('aria-hidden','true');
+ const fill=document.createElement('span');
+ fill.style.width=(100*total/SIMULATIONS)+'%';
+ meter.append(fill);
+ card.append(meter);
+ return card;
+}
 function list(el,arr,empty='Veri yok'){el.textContent='';const box=document.createElement('div');box.className='list';(arr.length?arr:[{t:empty,s:''}]).forEach(x=>{const d=document.createElement('div');d.className='item';const t=document.createElement('div');t.textContent=x.t;d.append(t);if(x.s){const s=document.createElement('div');s.className='muted tiny';s.textContent=x.s;d.append(s)}box.append(d)});el.append(box)}
 function fmt(v,d=2){return v==null?'—':Number(v).toFixed(d)}
 function validHalf(row){
@@ -1376,8 +1703,16 @@ function renderScoreGrid(home,away,h,a){
  const values=Array.from({length:7},(_,i)=>i);
  const rows=values.map(x=>[String(x),...values.map(y=>probabilityLabel(grid[x*SCORE_GRID_SIZE+y]))]);
  const chart=dataTable([home+' ↓ / '+away+' →',...values],rows,true);
+ chart.classList.add('score-heatmap');
+ const peak=Math.max(...grid);
  let shown=0;
- for(const x of values)for(const y of values)shown+=grid[x*SCORE_GRID_SIZE+y];
+ for(const x of values)for(const y of values){
+  const probability=grid[x*SCORE_GRID_SIZE+y];
+  const cell=chart.tBodies[0].rows[x].cells[y+1];
+  cell.style.setProperty('--cell-background','rgba(167, 214, 113, '+(0.036+0.29*probability/peak)+')');
+  if(probability===peak)cell.classList.add('score-peak');
+  shown+=probability;
+ }
  const note=document.createElement('p');
  note.className='muted tiny';
  note.textContent='7 ve üzeri gol içeren skorların toplamı '+probabilityLabel(Math.max(0,1-shown))+'.';
@@ -1610,6 +1945,16 @@ async function analyze(){const btn=$('go');if(btn.disabled)return;scenarioContro
 function selfTest(){try{const t=csv('date,home,away,ft_home,ft_away\n2026-01-01,Besiktas,Galatasaray,1,0\n');if(t.length!==1||findTeam('Beşiktaş',t)!=='Besiktas')throw new Error('motor testi');setStatus('Motor hazır ✓','ok');setStep(0,'Motor hazır. İki takım yazıp butona bas.')}catch(e){setStatus('Motor hatası','bad');setStep(0,'Motor başlatılamadı: '+e.message)}}
 $('go').addEventListener('click',analyze);$('a').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});$('b').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('historyPanel').open){void refreshHistory();void renderAutoForecasts();}});$('historyPanel').addEventListener('toggle',()=>{if($('historyPanel').open){void renderLeagueAudit();void renderAutoForecasts();if(readHistory().rows.some(row=>!row.actual))void refreshHistory();}});window.addEventListener('error',e=>{setStatus('JavaScript hatası','bad');$('step').textContent=e.message});$('refreshHistory').addEventListener('click',refreshHistory);$('turkeyAudit').addEventListener('toggle',()=>{if($('turkeyAudit').open){void renderTurkeyAudit();void renderTurkeySignals();}});$('shotAudit').addEventListener('toggle',()=>{if($('shotAudit').open)void renderShotAudit();});
 $('lineupAudit').addEventListener('toggle',()=>{if($('lineupAudit').open)void renderLineupArchive();});
+$('historyLink').addEventListener('click',()=>{$('historyPanel').open=true;});
+for(const button of document.querySelectorAll('.example')){
+ button.addEventListener('click',()=>{
+  if($('go').disabled)return;
+  $('a').value=button.dataset.home;
+  $('b').value=button.dataset.away;
+  $('nationalOnly').checked=button.hasAttribute('data-national');
+  $('go').focus();
+ });
+}
 selfTest();renderHistory();void renderAutoForecasts();
 </script>
 </body>

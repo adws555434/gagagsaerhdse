@@ -64,8 +64,24 @@ async function run(){
    await until(()=>!$('go').disabled);
    assert.match($('status').textContent,/Tamamlandı/,$('errText').textContent);
   }
+  const examples=window.document.querySelectorAll('.example');
+  examples[1].click();
+  assert.equal($('a').value,'Türkiye');
+  assert.equal($('b').value,'Almanya');
+  assert.equal($('nationalOnly').checked,true);
+  examples[0].click();
+  assert.equal($('a').value,'Beşiktaş');
+  assert.equal($('b').value,'Galatasaray');
+  assert.equal($('nationalOnly').checked,false);
+  assert.equal(window.document.activeElement,$('go'));
   await submit('Beşiktaş','Galatasaray');
+  assert.match($('forecast').querySelector('.score-value').textContent,/^\d+–\d+$/);
+  assert.match($('forecast').querySelector('.score-winner').textContent,/kazanır|beraberlik/);
+  const bars=[...$('forecast').querySelectorAll('.outcome-meter span')].map(node=>parseFloat(node.style.width));
+  assert.equal(bars.length,3);
+  assert.ok(Math.abs(bars.reduce((a,b)=>a+b,0)-100)<0.001);
   assert.equal($('scoreGridContent').querySelectorAll('tbody tr').length,7);
+  assert.ok($('scoreGridContent').querySelector('.score-peak'));
   assert.match($('balancedModel').textContent,/Dengeli model/);
   assert.match($('workload').textContent,/son 7 \/ 14 gün/);
   assert.match($('learningModel').textContent,/İsabetli şut modeli/);
@@ -75,7 +91,8 @@ async function run(){
   $('scenarioMinute').value='90';$('scenarioHome').value='2';$('scenarioAway').value='1';$('scenarioRed').value='away';$('scenarioRun').click();
   await until(()=>!$('scenarioRun').disabled);
   assert.match($('scenarioResult').textContent,/kırmızı kart varsayımı.*2–1 Besiktas kazanır/);
-  $('historyPanel').open=true;
+  $('historyLink').click();
+  assert.equal($('historyPanel').open,true);
   await until(()=>$('leagueAudit').querySelectorAll('tbody tr').length===6);
   $('lineupAudit').open=true;
   await until(()=>$('lineupArchiveList').querySelectorAll('summary').length===3);
@@ -139,7 +156,7 @@ async function run(){
   assert.equal($('balancedModel').textContent,'');
   assert.match($('learningModel').textContent,/yeterli isabetli şut kaydı/);
   assert.deepEqual(errors,[]);
-  console.log('PASS club and national analysis, calibrated candidate display, seven-row score matrix, source file import, fixture-locked lineup trial, three source-backed lineup archives, league, Süper Lig and shot audits, and quiet DOM.');
+  console.log('PASS club and national analysis, example controls, score and winner, three probability bars, heatmap, history navigation, source file import, lineup trial and archive, league and shot audits.');
  }finally{window.close()}
 }
 run().catch(e=>{console.error(e);process.exitCode=1});
