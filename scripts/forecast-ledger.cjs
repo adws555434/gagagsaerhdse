@@ -5,7 +5,7 @@ const {createHash}=require('node:crypto');
 const root=fs.existsSync(path.join(__dirname,'index.html'))?__dirname:path.resolve(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const core=html.match(/<script>([\s\S]*?)<\/script>/)[1].split("$('go').addEventListener")[0];
-const model=new Function(core+';return {BASES,NATIONAL_RESULTS,NATIONAL_MIRROR,LEAGUES,ARCHIVE_LEAGUES,MODEL_VERSION,ENGINE_VERSION,LEARNING_VERSION,parseClubFeed,cleanRows,knownKickoff,rowKey,estimateGoals,forecastModel,shotEstimate,shotCandidates,settleHistory,validForecastRecord,nationalRows,nationalFixtures,forecastInputPayload,prepareForecastDistribution,forecastDecision,leagueScoreReference,eloScoreReference,findMarketQuote,marketScoreDistribution,marketBlend,marketWeight,MARKET_VERSION};')();
+const model=new Function(core+';return {BASES,NATIONAL_RESULTS,NATIONAL_MIRROR,LEAGUES,ARCHIVE_LEAGUES,MODEL_VERSION,ENGINE_VERSION,LEARNING_VERSION,parseClubFeed,cleanRows,knownKickoff,rowKey,estimateGoals,forecastModel,shotEstimate,shotCandidates,settleHistory,validForecastRecord,nationalRows,nationalFixtures,forecastInputPayload,prepareForecastDistribution,forecastDecision,leagueScoreReference,eloScoreReference,findMarketQuote,marketScoreDistribution,marketBlend,marketWeight,marketTotalsDistribution,marketMixedScores,MARKET_VERSION,MARKET_SCORE_VERSION};')();
 const ledgerPath=path.join(root,'forecast-ledger.json');
 const competitions=model.LEAGUES.filter(([folder])=>model.ARCHIVE_LEAGUES[folder]);
 const measurementVersion='2026.11-phase-1';
@@ -65,14 +65,20 @@ function ledgerMarket(snapshot,report,scope,fixture,base,now){
  if(snapshot?.version!==model.MARKET_VERSION||!Array.isArray(snapshot.events)||!/^[a-f0-9]{64}$/.test(snapshot.dataSha256??''))return null;
  const quote=model.findMarketQuote(snapshot,scope,fixture,now.getTime());
  if(!quote)return null;
- const record=outcomes=>{
-  const decision=model.forecastDecision(model.marketScoreDistribution(base,outcomes));
-  return {probabilities:outcomes,consistentScore:decision.score[0],scores:decision.top.slice(0,3).map(([key])=>key)};
+ const record=distribution=>{
+  const decision=model.forecastDecision(distribution);
+  return {probabilities:distribution.outcomes,consistentScore:decision.score[0],scores:decision.top.slice(0,3).map(([key])=>key)};
  };
- const weight=model.marketWeight(report,now.getTime());
- return {version:model.MARKET_VERSION,capturedAt:snapshot.capturedAt,quotedAt:quote.quotedAt,
-  dataSha256:snapshot.dataSha256,simulationCount:0,proportional:record(quote.proportional),power:record(quote.power),
-  ...(weight==null?{}:{weight,weightDataSha256:report.dataSha256??null,blend:record(model.marketBlend(base.outcomes,quote.power,weight))})};
+ const structural=model.marketTotalsDistribution(quote.power,quote.over25);
+ const fromOdds=p=>model.marketScoreDistribution(base,p);
+ const weight=model.marketWeight(report,scope,now.getTime());
+ const power=structural??fromOdds(quote.power);
+ const blend=weight==null?null:structural?model.marketMixedScores(base,structural,weight):
+  fromOdds(model.marketBlend(base.outcomes,quote.power,weight));
+ return {version:model.MARKET_VERSION,scoreVersion:model.MARKET_SCORE_VERSION,capturedAt:snapshot.capturedAt,quotedAt:quote.quotedAt,
+  dataSha256:snapshot.dataSha256,simulationCount:0,proportional:record(fromOdds(quote.proportional)),power:record(power),
+  ...(structural?{over25:quote.over25,totalQuotedAt:quote.totalQuotedAt}:{}),
+  ...(blend?{weight,weightDataSha256:report.dataSha256??null,blend:record(blend)}:{})};
 }
 function buildLeague(saved,folder,league,results,fixtures,now,marketSnapshot,marketReport){
  const national=folder==='national';

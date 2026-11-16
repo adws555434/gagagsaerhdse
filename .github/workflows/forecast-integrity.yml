@@ -12,6 +12,7 @@ on:
       - phase1-summary.json
       - 'tests/phase2-*.cjs'
       - tests/phase2-inputs.json
+      - tests/phase2-archive-inputs.json
       - phase2-market-report.json
       - scripts/market-snapshot.cjs
       - .github/workflows/market-snapshot.yml

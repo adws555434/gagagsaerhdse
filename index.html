@@ -352,6 +352,7 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       <h3 id="forecastTitle">Skor tahmini</h3>
       <div id="forecast" class="metrics"></div>
       <p id="forecastNote" class="muted"></p>
+      <p id="activeForecastMethod" class="muted tiny"></p>
       <p id="simulationAudit" class="muted tiny"></p>
       <div id="scorelines"></div>
       <p id="firstGoal" class="muted"></p>
@@ -465,9 +466,16 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       <select id="marketAuditLeague"><option value="tr.1">Süper Lig</option><option value="all">Tüm test ligleri</option></select>
       <h4>Kapanış verisi bulunan ortak maçlar</h4>
       <div id="marketAuditClose" class="tablewrap"></div>
-      <h4>Harman için sonraki dönem testi</h4>
+      <h4>Lig bazında erken oran harmanı</h4>
       <div id="marketAuditBlend" class="tablewrap"></div>
-      <p class="muted tiny"><a href="https://github.com/adws555434/gagagsaerhdse/blob/main/AUDIT_REPORT.md#faz-2--piyasa-oranları">Yöntem ve kapsam</a> · <a href="https://tipsaudit.com/data">Geçmiş 1X2 kaynağı · TipsAudit (CC BY 4.0)</a></p>
+      <h4>Erken oran ve kapanış · aynı maçlar</h4>
+      <div id="marketAuditTiming" class="tablewrap"></div>
+      <h4>Alt/üst destekli skor matrisi</h4>
+      <div id="marketAuditTotals" class="tablewrap"></div>
+      <h4>Piyasa ve harmanın güven kademeleri</h4>
+      <div id="marketAuditTiers" class="tablewrap"></div>
+      <p class="muted tiny"><a href="https://github.com/adws555434/gagagsaerhdse/blob/main/AUDIT_REPORT.md#faz-2--arşiv-genişletme-ve-erken-oran-denetimi">Yöntem ve kapsam</a> · <a href="https://tipsaudit.com/data">Geçmiş 1X2 kaynağı · TipsAudit (CC BY 4.0)</a></p>
+      <p id="marketResearchAttribution" class="muted tiny" hidden>Alt/üst araştırma verisi <a href="https://oddsintel.app/">OddsIntel</a> · <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></p>
     </details>
     <h3>Lig bazında geçmiş test</h3>
     <p id="leagueAuditStatus" class="muted tiny"></p>
@@ -806,6 +814,7 @@ function reliabilityBand(records,probabilities){
 }
 const SCORE_GRID_SIZE=41;
 const MARKET_VERSION='2026.11-phase-2';
+const MARKET_SCORE_VERSION='2026.11-phase-2-archive';
 const MARKET_MAX_QUOTE_AGE=24*60*60*1000;
 function marketDevig(prices,method='power'){
  if(!Array.isArray(prices)||![2,3].includes(prices.length)||!prices.every(p=>Number.isFinite(p)&&p>1))return null;
@@ -828,9 +837,9 @@ function marketDevig(prices,method='power'){
 function marketBlend(base,market,weight){
  return base.map((p,i)=>p+weight*(market[i]-p));
 }
-function marketWeight(report,now){
+function marketWeight(report,scope,now){
  const cutoff=Date.parse(report?.cutoff+'T00:00:00Z');
- const estimate=report?.experimentalWeights?.preMatch;
+ const estimate=report?.experimentalWeights?.byLeague?.[ARCHIVE_LEAGUES[scope]]?.early;
  return report?.version===MARKET_VERSION&&Number.isFinite(cutoff)&&cutoff<=now&&
   Number.isFinite(estimate?.weight)&&estimate.weight>=0&&estimate.weight<=1?estimate.weight:null;
 }
@@ -842,8 +851,7 @@ function marketScoreDistribution(base,outcomes){
  return {outcomes,scores};
 }
 function marketGoalFit(probabilities,over25){
- if(!probabilities?.every(p=>Number.isFinite(p)&&p>0)||probabilities.length!==3||
-    !(over25>0&&over25<1))return null;
+ if(!validMarketProbabilities(probabilities)||!Number.isFinite(over25)||!(over25>0&&over25<1))return null;
  const bisect=(low,high,fn)=>{
   for(let i=0;i<44;i++){
    const mid=(low+high)/2;
@@ -861,24 +869,76 @@ function marketGoalFit(probabilities,over25){
  });
  const rates=[total*share,total*(1-share)];
  const grid=prepareForecastDistribution(...rates);
- return {rates,total,difference:rates[0]-rates[1],drawResidual:grid.outcomes[1]-probabilities[1]};
+ return {rates,total,difference:rates[0]-rates[1],drawResidual:grid.outcomes[1]-probabilities[1],poisson:grid};
+}
+function marketTotalsDistribution(probabilities,over25){
+ const fit=marketGoalFit(probabilities,over25);
+ if(!fit)return null;
+ const {grid,size}=fit.poisson;
+ const masses=Array.from({length:3},()=>[0,0]);
+ const cells=grid.map((p,i)=>{
+  const h=Math.floor(i/size),a=i%size,result=matchOutcome(h,a),over=Number(h+a>=3);
+  masses[result][over]+=p;
+  return {p,h,a,result,over};
+ });
+ if(masses.some(pair=>pair.some(mass=>mass<=Number.MIN_VALUE)))return null;
+ const logOdds=masses.map(([under,over])=>Math.log(over)-Math.log(under));
+ const share=(i,tilt)=>1/(1+Math.exp(-logOdds[i]-tilt));
+ let low=-800,high=800;
+ for(let i=0;i<60;i++){
+  const tilt=(low+high)/2;
+  const over=probabilities.reduce((acc,p,j)=>acc+p*share(j,tilt),0);
+  if(over<over25)low=tilt;else high=tilt;
+ }
+ const tilt=(low+high)/2;
+ const scales=probabilities.map((p,i)=>{
+  const over=share(i,tilt);
+  return [p*(1-over)/masses[i][0],p*over/masses[i][1]];
+ });
+ let expectedHome=0,expectedAway=0;
+ const adjusted=cells.map(({p,h,a,result,over})=>{
+  const weight=p*scales[result][over];
+  expectedHome+=h*weight;
+  expectedAway+=a*weight;
+  return weight;
+ });
+ return {...scoreGridDistribution(adjusted,size),grid:adjusted,size,tail:fit.poisson.tail,
+  rates:fit.rates,expectedHome,expectedAway,expectedTotal:expectedHome+expectedAway,expectedDifference:expectedHome-expectedAway,
+  drawResidual:fit.drawResidual};
+}
+function marketMixedScores(base,market,weight){
+ const size=Math.max(base.size,market.size);
+ const p=(d,h,a)=>h<d.size&&a<d.size?d.grid[h*d.size+a]:0;
+ const grid=Array.from({length:size*size},(_,i)=>{
+  const h=Math.floor(i/size),a=i%size;
+  return (1-weight)*p(base,h,a)+weight*p(market,h,a);
+ });
+ return {...scoreGridDistribution(grid,size),grid,size,tail:(1-weight)*base.tail+weight*market.tail};
 }
 const marketAliases={
  besiktasjk:'besiktas',galatasaraysk:'galatasaray',fenerbahcesk:'fenerbahce',rizespor:'caykurrizespor',corumfk:'corum',eyup:'eyupspor',amed:'amedspor',erzurumsporfk:'erzurumspor',
  parisstgermain:'parissaintgermain',psg:'parissaintgermain',
- athleticbilbao:'athleticclub',athleticclubdebilbao:'athleticclub',bilbao:'athleticclub',athletic:'athleticclub',
- atleticomadrid:'atleticodemadrid',bayerleverkusen:'bayer04leverkusen',bayer04:'bayer04leverkusen',bayernmunich:'bayernmunchen',
- borussiambach:'monchengladbach',borussiamgladbach:'monchengladbach',
+ manchesterutd:'manutd',newcastleutd:'newcastle',nottingham:'nottinghamforest',
+ girona:'gironafc', realoviedo:'oviedo', atletico:'atleticodemadrid', realvalladolid:'valladolid',rasenballsportleipzig:'rbleipzig',
+ hamburgo:'hamburgersv',hamburg:'hamburgersv',hamburger:'hamburgersv',stpauli1910:'stpauli',fcstpauli1910:'stpauli',fcstpauli:'stpauli',
+ eintracht:'eintrachtfrankfurt',frankfurt:'eintrachtfrankfurt',stuttgart:'vfbstuttgart',
+ dortmund:'borussiadortmund',leipzig:'rbleipzig',heidenheim:'heidenheim',
+ roma:'roma',pisa:'pisa1909',pisasc:'pisa1909',arccorum:'corum',arcacorum:'corum',bberzurumspor:'erzurumspor',
+ athbilbao:'athleticclub',athleticbilbao:'athleticclub',athleticclubdebilbao:'athleticclub',bilbao:'athleticclub',athletic:'athleticclub',
+ atlmadrid:'atleticodemadrid',atleticomadrid:'atleticodemadrid',betis:'realbetis',bayerleverkusen:'bayer04leverkusen',bayer04:'bayer04leverkusen',bayernmunich:'bayernmunchen',
+ bmonchengladbach:'monchengladbach',borussiambach:'monchengladbach',borussiamgladbach:'monchengladbach',
  mainz05:'mainz',fsvmainz05:'mainz','1fsvmainz05':'mainz',
- fckoln:'koln','1fckoln':'koln','1fckoln1899':'koln','1fcunionberlin':'unionberlin',
+ '1koln':'koln',fckoln:'koln','1fckoln':'koln','1fckoln1899':'koln','1fcunionberlin':'unionberlin',
  sv07elversberg:'elversberg',svelversberg:'elversberg',svwerderbremen:'werderbremen',
  '1899hoffenheim':'hoffenheim',
- realvalladolid:'valladolid',alaves:'deportivoalaves',espanyol:'rcdespanyol',rcdespanyoldebarcelona:'rcdespanyol',
- celtavigo:'celta',girona:'gironafc',leganes:'cdleganes',levante:'levanteud',osasuna:'caosasuna',
+ alaves:'deportivoalaves',espanyol:'rcdespanyol',rcdespanyoldebarcelona:'rcdespanyol',
+ celtavigo:'celta',leganes:'cdleganes',levante:'levanteud',osasuna:'caosasuna',
  racingsantander:'rracingclub',deportivolacoruna:'rcdeportivo',realsociedad:'realsociedad',
- inter:'internazionale',tottenham:'spurs',hullcity:'hull',wolverhampton:'wolves',
+ deportivodeacoruna:'rcdeportivo',racingdesantander:'rracingclub',
+ frosinonecalcio:'frosinone',unionevenezia:'venezia',monza1912:'monza',
+ coventrycity:'coventry',ipswichtown:'ipswich',inter:'internazionale',tottenham:'spurs',hullcity:'hull',wolverhampton:'wolves',
  marseille:'olympiquedemarseille',lyon:'olympiquelyonnais',nice:'ogcnice',monaco:'asmonaco',
- strasbourg:'rcstrasbourgalsace',auxerre:'ajauxerre',angers:'angerssco',paris:'paris'
+ troyesac:'troyes',rclens:'lens',strasbourg:'rcstrasbourgalsace',auxerre:'ajauxerre',angers:'angerssco',paris:'paris'
 };
 function marketTeamKey(name){
  let key=clubModelKey(String(name||'').replace(/\s+(?:S\.K\.|A\.Ş\.)$/iu,''));
@@ -1219,6 +1279,7 @@ async function renderForecast(home,away,results,fixture,contextData){
  showScenarios(home,away,null);
  setupEvidence(home,away,fixture,new Date().toISOString().slice(0,10),null);
  if(!base||contextData.cached||contextData.partial){note.textContent='Veri yetersiz. Tahmin için güncel sonuç ve fikstür kaynakları ile iki takımın da en az '+MIN_TEAM_MATCHES+' geçmiş maçı gerekiyor.';return}
+ $('activeForecastMethod').textContent='Ana tahmin · Yayın modeli';
  const model=forecastModel(home,away,base,results,contextData,fixture);
  const forecastDate=new Date().toISOString().slice(0,10);
  const {rates,name}=model;
@@ -2158,6 +2219,7 @@ async function renderMarketForecast(scope,fixture,base,started){
  const panel=$('marketPanel'),status=$('marketStatus'),table=$('marketComparison'),totals=$('marketTotals');
  panel.open=false;
  table.replaceChildren();totals.textContent='';
+ $('activeForecastMethod').textContent=base?'Ana tahmin · Yayın modeli':'Ana tahmin · Veri yetersiz';
  if(!base){status.textContent='Veri yetersiz. Önce takım verilerinin tamamlanması gerekiyor.';return;}
  if(!ARCHIVE_LEAGUES[scope]||!fixture||!(knownKickoff(fixture)>started)){
   status.textContent='Veri yetersiz. Piyasa karşılaştırması için kapsamdaki bir sonraki maçın saatli fikstürü gerekli.';return;
@@ -2171,28 +2233,32 @@ async function renderMarketForecast(scope,fixture,base,started){
   const row=findMarketQuote(feed,scope,fixture,now);
   if(!row){status.textContent='Veri yetersiz. Bu fikstür için zaman doğrulamasından geçen güncel piyasa kaydı yok.';return;}
   let weight;
-  try{weight=marketWeight(await loadMarketReport(),now);}
+  try{weight=marketWeight(await loadMarketReport(),scope,now);}
   catch{/* Piyasa karşılaştırması ağırlık olmadan da gösterilebilir. */}
-  const result=marketScoreDistribution(base,row.power), p=base.outcomes;
+  const totalsScore=marketTotalsDistribution(row.power,row.over25);
+  const result=totalsScore??marketScoreDistribution(base,row.power), p=base.outcomes;
   const kickoff=knownKickoff(fixture);
   if(!(kickoff>Date.now())||!findMarketQuote(feed,scope,fixture,Date.now())){
    status.textContent='Veri yetersiz. Maç saati veya piyasa kaydının geçerliliği doldu.';return;
   }
-  const headers=['Yöntem',fixture.home,'Beraberlik',fixture.away,'Tutarlı skor'];
+  const headers=['Yöntem',fixture.home,'Beraberlik',fixture.away,'Tutarlı skor','Güven kademesi'];
   const item=(name,d,delta)=>[name,...d.outcomes.map((x,i)=>probabilityLabel(x)+(delta?' ('+formatDelta(x-p[i])+')':'')),
-   describeScore(forecastDecision(d).score[0],fixture.home,fixture.away)];
+   describeScore(forecastDecision(d).score[0],fixture.home,fixture.away),confidenceTier(d.outcomes)];
   const entries=[item('Yayın modeli',base,false),item('Piyasa · power',result,true)];
   if(weight!=null){
-   const blend=marketScoreDistribution(base,marketBlend(p,row.power,weight));
+   const blend=totalsScore?marketMixedScores(base,totalsScore,weight):
+    marketScoreDistribution(base,marketBlend(p,row.power,weight));
    entries.push(item('Harman · deney, piyasa ağırlığı '+probabilityLabel(weight),blend,true));
-  }else entries.push(['Harman · veri yetersiz','—','—','—','—']);
+  }else entries.push(['Harman · veri yetersiz','—','—','—','—','—']);
   table.replaceChildren(dataTable(headers,entries,true));
   status.textContent='The Odds API · '+row.books+' kaynak · Yakalama '+new Date(feed.capturedAt).toLocaleString('tr-TR')+
+   ' · Başlama saatine '+fmt((kickoff-Date.parse(feed.capturedAt))/3600000,1)+' saat kala' +
    ' · En eski kullanılan oran '+new Date(row.quotedAt).toLocaleString('tr-TR')+
-   ' · Parantezler yayın modeline göre fark. Piyasa skoru, yayın modelinin koşullu skor dağılımından üretilir.';
-  const goals=marketGoalFit(row.power,row.over25);
-  totals.textContent=goals?'2,5 üst '+probabilityLabel(row.over25)+' · Piyasa Poisson toplam gol '+fmt(goals.total)+
-   ' · Ev eksi deplasman gol farkı '+fmt(goals.difference)+' · Poisson beraberlik farkı '+formatDelta(goals.drawResidual)+'.':
+   ' · Parantezler yayın modeline göre fark. '+(totalsScore?
+    'Piyasa skoru 1X2 ve 2,5 alt/üstten hesaplandı.':'Piyasa skoru yayın modelinin koşullu skor dağılımını kullanıyor.');
+  $('activeForecastMethod').textContent='Ana tahmin · Yayın modeli. Piyasa karşılaştırması deneme aşamasında.';
+  totals.textContent=totalsScore?'2,5 üst '+probabilityLabel(row.over25)+' · Piyasanın beklenen toplam golü '+fmt(totalsScore.expectedTotal)+
+   ' · Beklenen ev eksi deplasman gol farkı '+fmt(totalsScore.expectedDifference)+'.':
    '2,5 alt/üst için veri yetersiz.';
  }catch{
   status.textContent='Piyasa kaydı yüklenemedi. Skor tahmini önceki yöntemle devam ediyor.';
@@ -2214,9 +2280,20 @@ async function renderMarketAudit(){
    container.replaceChildren(dataTable(headers,metrics.map(row=>[row.name,row.n,fmt(row.logLoss,5),fmt(row.rps,5),
     ...[row.result,row.score,row.top3].map(x=>accuracyLabel(x.hits,x.n))])));
   };
-  table('marketAuditClose',rows?.closing);table('marketAuditBlend',rows?.blend);
-  status.textContent=(rows?.closing?.[0]?.n??0)+' ortak kapanış kaydı · Tarihsel test. Alt/üst arşivi bağlı değil. '+
-   'Kapanış satırlarının dakika damgası sağlayıcı arşivinde yok.';
+  table('marketAuditClose',rows?.closing);
+  const extension=report.extension?.[select.value];
+  table('marketAuditBlend',extension?.earlyBlend);
+  table('marketAuditTiming',extension?.timing);
+  table('marketAuditTotals',extension?.totals??extension?.closingResearch);
+  $('marketResearchAttribution').hidden=Boolean(extension?.totals)||!extension?.closingResearch;
+  const tiers=extension?.tiers??[];
+  const labels=['%45 altı','%45–55','%55–65','%65+'];
+  const tierRows=tiers.flatMap(model=>model.tiers.map((tier,i)=>[model.name,labels[i],
+   accuracyLabel(tier.coverage.hits,tier.coverage.n),accuracyLabel(tier.accuracy.hits,tier.accuracy.n)]));
+  $('marketAuditTiers').replaceChildren(dataTable(['Model','Kademe','Kapsam','1X2 isabeti'],tierRows));
+  status.textContent=(rows?.closing?.[0]?.n??0)+' ortak Pinnacle kapanış kaydı. Alt/üst karşılaştırması ayrı örneklemde. '+
+   'Arşivlerde oranların maç başına yayın zamanı yok. Canlı ana tahmin yayın modeli.'+
+   (!extension?.totals&&extension?.closingResearch?' Alt/üst tablosu kısa, ticari olmayan araştırma örnekleminden.':'');
  }catch{status.textContent='Piyasa test raporu yüklenemedi.';}
 }
 function renderLearningForecast(home,away,fixture,data,date,baseline,shots,candidates,rates){

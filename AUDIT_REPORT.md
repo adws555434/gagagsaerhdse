@@ -1,13 +1,162 @@
 # Football Intelligence · Sürüm denetimi
 
-## Faz 2 · Piyasa oranları
+## Faz 2 · Arşiv genişletme ve erken oran denetimi
+
+| Bileşen | Durum |
+|---|---|
+| Açılış ve kapanış 1X2 karşılaştırması | **Çalışıyor.** Aynı maçlarda kaynak ve zaman gruplarına göre karşılaştırıldı. |
+| Tarihsel 2,5 alt/üst | **Kısmi.** Dört ligin tam 2025/26 kaynak dosyaları ve Premier League’in 2026/27 kısmi kaydı alındı. Süper Lig ve Ligue 1 için kısa kapanış araştırma örneği var. |
+| Oranlardan skor matrisi ve beklenen gol farkı | **Çalışıyor.** Tarihsel 1X2 + 2,5 alt/üst ile ölçüldü. Ortak örneklemde yayın modelinin tam skoru ve ilk üç skoru da hesaplandı. |
+| Maç başına oran yayın saati | **Bağlı değil.** Kaynakların verdiği açılış/ilk ve kapanış etiketleri kullanıldı. Geçmişte belirli bir saat önce görülen fiyatların testi çalıştırılmadı. |
+| Lig bazında erken harman ve güven kademeleri | **Çalışıyor.** Ağırlık her ay öncesi lig içindeki verilerle öğrenildi. Tarihsel test ve güven kademeleri yayımlandı. |
+| Altı ligde üç tam sezon ve bağımsız maç önü ölçümü | **Kısmi.** Ortak tam sezon sayısı 0. Sonuçlanmış bağımsız harman karşılaştırması 0/500. Çok sezonlu yayın koşulu sağlanmadı. |
+| Güncel oran API’si ve varsayılan tahmin | **Kısmi.** Canlı sağlayıcı testi çalıştırılmadı. Ana kart hangi modelin kullanıldığını gösteriyor. Yayın modeli varsayılan. |
+
+Skor ve değerlendirme sürümü `2026.11-phase-2-archive`. Yayın modeli `2026.11-club-balance`. Birleşik veri SHA-256 `79e0fd21c251737958a89432e28e0b1497d4d23ec87f778715b7a137d266c85f`. Analitik tahmin başına 0 çekiliş. 2.000 lig–sezon katmanlı haftalık eşleştirilmiş bootstrap. Ham oran tabloları yerine özetler yayımlanır.
+
+### Kaynak ve kullanım koşulları
+
+| Kaynak | Bu aşamada kullanılabilen kapsam | Kullanım |
+|---|---|---|
+| [Min Maxxxer · Premier League 2025/26](https://huggingface.co/datasets/minmaxxxer/premier-league-closing-odds-2025-26), [2026/27](https://huggingface.co/datasets/minmaxxxer/premier-league-odds-2026-27), [La Liga, Serie A ve Bundesliga 2025/26](https://huggingface.co/datasets/minmaxxxer/laliga-serie-a-bundesliga-closing-odds-2025-26) | Açılış ve kapanış 1X2 + 2,5 alt/üst konsensüsü. Bir tam sezon ve Premier League için ek kısmi sezon. | Kaynak kartı [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) belirtiyor. Kaynak olasılıkları önceden marjdan arındırılmış. Yuvarlama dışı toplam hatası olan satırlar reddediliyor. |
+| [TipsAudit](https://tipsaudit.com/data) | Süper Lig, Ligue 1 ve diğer liglerin 2026/27 kısmi döneminde Pinnacle’ın ilk ve kapanış 1X2 satırları. | CC BY 4.0. İlk fiyat sağlayıcının ilk kaydıdır. 2,5 alt/üst verisi yok. |
+| [OddsIntel (oddsintel.app)](https://huggingface.co/datasets/margussellin/oddsintel-football-closes-sample) | 10–22 Ekim 2026 kapanış 1X2 + alt/üst araştırma örneği. | [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). Bu örnek yalnızca ticari olmayan tarihsel araştırma karşılaştırmasına kullanıldı. Harman eğitimi ve varsayılan tahmin kapsamına girmedi. |
+| [Football-Data.co.uk](https://football-data.co.uk/contact.php) | Altı lig için çok sezonlu dosyalar yayımlıyor. | Ücretsiz veri kişisel ve akademik araştırmaya ayrılmış. Bu açık uygulamanın model eğitim hattına dahil edilmedi. Yazılı izin veya uygun lisans gerekir. |
+| [The Odds API · tarihsel kapsama](https://the-odds-api.com/historical-odds-data/) ve [koşullar](https://the-odds-api.com/terms-and-conditions.html) | Altı ligi, 1X2 ve toplam gol piyasalarını içeren zaman damgalı geçmiş kayıtlar için ücretli seçenek. Fiilî sezon ve maç kapsamı örneklemeyle doğrulanmalı. | Model eğitimi, saklama ve türetilen olasılıkların uygulamada gösterilmesine izin veriyor. Ham veri dağıtımı kısıtlı. [Tarihsel erişim planı](https://the-odds-api.com/) 20.000 kredi için aylık 30 USD listeliyor. Bir bölge ve iki piyasa sorgusu en çok 20 tarihsel kredi. Bir çağrıda birden çok maç olabilir. Toplam maliyet maç saati kümeleri ve gereken anlık kayıt sayısına bağlı. |
+| [TheStatsAPI](https://www.thestatsapi.com/odds-api/historical-football-odds), [Football Charts](https://www.football-charts.com/csv-downloads) | Açılış/kapanış veya son görülen fiyat arşivleri sunuyor. | Ücretli. Altı ligin üç tam sezonu ve bu uygulamadaki kullanım izni doğrulanmadığı için devreye alınmadı. |
+
+Tarihsel oran arşivi bir satırda fiyatın ne zaman yayımlandığını vermiyor. Bu nedenle açılış ve kapanış, sağlayıcının sınıflandırmasına dayanıyor. Güncel servis altı saatte bir planlanmış yeni bir maç önü görüntüsü verir. Bu, maçtan birkaç saat önce alınan oran senaryosuna daha yakın. Açılış anı ve son kapanış anı ayrı. Panel gerçek görüntünün maç başlangıcına kalan saatini gösterir. Açılış verisi ölçümü, bu canlı akış için birebir saat kalibrasyonu sağlamaz.
+
+### Gerçekleşen arşiv kapsamı
+
+| Lig | Sezon | Kaynak | Dosyada | Skorla doğrulandı | Ortak 1X2 + alt/üst |
+|---|---|---|---:|---:|---:|
+| Premier League | 2025-26 | Min Maxxxer | 380 | 380 | 342 |
+| La Liga | 2025-26 | Min Maxxxer | 380 | 380 | 306 |
+| Bundesliga | 2025-26 | Min Maxxxer | 306 | 306 | 272 |
+| Serie A | 2025-26 | Min Maxxxer | 380 | 380 | 342 |
+| Premier League | 2026-27 | Min Maxxxer | 100 | 100 | 72 |
+| Serie A | 2026-27 | OddsIntel | 19 | 19 | 17 |
+| Bundesliga | 2026-27 | OddsIntel | 13 | 13 | 10 |
+| Premier League | 2026-27 | OddsIntel | 15 | 15 | 9 |
+| La Liga | 2026-27 | OddsIntel | 18 | 18 | 13 |
+| Ligue 1 | 2026-27 | OddsIntel | 16 | 16 | 14 |
+| Süper Lig | 2026-27 | OddsIntel | 13 | 13 | 9 |
+
+Tarihe ve yönlü takım kimliklerine ek olarak iki kaynaktaki tam skor karşılaştırıldı. Önceki lig sezonlarında iki takım için de en az beş maç gerektiğinden, kaynakta bulunan bazı maçlar ortak testte yok. 232 arşiv dışlama kaydı [eksik veri raporunda](tests/phase2-missing.json). Sonuç puanları aynı satırlardaki yöntemler için aynı maçları kullanır. Birden çok kaynak aynı maçlara denk geldiğinde araştırma örneği ayrı tutulur.
+
+### Erken oran ve kapanış
+
+| Yöntem | N | Log loss | RPS | 1X2 [%95 GA] | Tutarlı tam skor [%95 GA] | İlk üç [%95 GA] |
+|---|---:|---:|---:|---|---|---|
+| Yayın modeli | 1447 | 1,00507 | 0,20726 | 746/1447 · %51,55 [%48,98–%54,12] | 156/1447 · %10,78 [%9,29–%12,48] | 455/1447 · %31,44 [%29,10–%33,88] |
+| Erken piyasa · 1X2 | 1447 | 0,98067 | 0,19967 | 768/1447 · %53,08 [%50,50–%55,64] | 161/1447 · %11,13 [%9,61–%12,85] | 477/1447 · %32,96 [%30,59–%35,43] |
+| Kapanış piyasası · 1X2 | 1447 | 0,97589 | 0,19808 | 780/1447 · %53,90 [%51,33–%56,46] | 158/1447 · %10,92 [%9,41–%12,63] | 473/1447 · %32,69 [%30,32–%35,15] |
+
+Altı lig toplamı için kapanış eksi erken oran log loss farkı %95 aralığı **-0,01014 ile 0,00110**. Süper Lig için **-0,06948 ile 0,00022**. Bu iki karşılaştırmada kapanışın erken orana üstünlüğü kanıtlanamadı.
+
+| Yöntem | N | Log loss | RPS | 1X2 [%95 GA] | Tutarlı tam skor [%95 GA] | İlk üç [%95 GA] |
+|---|---:|---:|---:|---|---|---|
+| Yayın modeli | 50 | 0,98572 | 0,21580 | 26/50 · %52,00 [%38,51–%65,20] | 4/50 · %8,00 [%3,15–%18,84] | 10/50 · %20,00 [%11,24–%33,04] |
+| Erken piyasa · 1X2 | 50 | 0,93208 | 0,19644 | 27/50 · %54,00 [%40,40–%67,03] | 5/50 · %10,00 [%4,35–%21,36] | 14/50 · %28,00 [%17,47–%41,67] |
+| Kapanış piyasası · 1X2 | 50 | 0,89758 | 0,18522 | 28/50 · %56,00 [%42,31–%68,84] | 5/50 · %10,00 [%4,35–%21,36] | 16/50 · %32,00 [%20,76–%45,81] |
+
+### Alt/üst ve skor matrisi
+
+Başlangıç Poisson toplamı 2,5 üst olasılığına göre, ev ve deplasmana dağıtım ise kazanma oranına göre çözülür. Ardından skor matrisi, 1X2 ile 2,5 üst marjinlerini birlikte koruyacak şekilde yeniden ağırlıklandırılır. Son matristeki gol ortalamaları beklenen toplam ve gol farkıdır. Aynı 1X2 ile alt/üst eklenince log loss ve RPS doğal olarak aynı kalır. Ayrım tam skor ve ilk üç skor isabetinde görülür.
+
+| Yöntem | N | Log loss | RPS | 1X2 [%95 GA] | Tutarlı tam skor [%95 GA] | İlk üç [%95 GA] |
+|---|---:|---:|---:|---|---|---|
+| Yayın modeli | 1334 | 1,01012 | 0,20758 | 683/1334 · %51,20 [%48,52–%53,87] | 143/1334 · %10,72 [%9,17–%12,49] | 421/1334 · %31,56 [%29,12–%34,10] |
+| Erken piyasa · 1X2 | 1334 | 0,98663 | 0,20034 | 701/1334 · %52,55 [%49,87–%55,22] | 145/1334 · %10,87 [%9,31–%12,65] | 440/1334 · %32,98 [%30,51–%35,55] |
+| Erken piyasa · 1X2 + alt/üst | 1334 | 0,98663 | 0,20034 | 701/1334 · %52,55 [%49,87–%55,22] | 147/1334 · %11,02 [%9,45–%12,81] | 432/1334 · %32,38 [%29,93–%34,94] |
+| Kapanış piyasası · 1X2 | 1334 | 0,98276 | 0,19908 | 713/1334 · %53,45 [%50,77–%56,11] | 144/1334 · %10,79 [%9,24–%12,57] | 437/1334 · %32,76 [%30,29–%35,32] |
+| Kapanış piyasası · 1X2 + alt/üst | 1334 | 0,98276 | 0,19908 | 713/1334 · %53,45 [%50,77–%56,11] | 139/1334 · %10,42 [%8,89–%12,17] | 451/1334 · %33,81 [%31,32–%36,39] |
+
+| Alt/üst eksi aynı 1X2 | Tutarlı tam skor farkı %95 GA | İlk üç skor farkı %95 GA |
+|---|---|---|
+| Erken | -1,24238 ile 1,53739 yüzde puan | -2,54496 ile 1,18276 yüzde puan |
+| Kapanış | -1,81420 ile 1,04176 yüzde puan | -0,75490 ile 2,95859 yüzde puan |
+
+Süper Lig’in [OddsIntel](https://oddsintel.app/) [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) kısa kapanış örneği ayrıca ölçüldü.
+
+| Yöntem | N | Log loss | RPS | 1X2 [%95 GA] | Tutarlı tam skor [%95 GA] | İlk üç [%95 GA] |
+|---|---:|---:|---:|---|---|---|
+| Yayın modeli | 9 | 0,74780 | 0,15348 | 7/9 · %77,78 [%45,26–%93,68] | 1/9 · %11,11 [%1,99–%43,50] | 3/9 · %33,33 [%12,06–%64,58] |
+| Kapanış piyasası · 1X2 | 9 | 0,70189 | 0,14126 | 7/9 · %77,78 [%45,26–%93,68] | 1/9 · %11,11 [%1,99–%43,50] | 3/9 · %33,33 [%12,06–%64,58] |
+| Kapanış piyasası · 1X2 + alt/üst | 9 | 0,70189 | 0,14126 | 7/9 · %77,78 [%45,26–%93,68] | 1/9 · %11,11 [%1,99–%43,50] | 2/9 · %22,22 [%6,32–%54,74] |
+
+### Lig bazında erken harman
+
+Ağırlık ay başında donduruldu. Yalnızca aynı ligin önceki ayları kullanılabilir. Asgari eğitim örneklemi 40 maç. Log loss ile RPS’nin yayın modeline oranlarının ortalaması küçültülür. Bir hafta veya ay içinde sonraki maçın sonucu aynı dönemin ayarına girmez.
+
+| Lig | Son ağırlığın eğitim maçları | Erken piyasaya ağırlık | Sonraki dönem test maçları |
+|---|---:|---:|---:|
+| Premier League | 414 | %100,00 | 360 |
+| La Liga | 306 | %100,00 | 250 |
+| Bundesliga | 272 | %85,00 | 232 |
+| Serie A | 342 | %100,00 | 297 |
+| Süper Lig | 50 | %100,00 | 4 |
+| Ligue 1 | 63 | %100,00 | 5 |
+
+| Yöntem | N | Log loss | RPS | 1X2 [%95 GA] | Tutarlı tam skor [%95 GA] | İlk üç [%95 GA] |
+|---|---:|---:|---:|---|---|---|
+| Yayın modeli | 1148 | 1,01099 | 0,20844 | 593/1148 · %51,66 [%48,76–%54,54] | 129/1148 · %11,24 [%9,54–%13,19] | 358/1148 · %31,18 [%28,57–%33,92] |
+| Erken piyasa | 1148 | 0,98651 | 0,20057 | 605/1148 · %52,70 [%49,81–%55,57] | 128/1148 · %11,15 [%9,46–%13,10] | 360/1148 · %31,36 [%28,74–%34,10] |
+| Erken harman · Lig ağırlığı | 1148 | 0,98939 | 0,20149 | 603/1148 · %52,53 [%49,63–%55,40] | 129/1148 · %11,24 [%9,54–%13,19] | 361/1148 · %31,45 [%28,83–%34,19] |
+
+Harman eksi yayın log loss farkının %95 aralığı **-0,03352 ile -0,00974**. Harman eksi erken piyasa farkı **0,00026 ile 0,00546**. Süper Lig’de 4 sonraki dönem maçı kaldı. Haftalık eşleştirilmiş fark aralığı yeterli blok oluşmadığı için çalıştırılmadı. Varsayılan model için altı ligde çok sezonlu koşul ve bağımsız kayıt eşiği oluşmadı. Güncel oran gelse de harman kartta deneysel karşılaştırma olarak kalır.
+
+### Güven kademeleri
+
+Açılış ve kapanış piyasa satırları zaman karşılaştırması örneklemini, erken harman satırı yalnızca önceki aydan ağırlık öğrenilebilen maçları kapsar. Parantezlerde Wilson %95 aralığı bulunur.
+
+| Yöntem | Kademe | Kapsam [%95 GA] | 1X2 isabeti [%95 GA] |
+|---|---|---|---|
+| Erken piyasa · 1X2 | %45–55 | 412/1447 · %28,47 [%26,21–%30,85] | 205/412 · %49,76 [%44,95–%54,57] |
+| Erken piyasa · 1X2 | %55–65 | 289/1447 · %19,97 [%17,99–%22,11] | 181/289 · %62,63 [%56,92–%68,01] |
+| Erken piyasa · 1X2 | %65+ | 216/1447 · %14,93 [%13,18–%16,86] | 165/216 · %76,39 [%70,29–%81,56] |
+| Kapanış piyasası · 1X2 | %45–55 | 400/1447 · %27,64 [%25,40–%30,00] | 205/400 · %51,25 [%46,36–%56,11] |
+| Kapanış piyasası · 1X2 | %55–65 | 286/1447 · %19,77 [%17,79–%21,90] | 175/286 · %61,19 [%55,43–%66,65] |
+| Kapanış piyasası · 1X2 | %65+ | 216/1447 · %14,93 [%13,18–%16,86] | 171/216 · %79,17 [%73,26–%84,05] |
+| Erken harman · Lig ağırlığı | %45–55 | 327/1148 · %28,48 [%25,95–%31,16] | 159/327 · %48,62 [%43,25–%54,03] |
+| Erken harman · Lig ağırlığı | %55–65 | 244/1148 · %21,25 [%18,99–%23,71] | 151/244 · %61,89 [%55,65–%67,75] |
+| Erken harman · Lig ağırlığı | %65+ | 159/1148 · %13,85 [%11,97–%15,97] | 118/159 · %74,21 [%66,90–%80,39] |
+
+#### Süper Lig
+
+| Yöntem | Kademe | Kapsam [%95 GA] | 1X2 isabeti [%95 GA] |
+|---|---|---|---|
+| Erken piyasa · 1X2 | %45–55 | 14/50 · %28,00 [%17,47–%41,67] | 6/14 · %42,86 [%21,38–%67,41] |
+| Erken piyasa · 1X2 | %55–65 | 8/50 · %16,00 [%8,34–%28,51] | 6/8 · %75,00 [%40,93–%92,85] |
+| Erken piyasa · 1X2 | %65+ | 12/50 · %24,00 [%14,30–%37,41] | 10/12 · %83,33 [%55,20–%95,30] |
+| Kapanış piyasası · 1X2 | %45–55 | 14/50 · %28,00 [%17,47–%41,67] | 8/14 · %57,14 [%32,59–%78,62] |
+| Kapanış piyasası · 1X2 | %55–65 | 7/50 · %14,00 [%6,95–%26,19] | 5/7 · %71,43 [%35,89–%91,78] |
+| Kapanış piyasası · 1X2 | %65+ | 13/50 · %26,00 [%15,87–%39,55] | 11/13 · %84,62 [%57,77–%95,67] |
+| Erken harman · Lig ağırlığı | %45–55 | 1/4 · %25,00 [%4,56–%69,94] | 1/1 · %100,00 [%20,65–%100,00] |
+| Erken harman · Lig ağırlığı | %55–65 | 1/4 · %25,00 [%4,56–%69,94] | 0/1 · %0,00 [%0,00–%79,35] |
+| Erken harman · Lig ağırlığı | %65+ | 1/4 · %25,00 [%4,56–%69,94] | 1/1 · %100,00 [%20,65–%100,00] |
+
+### Yeniden üretme
+
+[Faz 1 arşiv hazırlığı](#faz-1--ölçüm-altyapısı), [TipsAudit manifesti](tests/phase2-inputs.json) ve [ek kaynak manifesti](tests/phase2-archive-inputs.json) ile çalıştır. Ek klasörde dosya eksikse komut manifestteki sabit kopyayı indirip SHA-256 kontrolü yapar. [Kayıt defterinin ölçülen kopyası](https://raw.githubusercontent.com/adws555434/gagagsaerhdse/d5a023c26ca4cf0aaaaa2fb94a21b2c80ab676c1/forecast-ledger.json) kullanıldı.
+
+```sh
+node tests/phase2-backtest.cjs --self-test
+node tests/phase2-market-test.cjs
+node tests/phase2-backtest.cjs /veri/arsiv /veri/tips.csv /veri/cikti /veri/tff-results.json /veri/forecast-ledger.json /veri/ek-oran
+```
+
+[Ham karşılaştırmalar, lig/sezon aralıkları ve aylık ağırlıklar](tests/phase2-results.json)
+
+## Faz 2 · İlk piyasa sürümü
 
 | Bileşen | Durum |
 |---|---|
 | Geçmiş kapanış 1X2, orantılı ve power marj düzeltmesi | **Çalışıyor.** TipsAudit’in CC BY 4.0 arşivindeki Pinnacle kapanış fiyatları. Ham fiyatlar bu depoya eklenmedi. |
 | Piyasa ve harman backtest’i, üç güven kademesi, fark aralıkları ve kapsam | **Çalışıyor.** Maçlar tarih ve doğrulanmış takım kimlikleriyle eşleştirildi. İki kaynağın 1X2 sonuçları uyuşmalı. |
 | Kapanış oranının yayın dakikasını bağımsız doğrulama | **Kısmi.** Kaynak fiyatı maç öncesi kapanış olarak tanımlıyor. Satır bazında fiyatın yayın saati verilmiyor. |
-| Geçmiş alt/üst arşivi | **Bağlı değil.** Kapanış 2,5 alt/üst testi çalıştırılmadı. |
+| Geçmiş alt/üst arşivi | **İlk sürümde bağlı değildi.** Güncel durum arşiv genişletme bölümünde. |
 | 2,5 üst ve 1X2’den piyasa Poisson beklentileri | **Kısmi.** Kod ve analitik doğrulama testi çalışıyor. Gerçek zamanlı maç verisiyle doğrulama çalıştırılmadı. |
 | Güncel oranlar, fark tablosu ve maç önü kayıt defteri | **Kısmi.** GitHub Actions, statik olasılık özeti ve güncel maç eşleştirmesi eklendi. Gerçek sağlayıcı çağrısı çalıştırılmadı. Statik dosyada 0 maç var. |
 | Bağımsız değerlendirme ve model yükseltme | **Kısmi.** İlk maç önü karşılaştırması aynı anda kaydedilecek. Sabit kayıtta sonuçlanmış 0 eşleştirme var. Gereken en az 500 maç tamamlanana kadar bağımsız isabet çalıştırılmadı. |

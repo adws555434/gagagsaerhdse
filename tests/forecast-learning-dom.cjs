@@ -138,8 +138,16 @@ async function run(){
   assert.ok($('phase1Months').querySelectorAll('tbody tr').length>0);
   $('marketAudit').open=true;
   await until(()=>$('marketAuditClose').querySelectorAll('tbody tr').length===7);
-  assert.match($('marketAuditStatus').textContent,/ortak kapanış kaydı/);
-  assert.equal($('marketAuditBlend').querySelectorAll('tbody tr').length,8);
+  assert.match($('marketAuditStatus').textContent,/ortak Pinnacle kapanış kaydı/);
+  assert.equal($('marketAuditBlend').querySelectorAll('tbody tr').length,3);
+  assert.equal($('marketAuditTiming').querySelectorAll('tbody tr').length,3);
+  assert.ok($('marketAuditTiers').querySelectorAll('tbody tr').length>=8);
+  assert.equal($('marketAuditTotals').querySelectorAll('tbody tr').length,3);
+  assert.equal($('marketResearchAttribution').hidden,false);
+  const marketLeague=$('marketAuditLeague');
+  marketLeague.value='all';marketLeague.dispatchEvent(new window.Event('change'));
+  await until(()=>$('marketAuditTotals').querySelectorAll('tbody tr').length===5);
+  assert.equal($('marketResearchAttribution').hidden,true);
   assert.match($('marketAuditClose').textContent,/%95 GA/);
   if(!live)assert.match($('marketStatus').textContent,/bağlı değil/);
   $('lineupAudit').open=true;
@@ -222,7 +230,8 @@ async function run(){
    await submit('Beşiktaş','Galatasaray');
    assert.equal($('marketComparison').querySelectorAll('tbody tr').length,3);
    assert.match($('marketComparison').textContent,/Harman · deney/);
-   assert.match($('marketTotals').textContent,/Piyasa Poisson toplam gol/);
+   assert.match($('marketTotals').textContent,/Piyasanın beklenen toplam golü/);
+   assert.match($('activeForecastMethod').textContent,/Ana tahmin · Yayın modeli/);
    oddsMode='unconfigured';
    clearNetworkCache();
    feedMode='offline';

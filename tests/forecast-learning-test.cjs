@@ -145,7 +145,7 @@ test('scheduled ledger deduplicates and settles, rejects unknown or late kickoff
   scope,home:'Beşiktaş JK',away:'Galatasaray',kickoff:'2026-11-16T17:00:00Z',quotedAt:'2026-11-16T11:40:00Z',
   power:[.60,.25,.15],proportional:[.55,.27,.18]
  }]};
- const weights={version:odds.version,cutoff:'2026-11-16',experimentalWeights:{preMatch:{weight:.4}}};
+ const weights={version:odds.version,cutoff:'2026-11-16',experimentalWeights:{byLeague:{'tr.1':{early:{weight:.4}}}}};
  const withMarket=buildLeague([],scope,'Süper Lig',covered,fixtures,now,odds,weights);
  assert.equal(withMarket[0].market.weight,.4);
  assert.equal(withMarket[0].market.simulationCount,0);

@@ -5,11 +5,12 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { createHash } = require('node:crypto');
 const core = require('./phase1-backtest.cjs');
+const archive = require('./phase2-archive.cjs');
 const root = fs.existsSync(path.join(__dirname, 'index.html')) ? __dirname : path.resolve(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const code = html.match(/<script>([\s\S]*?)<\/script>/)[1].split("$('go').addEventListener")[0];
-const app = new Function(code + `;return {ARCHIVE_LEAGUES, MODEL_VERSION, ENGINE_VERSION, MARKET_VERSION, checkedCsv,
- marketDevig, marketBlend, marketGoalFit, marketScoreDistribution, marketTeamKey,
+const app = new Function(code + `;return {ARCHIVE_LEAGUES, MODEL_VERSION, ENGINE_VERSION, MARKET_VERSION, MARKET_SCORE_VERSION, checkedCsv,
+ marketDevig, marketBlend, marketGoalFit, marketScoreDistribution, marketTeamKey, marketTotalsDistribution, marketMixedScores,
  matchOutcome, forecastDecision, strongestOutcome, validDate, createSimulationRandom, prepareForecastDistribution};`)();
 
 const manifest = require('./phase2-inputs.json');
@@ -56,9 +57,9 @@ function parseClosing(text) {
  return byLeague;
 }
 
-function learnWeight(rows, field, before) {
+function learnWeight(rows, field, before, minimum=minWeightTraining) {
  const training = rows.filter(row => row.date < before && row[field]);
- if(training.length<minWeightTraining)return null;
+ if(training.length<minimum)return null;
  const reference=training.map(row=>core.metricRow(row.models[0].outcomes,{outcome:-1,score:[''],top:[]},row.actualScore));
  const referenceLogLoss=mean(reference.map(x=>x[0])),referenceRps=mean(reference.map(x=>x[1]));
  const ranked = Array.from({length:scale+1},(_,index)=>{
@@ -104,7 +105,7 @@ function stats(rows,index){
 
 function paired(rows,model,reference=0){
  if(!rows.length)return null;
- const strata=[...core.groupBy(rows,row=>row.league).values()].map(matches=>
+ const strata=[...core.groupBy(rows,row=>row.league+'|'+(row.season??'')).values()].map(matches=>
   [...core.groupBy(matches,row=>Math.floor(Date.parse(row.date)/604800000)).values()].map(week=>{
    const deltas=statisticNames.map((_,i)=>week.reduce((total,row)=>total+row.metrics[model][i]-row.metrics[reference][i],0));
    return {n:week.length,deltas};
@@ -174,6 +175,76 @@ function assemble(inputs, market) {
  return {matches,missing,counts};
 }
 
+const earlyMinimum=40;
+function pairedRow(row,distributions){
+ return {...row,metrics:distributions.map(d=>core.metricRow(d.outcomes,app.forecastDecision(d),row.actualScore)),
+  probabilities:distributions.map(d=>d.outcomes)};
+}
+function namedStats(rows,namesList){
+ return rows.length?namesList.map((name,index)=>({name,...stats(rows,index),versusRelease:index?paired(rows,index):null})):null;
+}
+function promotionCheck(rows,completeSeasons,independent){
+ const seasons=core.groupBy(rows,row=>row.season);
+ const full=[...seasons].filter(([season])=>completeSeasons.has(season));
+ const regressions=full.filter(([,games])=>mean(games.map(game=>game.metrics[2][0]-game.metrics[0][0]))>0).length;
+ const interval=paired(rows,2)?.logLoss?.ci95??null;
+ return {eligible:completeSeasons.size>=3&&full.length>=2&&regressions<full.length/2&&interval?.[1]<0&&independent>=500,
+  fullArchiveSeasons:completeSeasons.size,fullTestSeasons:full.length,regressions,ci95:interval,independent};
+}
+function analyzeArchive(old,newData,independent){
+ const all=new Map();
+ const latest={};
+ const consensusLeagues=new Set(newData.matches.filter(x=>x.source==='consensus').map(x=>x.league));
+ const tips=old.filter(row=>row.open).map(row=>({...row,source:'tips',early:row.open,close:row.power}));
+ const joined=[...newData.matches.filter(row=>row.source==='consensus'&&row.early&&row.close),
+  ...tips.filter(row=>!consensusLeagues.has(row.league))];
+ const inherited=(row,p)=>app.marketScoreDistribution(row.models[0],p);
+ const timingFor=rows=>rows.map(row=>pairedRow(row,[row.models[0],inherited(row,row.early),inherited(row,row.close)]));
+ const totalsFor=(rows,includeEarly)=>rows.filter(row=>row.closeMatrix&&(!includeEarly||row.earlyMatrix)).map(row=>
+  pairedRow(row,includeEarly?[row.models[0],inherited(row,row.early),row.earlyMatrix,inherited(row,row.close),row.closeMatrix]:
+   [row.models[0],inherited(row,row.close),row.closeMatrix]));
+ const consensusTotals=newData.matches.filter(row=>row.source==='consensus');
+ const researchTotals=newData.matches.filter(row=>row.source==='oddsintel');
+ const blendRows=[];
+ const weights={};
+ for(const [league,rows] of core.groupBy(joined,row=>row.league)){
+  const months=[...new Set(rows.map(row=>row.date.slice(0,7)))].sort();
+  const history=new Map(months.map(month=>[month,learnWeight(rows,'early',month+'-01',earlyMinimum)]));
+  weights[league]=Object.fromEntries(history);
+  latest[league]={source:rows[0].source,early:learnWeight(rows,'early','2026-11-16',earlyMinimum)};
+  for(const row of rows){
+   const learned=history.get(row.date.slice(0,7));
+   if(!learned)continue;
+   const base=row.models[0],market=row.earlyMatrix??inherited(row,row.early);
+   const blend=row.earlyMatrix?app.marketMixedScores(base,market,learned.weight):
+    inherited(row,app.marketBlend(base.outcomes,row.early,learned.weight));
+   blendRows.push(pairedRow(row,[base,market,blend]));
+  }
+ }
+ for(const league of ['all',...Object.keys(core.leagueNames)]){
+  const ofLeague=rows=>rows.filter(row=>league==='all'||league===row.league);
+  const timing=timingFor(ofLeague(joined)), experiments=ofLeague(blendRows);
+  const totals=totalsFor(ofLeague(consensusTotals),true);
+  const closingResearch=totalsFor(ofLeague(researchTotals),false);
+  const bySeason=core.groupBy(newData.coverage.filter(row=>row.fullSeason),row=>row.season);
+  const completeSeasons=new Set(Array.from(bySeason).filter(([,coverage])=>league==='all'?
+   Object.keys(core.leagueNames).every(code=>coverage.some(row=>row.league===code)):
+   coverage.some(row=>row.league===league)).map(([name])=>name));
+  const timingStats=namedStats(timing,['Yayın modeli','Erken piyasa · 1X2','Kapanış piyasası · 1X2']);
+  const blendStats=namedStats(experiments,['Yayın modeli','Erken piyasa','Erken harman · Lig ağırlığı']);
+  all.set(league,{timing:timingStats,timingDelta:paired(timing,2,1),
+   totals:namedStats(totals,['Yayın modeli','Erken piyasa · 1X2','Erken piyasa · 1X2 + alt/üst','Kapanış piyasası · 1X2','Kapanış piyasası · 1X2 + alt/üst']),
+   totalsVsOneXTwo:{early:paired(totals,2,1),closing:paired(totals,4,3),research:paired(closingResearch,2,1)},
+   closingResearch:namedStats(closingResearch,['Yayın modeli','Kapanış piyasası · 1X2','Kapanış piyasası · 1X2 + alt/üst']),
+   earlyBlend:blendStats,blendVsEarly:paired(experiments,2,1),
+   tiers:[timingStats?.[1],timingStats?.[2],blendStats?.[2]].filter(Boolean).map(({name,tiers})=>({name,tiers})),
+   seasonResults:Object.fromEntries(Array.from(core.groupBy(experiments,row=>row.season),([season,rows])=>
+    [season,namedStats(rows,['Yayın modeli','Erken piyasa','Erken harman · Lig ağırlığı'])])),
+   gate:promotionCheck(experiments,completeSeasons,league==='all'?independent?.blendSettled??0:independent?.blendByScope?.[league]??0)});
+ }
+ return {leagues:Object.fromEntries(all),latest,weights};
+}
+
 function ledgerStatus(file){
  if(!file)return null;
  const bytes=fs.readFileSync(file);
@@ -202,6 +273,7 @@ function ledgerStatus(file){
  }
  const blends=pairs.filter(row=>row.metrics.length===4);
  return {checked,sha256:sha(bytes),captured:seen.size,settled:pairs.length,blendSettled:blends.length,byScope:scopeCounts,
+  blendByScope:Object.fromEntries(Array.from(core.groupBy(blends,row=>row.league),([league,rows])=>[league,rows.length])),
   marketPower:pairs.length?{...stats(pairs,2),versusRelease:paired(pairs,2)}:null,
   blend:blends.length?{...stats(blends,3),versusRelease:paired(blends,3)}:null};
 }
@@ -217,6 +289,23 @@ function selfTest(){
  const fit=app.marketGoalFit(d.outcomes,1-Math.exp(-total)*(1+total+total**2/2));
  assert.ok(Math.abs(fit.rates[0]-1.7)<1e-8&&Math.abs(fit.rates[1]-1.1)<1e-8);
  assert.equal(app.marketGoalFit(d.outcomes,null),null);
+ const sumCells=(distribution,predicate)=>distribution.grid.reduce((sum,p,i)=>{
+  return sum+(predicate(Math.floor(i/distribution.size),i%distribution.size)?p:0);
+ },0);
+ const market=app.marketTotalsDistribution([.45,.30,.25],.6);
+ assert.ok(market.grid.every(p=>Number.isFinite(p)&&p>=0));
+ assert.ok(Math.abs(market.grid.reduce((a,b)=>a+b,0)-1)<1e-12);
+ assert.ok(Math.abs(sumCells(market,(h,a)=>h+a>2)-.6)<1e-12);
+ assert.ok(market.outcomes.every((p,i)=>Math.abs(p-[.45,.3,.25][i])<1e-12));
+ assert.equal(app.marketTotalsDistribution([.4,.3,.3],null),null);
+ assert.equal(app.marketTotalsDistribution([.4,.3,.31],.6),null);
+ const symmetry=app.marketTotalsDistribution([.25,.30,.45],.6);
+ assert.ok(Math.abs(symmetry.expectedDifference+market.expectedDifference)<1e-12);
+ assert.ok(app.marketMixedScores(d,market,.4).outcomes.every((p,i)=>Math.abs(p-(.6*d.outcomes[i]+.4*market.outcomes[i]))<1e-12));
+ assert.ok(Math.abs(sumCells(app.marketMixedScores(d,market,.4),(h,a)=>h+a>2)-
+   (.6*sumCells(d,(h,a)=>h+a>2)+.4*.6))<1e-12);
+ assert.equal(promotionCheck([],new Set(),500).eligible,false);
+
  const custom=app.marketScoreDistribution(d,[.1,.6,.3]);
  const classes=[0,0,0];
  for(const [key,p] of custom.scores)classes[app.matchOutcome(...key.split('–').map(Number))]+=p;
@@ -233,8 +322,8 @@ function selfTest(){
 async function run(){
  selfTest();
  if(process.argv.includes('--self-test'))return;
- const [dataDir,marketFile,outputDir,tffFile,ledgerFile]=process.argv.slice(2);
- if(!outputDir)throw Error('Kullanım: node tests/phase2-backtest.cjs ARŞİV_DİZİNİ ORAN_CSV ÇIKTI_DİZİNİ [TFF_JSON] [LEDGER_JSON]');
+ const [dataDir,marketFile,outputDir,tffFile,ledgerFile,extraDir]=process.argv.slice(2);
+ if(!outputDir)throw Error('Kullanım: node tests/phase2-backtest.cjs ARŞİV_DİZİNİ ORAN_CSV ÇIKTI_DİZİNİ [TFF_JSON] [LEDGER_JSON] [EK_ORAN_DİZİNİ]');
  const bytes=fs.readFileSync(marketFile);
  assert.equal(sha(bytes),manifest.sha256,'Oran kaynağının SHA-256 değeri değişti');
  let inputs=await core.loadInputs(dataDir,false);
@@ -257,28 +346,34 @@ async function run(){
   return {...row,metrics:[evalOdds(row.open),evalOdds(row.power)]};
  });
  const independent=ledgerStatus(ledgerFile);
- const report={version:app.MARKET_VERSION,baseModel:app.MODEL_VERSION,engine:app.ENGINE_VERSION,source:manifest,
-  dataSha256:sha(JSON.stringify([...inputs.flatMap(x=>[x.sha256,...(x.archiveSha256?[x.archiveSha256]:[])]),manifest.sha256])),
+ const extra=archive.joinArchive(app,inputs,await archive.loadOdds(app,extraDir));
+ const extension=analyzeArchive(matches,extra,independent);
+ const report={version:app.MARKET_VERSION,scoreVersion:app.MARKET_SCORE_VERSION,baseModel:app.MODEL_VERSION,engine:app.ENGINE_VERSION,source:manifest,
+  dataSha256:sha(JSON.stringify([...inputs.flatMap(x=>[x.sha256,...(x.archiveSha256?[x.archiveSha256]:[])]),manifest.sha256,...(extraDir?archive.manifest.map(file=>file.sha256):[])])),
   historySnapshotEnd:core.snapshotEnd,predictionTrials:0,bootstrapDraws:draws,seed,weightStep:1/scale,minWeightTraining,
-  publicationTimeAuditedPerClosingQuote:false,closingTotals:null,independent,defaultChanged:false,
+  publicationTimeAuditedPerClosingQuote:false,closingTotals:extraDir?'partial':null,archiveCoverage:extra.coverage,archiveSources:extraDir?archive.manifest:[],independent,defaultChanged:false,
   cutoff:'2026-11-16',leagueLabels:core.leagueNames,counts,weights:Object.fromEntries(weights),
-  experimentalWeights:{preMatch:learnWeight(matches,'open','2026-11-16'),closing:learnWeight(matches,'power','2026-11-16')},
+  experimentalWeights:{byLeague:extension.latest,preMatch:learnWeight(matches,'open','2026-11-16'),closing:learnWeight(matches,'power','2026-11-16')},
   closing:summarize(all,false),blend:summarize(blind,true),earlyBlend,leagues:groups,
   openVsClose:{n:openClose.length,openLogLoss:mean(openClose.map(x=>x.metrics[0][0])),
    closingLogLoss:mean(openClose.map(x=>x.metrics[1][0])),openRps:mean(openClose.map(x=>x.metrics[0][1])),
    closingRps:mean(openClose.map(x=>x.metrics[1][1])),paired:paired(openClose,1)},
-  meanPinnacleOverround:mean(matches.map(x=>x.overround))};
+  extension,meanPinnacleOverround:mean(matches.map(x=>x.overround))};
  const compact=rows=>rows?.map(({versusRelease,versusProportional,tiers,...row})=>row)??null;
- const written={version:report.version,dataSha256:report.dataSha256,cutoff:report.cutoff,source:report.source,leagueLabels:report.leagueLabels,
-  experimentalWeights:report.experimentalWeights,closing:compact(report.closing),blend:compact(report.blend),
+ const publicExtension=Object.fromEntries(Object.entries(extension.leagues).map(([key,value])=>[key,{
+  timing:compact(value.timing),totals:compact(value.totals),closingResearch:compact(value.closingResearch),
+  earlyBlend:compact(value.earlyBlend),tiers:value.tiers
+ }]));
+ const written={version:report.version,scoreVersion:report.scoreVersion,dataSha256:report.dataSha256,cutoff:report.cutoff,source:report.source,leagueLabels:report.leagueLabels,
+  experimentalWeights:report.experimentalWeights,extension:publicExtension,closing:compact(report.closing),blend:compact(report.blend),
   leagues:Object.fromEntries(Object.entries(groups).map(([k,v])=>[k,{closing:compact(v.closing),blend:compact(v.blend)}]))};
  fs.mkdirSync(outputDir,{recursive:true});
- for(const [file,data] of [['phase2-results.json',report],['phase2-market-report.json',written],['phase2-missing.json',{counts,missing}]]){
+ for(const [file,data] of [['phase2-results.json',report],['phase2-market-report.json',written],['phase2-missing.json',{counts,missing,archive:extra.exclusions}]]){
   fs.writeFileSync(path.join(outputDir,file),JSON.stringify(data)+'\n');
  }
  console.log(JSON.stringify({closingN:all.length,harmonizedN:blind.length,counts,weights:report.weights,openVsClose:{
   n:openClose.length,open:report.openVsClose.openLogLoss,close:report.openVsClose.closingLogLoss
- },unmatchedSamples:missing.filter(x=>x.reason==='archive_match_unavailable').slice(0,50)},null,2));
+ },archiveCoverage:extra.coverage,extensionWeights:extension.latest,unmatchedSamples:missing.filter(x=>x.reason==='archive_match_unavailable').slice(0,50)},null,2));
 }
 
 if(require.main===module)run().catch(error=>{console.error(error);process.exitCode=1;});
