@@ -47,14 +47,14 @@ async function run(){
  const app=live?await (await fetch(site)).text():html.replace('const SIMULATIONS=100000000;','const SIMULATIONS=10000;');
  if(live)assert.match(app,/2026\.11-forecast-learning/);
  const dom=new JSDOM(app,{url:site,runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:consoleSink,beforeParse(w){
-  w.fetch=(url,options)=>live?fetch(new URL(url,site),options):mock(String(url));
+  w.fetch=(url,options)=>live?fetch(new URL(url,site),{cache:options?.cache,signal:AbortSignal.timeout(12000)}):mock(String(url));
  }});
  const {window}=dom,$=id=>window.document.getElementById(id);
  try{
   async function submit(a,b,national=false){
    $('a').value=a;$('b').value=b;$('nationalOnly').checked=national;$('go').click();
    await until(()=>!$('go').disabled);
-   assert.match($('status').textContent,/Tamamlandı/);
+   assert.match($('status').textContent,/Tamamlandı/,$('errText').textContent);
   }
   await submit('Beşiktaş','Galatasaray');
   assert.equal($('scoreGridContent').querySelectorAll('tbody tr').length,7);
