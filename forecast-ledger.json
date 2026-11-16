@@ -1,6 +1,782 @@
 {
-  "checked": "2026-11-16T08:19:17.916Z",
-  "source": "open-matchday",
-  "coverage": 6,
-  "records": []
+  "checked": "2026-11-16T11:42:03.527Z",
+  "source": "open-matchday / Mart Jürisoo / UEFA",
+  "coverage": 7,
+  "feeds": [
+    {
+      "scope": "TUR_1_super-lig",
+      "results": "live",
+      "fixtures": "live"
+    },
+    {
+      "scope": "ENG_1_premier-league",
+      "results": "live",
+      "fixtures": "live"
+    },
+    {
+      "scope": "ESP_1_la-liga",
+      "results": "live",
+      "fixtures": "live"
+    },
+    {
+      "scope": "GER_1_bundesliga",
+      "results": "live",
+      "fixtures": "live"
+    },
+    {
+      "scope": "ITA_1_serie-a",
+      "results": "live",
+      "fixtures": "live"
+    },
+    {
+      "scope": "FRA_1_ligue-1",
+      "results": "live",
+      "fixtures": "live"
+    },
+    {
+      "scope": "national",
+      "results": "live",
+      "fixtures": "local"
+    }
+  ],
+  "records": [
+    {
+      "id": "national|2026-11-16|faroeadalari|moldova",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-16",
+      "home": "Faroe Adaları",
+      "away": "Moldova",
+      "savedAt": 1794829323527,
+      "kickoff": 1794841200000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.5482841133884182,
+        0.26572805204485866,
+        0.18598783456672283
+      ],
+      "scores": [
+        "1–0",
+        "2–0",
+        "1–1"
+      ],
+      "rates": [
+        1.4696120218292112,
+        0.731281665468004
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.5482841133884182,
+            0.26572805204485866,
+            0.18598783456672283
+          ],
+          "scores": [
+            "1–0",
+            "2–0",
+            "1–1"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-16|kazakistan|slovakya",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-16",
+      "home": "Kazakistan",
+      "away": "Slovakya",
+      "savedAt": 1794829323527,
+      "kickoff": 1794841200000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.2430863802341756,
+        0.25961628970910844,
+        0.49729733005671567
+      ],
+      "scores": [
+        "0–1",
+        "1–1",
+        "0–2"
+      ],
+      "rates": [
+        0.9693904255438309,
+        1.5073473272910878
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.2430863802341756,
+            0.25961628970910844,
+            0.49729733005671567
+          ],
+          "scores": [
+            "0–1",
+            "1–1",
+            "0–2"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-16|izlanda|luksemburg",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-16",
+      "home": "İzlanda",
+      "away": "Lüksemburg",
+      "savedAt": 1794829323527,
+      "kickoff": 1794848400000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.6657609742530343,
+        0.20613512147675261,
+        0.12810390427021262
+      ],
+      "scores": [
+        "1–0",
+        "2–0",
+        "1–1"
+      ],
+      "rates": [
+        1.9501644177866582,
+        0.7143511542439939
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.6657609742530343,
+            0.20613512147675261,
+            0.12810390427021262
+          ],
+          "scores": [
+            "1–0",
+            "2–0",
+            "1–1"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-16|estonya|bulgaristan",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-16",
+      "home": "Estonya",
+      "away": "Bulgaristan",
+      "savedAt": 1794829323527,
+      "kickoff": 1794848400000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.3611555245738979,
+        0.2975549568667343,
+        0.34128951855936734
+      ],
+      "scores": [
+        "1–1",
+        "1–0",
+        "0–1"
+      ],
+      "rates": [
+        1.0808011385466727,
+        1.041922546312888
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.3611555245738979,
+            0.2975549568667343,
+            0.34128951855936734
+          ],
+          "scores": [
+            "1–1",
+            "1–0",
+            "0–1"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-16|litvanya|liechtenstein",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-16",
+      "home": "Litvanya",
+      "away": "Liechtenstein",
+      "savedAt": 1794829323527,
+      "kickoff": 1794848400000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.7344441693966193,
+        0.19937881973193,
+        0.06617701087145016
+      ],
+      "scores": [
+        "1–0",
+        "2–0",
+        "3–0"
+      ],
+      "rates": [
+        1.827812637354434,
+        0.36428570663757903
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.7344441693966193,
+            0.19937881973193,
+            0.06617701087145016
+          ],
+          "scores": [
+            "1–0",
+            "2–0",
+            "3–0"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-16|cebelitarik|malta",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-16",
+      "home": "Cebelitarık",
+      "away": "Malta",
+      "savedAt": 1794829323527,
+      "kickoff": 1794858300000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.24429447424648196,
+        0.289068687063926,
+        0.4666368386895915
+      ],
+      "scores": [
+        "0–1",
+        "1–1",
+        "0–0"
+      ],
+      "rates": [
+        0.8361549269814222,
+        1.2741885983068122
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.24429447424648196,
+            0.289068687063926,
+            0.4666368386895915
+          ],
+          "scores": [
+            "0–1",
+            "1–1",
+            "0–0"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-16|almanya|hollanda",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-16",
+      "home": "Almanya",
+      "away": "Hollanda",
+      "savedAt": 1794829323527,
+      "kickoff": 1794858300000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.46450838286519763,
+        0.2270991592124409,
+        0.3083924579223611
+      ],
+      "scores": [
+        "1–1",
+        "2–1",
+        "1–2"
+      ],
+      "rates": [
+        1.8248256347049687,
+        1.453528872093551
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.46450838286519763,
+            0.2270991592124409,
+            0.3083924579223611
+          ],
+          "scores": [
+            "1–1",
+            "2–1",
+            "1–2"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-16|yunanistan|sirbistan",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-16",
+      "home": "Yunanistan",
+      "away": "Sırbistan",
+      "savedAt": 1794829323527,
+      "kickoff": 1794858300000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.4250543153683621,
+        0.28713064145203204,
+        0.28781504317960616
+      ],
+      "scores": [
+        "1–0",
+        "1–1",
+        "0–0"
+      ],
+      "rates": [
+        1.240768388561043,
+        0.9667944017922041
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.4250543153683621,
+            0.28713064145203204,
+            0.28781504317960616
+          ],
+          "scores": [
+            "1–0",
+            "1–1",
+            "0–0"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-16|isvicre|iskocya",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-16",
+      "home": "İsviçre",
+      "away": "İskoçya",
+      "savedAt": 1794829323527,
+      "kickoff": 1794858300000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.6983942642836379,
+        0.18525796732593952,
+        0.11634776839042231
+      ],
+      "scores": [
+        "2–0",
+        "1–0",
+        "2–1"
+      ],
+      "rates": [
+        2.164033633760169,
+        0.7512218465677386
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.6983942642836379,
+            0.18525796732593952,
+            0.11634776839042231
+          ],
+          "scores": [
+            "2–0",
+            "1–0",
+            "2–1"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-16|kuzeymakedonya|slovenya",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-16",
+      "home": "Kuzey Makedonya",
+      "away": "Slovenya",
+      "savedAt": 1794829323527,
+      "kickoff": 1794858300000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.32512357698785194,
+        0.30646827997089576,
+        0.3684081430412519
+      ],
+      "scores": [
+        "0–1",
+        "1–1",
+        "0–0"
+      ],
+      "rates": [
+        0.9675556289262495,
+        1.050529433125394
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.32512357698785194,
+            0.30646827997089576,
+            0.3684081430412519
+          ],
+          "scores": [
+            "0–1",
+            "1–1",
+            "0–0"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-17|israil|avusturya",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-17",
+      "home": "İsrail",
+      "away": "Avusturya",
+      "savedAt": 1794829323527,
+      "kickoff": 1794944700000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.19796719640920302,
+        0.19994783684095885,
+        0.6020849667498376
+      ],
+      "scores": [
+        "1–2",
+        "1–1",
+        "0–2"
+      ],
+      "rates": [
+        1.1890869072025316,
+        2.1949940577954417
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.19796719640920302,
+            0.19994783684095885,
+            0.6020849667498376
+          ],
+          "scores": [
+            "1–2",
+            "1–1",
+            "0–2"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-17|bosniaandherzegovina|romanya",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-17",
+      "home": "Bosnia and Herzegovina",
+      "away": "Romanya",
+      "savedAt": 1794829323527,
+      "kickoff": 1794944700000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.40609701823106625,
+        0.287754648560126,
+        0.30614833320880774
+      ],
+      "scores": [
+        "1–1",
+        "1–0",
+        "0–1"
+      ],
+      "rates": [
+        1.2104586886894608,
+        1.0107387225858886
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.40609701823106625,
+            0.287754648560126,
+            0.30614833320880774
+          ],
+          "scores": [
+            "1–1",
+            "1–0",
+            "0–1"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-17|ukrayna|gurcistan",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-17",
+      "home": "Ukrayna",
+      "away": "Gürcistan",
+      "savedAt": 1794829323527,
+      "kickoff": 1794944700000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.46919590150830504,
+        0.2616139313431577,
+        0.26919016714853744
+      ],
+      "scores": [
+        "1–1",
+        "1–0",
+        "2–1"
+      ],
+      "rates": [
+        1.4710602172735825,
+        1.0468411079622195
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.46919590150830504,
+            0.2616139313431577,
+            0.26919016714853744
+          ],
+          "scores": [
+            "1–1",
+            "1–0",
+            "2–1"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-17|danimarka|norvec",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-17",
+      "home": "Danimarka",
+      "away": "Norveç",
+      "savedAt": 1794829323527,
+      "kickoff": 1794944700000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.552650626081896,
+        0.23793973329193047,
+        0.20940964062617365
+      ],
+      "scores": [
+        "1–0",
+        "1–1",
+        "2–0"
+      ],
+      "rates": [
+        1.7209082404736253,
+        0.960331107414743
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.552650626081896,
+            0.23793973329193047,
+            0.20940964062617365
+          ],
+          "scores": [
+            "1–0",
+            "1–1",
+            "2–0"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-17|galler|portekiz",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-17",
+      "home": "Galler",
+      "away": "Portekiz",
+      "savedAt": 1794829323527,
+      "kickoff": 1794944700000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.192924564685808,
+        0.25654915789742244,
+        0.5505262774167697
+      ],
+      "scores": [
+        "0–1",
+        "1–1",
+        "0–2"
+      ],
+      "rates": [
+        0.7955997773181336,
+        1.543260696619845
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.192924564685808,
+            0.25654915789742244,
+            0.5505262774167697
+          ],
+          "scores": [
+            "0–1",
+            "1–1",
+            "0–2"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-17|macaristan|kuzeyirlanda",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-17",
+      "home": "Macaristan",
+      "away": "Kuzey İrlanda",
+      "savedAt": 1794829323527,
+      "kickoff": 1794944700000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.52320209478561,
+        0.2763417541660935,
+        0.2004561510482959
+      ],
+      "scores": [
+        "1–0",
+        "1–1",
+        "0–0"
+      ],
+      "rates": [
+        1.389662720913726,
+        0.7440868550569757
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.52320209478561,
+            0.2763417541660935,
+            0.2004561510482959
+          ],
+          "scores": [
+            "1–0",
+            "1–1",
+            "0–0"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-17|polonya|isvec",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-17",
+      "home": "Polonya",
+      "away": "İsveç",
+      "savedAt": 1794829323527,
+      "kickoff": 1794944700000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.4565842764066095,
+        0.25185189860196466,
+        0.29156382499142564
+      ],
+      "scores": [
+        "1–1",
+        "1–0",
+        "2–1"
+      ],
+      "rates": [
+        1.5445639304032601,
+        1.1829571481218648
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.4565842764066095,
+            0.25185189860196466,
+            0.29156382499142564
+          ],
+          "scores": [
+            "1–1",
+            "1–0",
+            "2–1"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    },
+    {
+      "id": "national|2026-11-17|irlanda|kosova",
+      "scope": "national",
+      "league": "Erkek A milli takımları",
+      "date": "2026-11-17",
+      "home": "İrlanda",
+      "away": "Kosova",
+      "savedAt": 1794829323527,
+      "kickoff": 1794944700000,
+      "model": "Rakip gücüne göre Poisson · 2026.11-club-balance",
+      "probabilities": [
+        0.47231238584574475,
+        0.2933571210214311,
+        0.2343304931328238
+      ],
+      "scores": [
+        "1–0",
+        "0–0",
+        "1–1"
+      ],
+      "rates": [
+        1.253541449054881,
+        0.7903083694362273
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.47231238584574475,
+            0.2933571210214311,
+            0.2343304931328238
+          ],
+          "scores": [
+            "1–0",
+            "0–0",
+            "1–1"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "actual": null
+    }
+  ]
 }
