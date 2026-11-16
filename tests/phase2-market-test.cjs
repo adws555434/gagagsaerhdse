@@ -32,14 +32,15 @@ async function main(){
    'x-requests-last':'2','x-requests-used':'12','x-requests-remaining':'488'
   })};
  }});
- assert.deepEqual(usage,[{scope,cost:2,used:12,remaining:488}]);
+ assert.deepEqual(usage,[{scope,cost:2,used:12,remaining:488,
+  returnedBookmakers:[{id:'example',name:'example'},{id:'old',name:'old'}]}]);
  assert.equal(Object.hasOwn(report,'creditUsage'),false);
  const emptyUsage=[];
  const empty=await buildSnapshot({key:'test-key',onUsage:row=>emptyUsage.push(row),fetcher:async()=>({
   ok:true,text:async()=>'[]',headers:new Headers({'x-requests-last':'0','x-requests-used':'invalid'})
  })});
  assert.deepEqual(empty.events,[]);
- assert.deepEqual(emptyUsage,[{scope,cost:0,used:null,remaining:null}]);
+ assert.deepEqual(emptyUsage,[{scope,cost:0,used:null,remaining:null,returnedBookmakers:[]}]);
  const quote=report.events[0];
  assert.equal(report.events.length,1);
  assert.equal(report.state,'ready');

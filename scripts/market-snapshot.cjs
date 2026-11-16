@@ -99,7 +99,16 @@ async function fetchBook(scope,key,clock,fetcher){
  }
  const usage={scope,cost:creditHeader(response.headers,'last'),used:creditHeader(response.headers,'used'),
   remaining:creditHeader(response.headers,'remaining')};
- return {scope,sha256:digest(payload),data,captured:clock(),usage};
+ const bookmakers=new Map();
+ for(const event of data){
+  for(const book of event.bookmakers){
+   if(typeof book?.key!=='string'||!book.key)continue;
+   bookmakers.set(book.key,typeof book.title==='string'&&book.title?book.title:book.key);
+  }
+ }
+ const returnedBookmakers=[...bookmakers].sort(([a],[b])=>a.localeCompare(b))
+  .map(([id,name])=>({id,name}));
+ return {scope,sha256:digest(payload),data,captured:clock(),usage:{...usage,returnedBookmakers}};
 }
 
 async function buildSnapshot({key,scopes=['TUR_1_super-lig'],clock=Date.now,fetcher=fetch,onUsage=()=>{}}={}){
