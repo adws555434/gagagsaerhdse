@@ -1,0 +1,1996 @@
+{
+  "simulations": 100000000,
+  "fullPoissonModel": {
+    "clubs": {
+      "n": 4719,
+      "hits": 2459,
+      "exact": 535,
+      "logLoss": 4731.883741918761,
+      "brier": 2823.8357204011277
+    },
+    "national": {
+      "n": 3238,
+      "hits": 1799,
+      "exact": 385,
+      "logLoss": 3070.832619990994,
+      "brier": 1819.8398883421655
+    }
+  },
+  "actualSimulation": {
+    "clubs": {
+      "n": 48,
+      "hits": 25,
+      "exact": 3,
+      "logLoss": 51.29469095635618,
+      "brier": 30.625716651715273
+    },
+    "national": {
+      "n": 48,
+      "hits": 28,
+      "exact": 6,
+      "logLoss": 41.707684338124906,
+      "brier": 24.776853031521238
+    }
+  },
+  "samplePoissonModel": {
+    "clubs": {
+      "n": 48,
+      "hits": 25,
+      "exact": 3,
+      "logLoss": 51.293591892709934,
+      "brier": 30.62504495211092
+    },
+    "national": {
+      "n": 48,
+      "hits": 28,
+      "exact": 6,
+      "logLoss": 41.706566657255436,
+      "brier": 24.776203299910676
+    }
+  },
+  "sample500000": {
+    "clubs": {
+      "n": 48,
+      "hits": 25,
+      "exact": 3,
+      "logLoss": 51.273415552570924,
+      "brier": 30.613153684063995
+    },
+    "national": {
+      "n": 48,
+      "hits": 28,
+      "exact": 6,
+      "logLoss": 41.70251507659199,
+      "brier": 24.771101881328004
+    }
+  },
+  "probabilityComparison": {
+    "maxAbsoluteDifferencePP": 0.011484567495539943,
+    "meanMaxAbsoluteDifferencePP": 0.005040110657620355,
+    "resultSelectionDifferences": 0,
+    "scoreSelectionDifferences": 0
+  },
+  "sampleMethod": "Eight evenly spaced eligible matches per club league and 48 evenly spaced international matches. Selection does not use forecast success or scores.",
+  "matches": [
+    {
+      "date": "2024-10-06",
+      "home": "Konyaspor",
+      "away": "Eyüpspor",
+      "rates": [
+        0.9212393388861423,
+        1.1940667007458472
+      ],
+      "observed": [
+        2,
+        1
+      ],
+      "counts": [
+        28318220,
+        29460343,
+        42221437
+      ],
+      "topScore": "0–1",
+      "topScoreCount": 14394131
+    },
+    {
+      "date": "2024-11-23",
+      "home": "Gaziantep FK",
+      "away": "İstanbul Başakşehir",
+      "rates": [
+        1.3978187571734921,
+        1.1109151314468224
+      ],
+      "observed": [
+        3,
+        0
+      ],
+      "counts": [
+        43497929,
+        26619137,
+        29882934
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 12638670
+    },
+    {
+      "date": "2024-12-23",
+      "home": "Hatayspor",
+      "away": "Adana Demirspor",
+      "rates": [
+        1.6001219930163244,
+        0.7957620326987188
+      ],
+      "observed": [
+        1,
+        3
+      ],
+      "counts": [
+        56486410,
+        24968463,
+        18545127
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 14577446
+    },
+    {
+      "date": "2025-02-01",
+      "home": "Kayserispor",
+      "away": "Trabzonspor",
+      "rates": [
+        1.218864089487544,
+        2.2382545507452685
+      ],
+      "observed": [
+        0,
+        0
+      ],
+      "counts": [
+        19855939,
+        19735924,
+        60408137
+      ],
+      "topScore": "1–2",
+      "topScoreCount": 9621851
+    },
+    {
+      "date": "2025-03-07",
+      "home": "Bodrum FK",
+      "away": "Kasımpaşa SK",
+      "rates": [
+        1.2318387772407877,
+        1.0445070859929686
+      ],
+      "observed": [
+        1,
+        0
+      ],
+      "counts": [
+        40452289,
+        28385144,
+        31162567
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 13213669
+    },
+    {
+      "date": "2025-04-13",
+      "home": "Gaziantep FK",
+      "away": "Hatayspor",
+      "rates": [
+        2.165947670935769,
+        0.6090964966056452
+      ],
+      "observed": [
+        2,
+        1
+      ],
+      "counts": [
+        73345773,
+        17603396,
+        9050831
+      ],
+      "topScore": "2–0",
+      "topScoreCount": 14623785
+    },
+    {
+      "date": "2025-05-18",
+      "home": "Bodrum FK",
+      "away": "Trabzonspor",
+      "rates": [
+        0.8676373280161102,
+        1.0183453269091183
+      ],
+      "observed": [
+        1,
+        1
+      ],
+      "counts": [
+        30035240,
+        31838861,
+        38125899
+      ],
+      "topScore": "0–1",
+      "topScoreCount": 15447826
+    },
+    {
+      "date": "2025-10-19",
+      "home": "Alanyaspor",
+      "away": "Göztepe",
+      "rates": [
+        0.6579392902507639,
+        1.449558268830092
+      ],
+      "observed": [
+        1,
+        0
+      ],
+      "counts": [
+        16894274,
+        26823849,
+        56281877
+      ],
+      "topScore": "0–1",
+      "topScoreCount": 17619355
+    },
+    {
+      "date": "2023-11-11",
+      "home": "Wolverhampton Wanderers FC",
+      "away": "Tottenham Hotspur FC",
+      "rates": [
+        1.20585469047179,
+        2.3312987257652553
+      ],
+      "observed": [
+        2,
+        1
+      ],
+      "counts": [
+        18514216,
+        18989713,
+        62496071
+      ],
+      "topScore": "1–2",
+      "topScoreCount": 9531307
+    },
+    {
+      "date": "2024-02-10",
+      "home": "Liverpool FC",
+      "away": "Burnley FC",
+      "rates": [
+        2.7227934479516316,
+        0.7941700260603375
+      ],
+      "observed": [
+        3,
+        1
+      ],
+      "counts": [
+        77849214,
+        13812491,
+        8338295
+      ],
+      "topScore": "2–0",
+      "topScoreCount": 11004606
+    },
+    {
+      "date": "2024-05-04",
+      "home": "Burnley FC",
+      "away": "Newcastle United FC",
+      "rates": [
+        1.4116218329735997,
+        1.7689702062436057
+      ],
+      "observed": [
+        1,
+        4
+      ],
+      "counts": [
+        30817911,
+        23118844,
+        46063245
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 10376166
+    },
+    {
+      "date": "2024-12-05",
+      "home": "AFC Bournemouth",
+      "away": "Tottenham Hotspur FC",
+      "rates": [
+        1.260093179467608,
+        1.71548502291553
+      ],
+      "observed": [
+        1,
+        0
+      ],
+      "counts": [
+        28152651,
+        23732145,
+        48115204
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 11029707
+    },
+    {
+      "date": "2025-02-23",
+      "home": "Newcastle United FC",
+      "away": "Nottingham Forest FC",
+      "rates": [
+        1.8920365749604213,
+        1.6034492289090208
+      ],
+      "observed": [
+        4,
+        3
+      ],
+      "counts": [
+        44862071,
+        22075102,
+        33062827
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 9199443
+    },
+    {
+      "date": "2025-05-25",
+      "home": "Tottenham Hotspur FC",
+      "away": "Brighton & Hove Albion FC",
+      "rates": [
+        1.419301873976015,
+        2.0990139652055917
+      ],
+      "observed": [
+        1,
+        4
+      ],
+      "counts": [
+        25808200,
+        21012794,
+        53179006
+      ],
+      "topScore": "1–2",
+      "topScoreCount": 9268902
+    },
+    {
+      "date": "2025-12-30",
+      "home": "West Ham United FC",
+      "away": "Brighton & Hove Albion FC",
+      "rates": [
+        1.293674161073976,
+        1.8282494963911313
+      ],
+      "observed": [
+        2,
+        2
+      ],
+      "counts": [
+        27127208,
+        22883886,
+        49988906
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 10428060
+    },
+    {
+      "date": "2026-04-12",
+      "home": "Chelsea FC",
+      "away": "Manchester City FC",
+      "rates": [
+        1.288032332676431,
+        1.5455690856204813
+      ],
+      "observed": [
+        0,
+        3
+      ],
+      "counts": [
+        31757942,
+        24880056,
+        43362002
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 11710877
+    },
+    {
+      "date": "2023-11-04",
+      "home": "Real Betis Balompié",
+      "away": "RCD Mallorca",
+      "rates": [
+        1.678493256831085,
+        0.8908365790163373
+      ],
+      "observed": [
+        2,
+        0
+      ],
+      "counts": [
+        55980365,
+        24168827,
+        19850808
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 12859879
+    },
+    {
+      "date": "2024-02-10",
+      "home": "Deportivo Alavés",
+      "away": "Villarreal CF",
+      "rates": [
+        1.6479937115768457,
+        1.4152917175948647
+      ],
+      "observed": [
+        1,
+        1
+      ],
+      "counts": [
+        43145845,
+        23842739,
+        33011416
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 10901648
+    },
+    {
+      "date": "2024-05-14",
+      "home": "Real Madrid CF",
+      "away": "Deportivo Alavés",
+      "rates": [
+        1.9475343927388975,
+        0.49658814101768517
+      ],
+      "observed": [
+        5,
+        0
+      ],
+      "counts": [
+        72191325,
+        19341219,
+        8467456
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 16904665
+    },
+    {
+      "date": "2024-12-01",
+      "home": "Villarreal CF",
+      "away": "Girona FC",
+      "rates": [
+        1.7631064445941806,
+        1.3102413444575685
+      ],
+      "observed": [
+        2,
+        2
+      ],
+      "counts": [
+        48118139,
+        23326762,
+        28555099
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 10690508
+    },
+    {
+      "date": "2025-03-09",
+      "home": "Getafe CF",
+      "away": "Club Atlético de Madrid",
+      "rates": [
+        0.526747096244629,
+        1.0742401412777407
+      ],
+      "observed": [
+        2,
+        1
+      ],
+      "counts": [
+        17933960,
+        33309734,
+        48756306
+      ],
+      "topScore": "0–1",
+      "topScoreCount": 21666592
+    },
+    {
+      "date": "2025-09-28",
+      "home": "Rayo Vallecano de Madrid",
+      "away": "Sevilla FC",
+      "rates": [
+        1.3606416719688288,
+        1.5402336033810795
+      ],
+      "observed": [
+        0,
+        1
+      ],
+      "counts": [
+        33656117,
+        24666390,
+        41677493
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 11525425
+    },
+    {
+      "date": "2026-01-17",
+      "home": "Real Betis Balompié",
+      "away": "Villarreal CF",
+      "rates": [
+        1.6198026280196727,
+        2.028317752757865
+      ],
+      "observed": [
+        2,
+        0
+      ],
+      "counts": [
+        31146334,
+        21350329,
+        47503337
+      ],
+      "topScore": "1–2",
+      "topScoreCount": 8678611
+    },
+    {
+      "date": "2026-04-23",
+      "home": "Levante UD",
+      "away": "Sevilla FC",
+      "rates": [
+        1.7409388231542793,
+        1.0682516530229023
+      ],
+      "observed": [
+        2,
+        0
+      ],
+      "counts": [
+        53128039,
+        23654406,
+        23217555
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 11209268
+    },
+    {
+      "date": "2023-11-11",
+      "home": "VfB Stuttgart",
+      "away": "Borussia Dortmund",
+      "rates": [
+        2.6573488631993665,
+        1.6496498062427318
+      ],
+      "observed": [
+        2,
+        1
+      ],
+      "counts": [
+        59259068,
+        17915425,
+        22825507
+      ],
+      "topScore": "2–1",
+      "topScoreCount": 7846056
+    },
+    {
+      "date": "2024-02-16",
+      "home": "1. FC Köln",
+      "away": "SV Werder Bremen",
+      "rates": [
+        0.8566472898040272,
+        1.1937597681571754
+      ],
+      "observed": [
+        0,
+        1
+      ],
+      "counts": [
+        26411693,
+        29803901,
+        43784406
+      ],
+      "topScore": "0–1",
+      "topScoreCount": 15359077
+    },
+    {
+      "date": "2024-05-05",
+      "home": "1. FC Union Berlin",
+      "away": "VfL Bochum 1848",
+      "rates": [
+        1.3041357418542616,
+        1.0013442316702834
+      ],
+      "observed": [
+        3,
+        4
+      ],
+      "counts": [
+        43486423,
+        27910078,
+        28603499
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 13020489
+    },
+    {
+      "date": "2024-12-14",
+      "home": "1. FC Union Berlin",
+      "away": "VfL Bochum 1848",
+      "rates": [
+        1.7765104299454413,
+        0.6731787864347816
+      ],
+      "observed": [
+        0,
+        2
+      ],
+      "counts": [
+        63905096,
+        22487133,
+        13607771
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 15334850
+    },
+    {
+      "date": "2025-03-07",
+      "home": "Borussia Mönchengladbach",
+      "away": "1. FSV Mainz 05",
+      "rates": [
+        1.0625561745091459,
+        1.2992652375310008
+      ],
+      "observed": [
+        1,
+        3
+      ],
+      "counts": [
+        30390036,
+        27684960,
+        41925004
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 13014310
+    },
+    {
+      "date": "2025-10-18",
+      "home": "1. FSV Mainz 05",
+      "away": "Bayer 04 Leverkusen",
+      "rates": [
+        0.8627869885683539,
+        1.8415527249180046
+      ],
+      "observed": [
+        3,
+        4
+      ],
+      "counts": [
+        17152435,
+        22373052,
+        60474513
+      ],
+      "topScore": "0–1",
+      "topScoreCount": 12323030
+    },
+    {
+      "date": "2026-01-18",
+      "home": "FC Augsburg",
+      "away": "SC Freiburg",
+      "rates": [
+        1.5722179912504521,
+        1.7223053909491621
+      ],
+      "observed": [
+        2,
+        2
+      ],
+      "counts": [
+        35343569,
+        22983490,
+        41672941
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 10043655
+    },
+    {
+      "date": "2026-04-11",
+      "home": "1. FC Heidenheim 1846",
+      "away": "1. FC Union Berlin",
+      "rates": [
+        1.4890463868099637,
+        1.431483804794312
+      ],
+      "observed": [
+        3,
+        1
+      ],
+      "counts": [
+        38947174,
+        24674318,
+        36378508
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 11495207
+    },
+    {
+      "date": "2023-11-06",
+      "home": "Frosinone Calcio",
+      "away": "Empoli FC",
+      "rates": [
+        2.5857187579600343,
+        0.822072903982847
+      ],
+      "observed": [
+        2,
+        1
+      ],
+      "counts": [
+        75281279,
+        15095714,
+        9623007
+      ],
+      "topScore": "2–0",
+      "topScoreCount": 11069269
+    },
+    {
+      "date": "2024-02-09",
+      "home": "US Salernitana 1919",
+      "away": "Empoli FC",
+      "rates": [
+        1.0913092540325537,
+        1.2078197586345063
+      ],
+      "observed": [
+        1,
+        3
+      ],
+      "counts": [
+        32956725,
+        28319337,
+        38723938
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 13232242
+    },
+    {
+      "date": "2024-05-05",
+      "home": "Empoli FC",
+      "away": "Frosinone Calcio",
+      "rates": [
+        1.3549858825749468,
+        0.9200081963692679
+      ],
+      "observed": [
+        0,
+        0
+      ],
+      "counts": [
+        46861062,
+        27685071,
+        25453867
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 13930462
+    },
+    {
+      "date": "2024-11-30",
+      "home": "AC Milan",
+      "away": "Empoli FC",
+      "rates": [
+        1.1364463947059196,
+        0.7590855301269329
+      ],
+      "observed": [
+        3,
+        0
+      ],
+      "counts": [
+        44496368,
+        31070609,
+        24433023
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 17071952
+    },
+    {
+      "date": "2025-02-17",
+      "home": "Genoa CFC",
+      "away": "Venezia FC",
+      "rates": [
+        1.3527216134712508,
+        0.898659438954274
+      ],
+      "observed": [
+        2,
+        0
+      ],
+      "counts": [
+        47326695,
+        27774342,
+        24898963
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 14238341
+    },
+    {
+      "date": "2025-05-18",
+      "home": "US Lecce",
+      "away": "Torino FC",
+      "rates": [
+        0.6545200386585651,
+        1.290841874085341
+      ],
+      "observed": [
+        1,
+        0
+      ],
+      "counts": [
+        18888475,
+        29171325,
+        51940200
+      ],
+      "topScore": "0–1",
+      "topScoreCount": 18455407
+    },
+    {
+      "date": "2026-01-08",
+      "home": "AC Milan",
+      "away": "Genoa CFC",
+      "rates": [
+        2.3017077591572894,
+        0.9487109956570334
+      ],
+      "observed": [
+        1,
+        1
+      ],
+      "counts": [
+        67721396,
+        18243966,
+        14034638
+      ],
+      "topScore": "2–0",
+      "topScoreCount": 10262094
+    },
+    {
+      "date": "2026-04-11",
+      "home": "AC Milan",
+      "away": "Udinese Calcio",
+      "rates": [
+        1.3650250277995628,
+        0.910637827759466
+      ],
+      "observed": [
+        0,
+        3
+      ],
+      "counts": [
+        47368564,
+        27602189,
+        25029247
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 14024297
+    },
+    {
+      "date": "2023-11-05",
+      "home": "FC Nantes",
+      "away": "Stade de Reims",
+      "rates": [
+        1.8329519180698204,
+        1.929702185923144
+      ],
+      "observed": [
+        0,
+        1
+      ],
+      "counts": [
+        37388288,
+        21384922,
+        41226790
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 8216068
+    },
+    {
+      "date": "2024-02-11",
+      "home": "Montpellier HSC",
+      "away": "Olympique Lyonnais",
+      "rates": [
+        1.084006349515065,
+        0.7678593658047553
+      ],
+      "observed": [
+        1,
+        2
+      ],
+      "counts": [
+        42632441,
+        31742934,
+        25624625
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 17015083
+    },
+    {
+      "date": "2024-05-04",
+      "home": "AS Monaco FC",
+      "away": "Clermont Foot 63",
+      "rates": [
+        1.587789426908183,
+        0.6654203789342799
+      ],
+      "observed": [
+        4,
+        1
+      ],
+      "counts": [
+        59644259,
+        24910771,
+        15444970
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 16681940
+    },
+    {
+      "date": "2024-12-01",
+      "home": "Olympique de Marseille",
+      "away": "AS Monaco FC",
+      "rates": [
+        1.181439905059725,
+        2.0157308833922367
+      ],
+      "observed": [
+        2,
+        1
+      ],
+      "counts": [
+        21922466,
+        21402750,
+        56674784
+      ],
+      "topScore": "1–2",
+      "topScoreCount": 9807362
+    },
+    {
+      "date": "2025-03-01",
+      "home": "Paris Saint-Germain FC",
+      "away": "Lille OSC",
+      "rates": [
+        1.5798749307924262,
+        1.026285885942346
+      ],
+      "observed": [
+        4,
+        1
+      ],
+      "counts": [
+        50202746,
+        25170173,
+        24627081
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 11970524
+    },
+    {
+      "date": "2025-05-17",
+      "home": "Paris Saint-Germain FC",
+      "away": "AJ Auxerre",
+      "rates": [
+        2.0934817836213537,
+        1.326670789254695
+      ],
+      "observed": [
+        3,
+        1
+      ],
+      "counts": [
+        55076162,
+        20979313,
+        23944525
+      ],
+      "topScore": "2–1",
+      "topScoreCount": 9511974
+    },
+    {
+      "date": "2026-01-03",
+      "home": "Lille OSC",
+      "away": "Stade Rennais FC 1901",
+      "rates": [
+        2.3138264958225148,
+        0.9568302177663148
+      ],
+      "observed": [
+        0,
+        2
+      ],
+      "counts": [
+        67757402,
+        18175014,
+        14067584
+      ],
+      "topScore": "2–0",
+      "topScoreCount": 10163742
+    },
+    {
+      "date": "2026-04-12",
+      "home": "Toulouse FC",
+      "away": "Lille OSC",
+      "rates": [
+        1.1661940068696066,
+        1.0659863451862501
+      ],
+      "observed": [
+        0,
+        4
+      ],
+      "counts": [
+        38088556,
+        28836477,
+        33074967
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 13343580
+    },
+    {
+      "date": "2023-03-03",
+      "home": "Grenada",
+      "away": "Saint Lucia",
+      "rates": [
+        1.1151359296009065,
+        1.086183946024341
+      ],
+      "observed": [
+        1,
+        2
+      ],
+      "counts": [
+        36177265,
+        29116340,
+        34706395
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 13406103
+    },
+    {
+      "date": "2023-03-24",
+      "home": "Çekya",
+      "away": "Polonya",
+      "rates": [
+        2.098773016888658,
+        1.581702177121931
+      ],
+      "observed": [
+        3,
+        1
+      ],
+      "counts": [
+        49763753,
+        21004460,
+        29231787
+      ],
+      "topScore": "2–1",
+      "topScoreCount": 8783370
+    },
+    {
+      "date": "2023-03-27",
+      "home": "Avusturya",
+      "away": "Estonya",
+      "rates": [
+        1.474232483125195,
+        1.0803479164998102
+      ],
+      "observed": [
+        2,
+        1
+      ],
+      "counts": [
+        46220585,
+        26044407,
+        27735008
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 12380112
+    },
+    {
+      "date": "2023-06-11",
+      "home": "Mauritius",
+      "away": "Pakistan",
+      "rates": [
+        1.3300697117417568,
+        0.6086824927357116
+      ],
+      "observed": [
+        3,
+        0
+      ],
+      "counts": [
+        54341259,
+        28616259,
+        17042482
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 19138541
+    },
+    {
+      "date": "2023-06-17",
+      "home": "Arnavutluk",
+      "away": "Moldova",
+      "rates": [
+        1.171675401419924,
+        0.8537246015446553
+      ],
+      "observed": [
+        2,
+        0
+      ],
+      "counts": [
+        43197132,
+        30086102,
+        26716766
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 15456245
+    },
+    {
+      "date": "2023-06-20",
+      "home": "Uruguay",
+      "away": "Küba",
+      "rates": [
+        1.9023614224778398,
+        0.7815524899163151
+      ],
+      "observed": [
+        2,
+        0
+      ],
+      "counts": [
+        63859658,
+        21443621,
+        14696721
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 12992428
+    },
+    {
+      "date": "2023-07-08",
+      "home": "Namibya",
+      "away": "Esvatini",
+      "rates": [
+        1.0449877082116354,
+        0.9930407382158691
+      ],
+      "observed": [
+        1,
+        2
+      ],
+      "counts": [
+        36112625,
+        30486315,
+        33401060
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 13616524
+    },
+    {
+      "date": "2023-09-07",
+      "home": "Nijer",
+      "away": "Uganda",
+      "rates": [
+        1.0408111177435002,
+        1.1861112683907402
+      ],
+      "observed": [
+        0,
+        2
+      ],
+      "counts": [
+        31952409,
+        28822976,
+        39224615
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 13319422
+    },
+    {
+      "date": "2023-09-10",
+      "home": "Yunanistan",
+      "away": "Cebelitarık",
+      "rates": [
+        2.857993790130417,
+        0.25526084133024757
+      ],
+      "observed": [
+        5,
+        0
+      ],
+      "counts": [
+        89870474,
+        8329962,
+        1799564
+      ],
+      "topScore": "2–0",
+      "topScoreCount": 18156977
+    },
+    {
+      "date": "2023-09-12",
+      "home": "Romanya",
+      "away": "Kosova",
+      "rates": [
+        1.407972105818389,
+        0.9353103650898867
+      ],
+      "observed": [
+        2,
+        0
+      ],
+      "counts": [
+        47932522,
+        27068638,
+        24998840
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 13519750
+    },
+    {
+      "date": "2023-10-13",
+      "home": "Portekiz",
+      "away": "Slovakya",
+      "rates": [
+        2.350032089583549,
+        0.46609193379068015
+      ],
+      "observed": [
+        3,
+        2
+      ],
+      "counts": [
+        79748649,
+        14563385,
+        5687966
+      ],
+      "topScore": "2–0",
+      "topScoreCount": 16528680
+    },
+    {
+      "date": "2023-10-17",
+      "home": "Peru",
+      "away": "Arjantin",
+      "rates": [
+        0.42131379122371854,
+        1.2934072903350935
+      ],
+      "observed": [
+        0,
+        2
+      ],
+      "counts": [
+        12034569,
+        29236027,
+        58729404
+      ],
+      "topScore": "0–1",
+      "topScoreCount": 23281168
+    },
+    {
+      "date": "2023-11-16",
+      "home": "Umman",
+      "away": "Tayvan",
+      "rates": [
+        2.3530460723743722,
+        0.9839983208720567
+      ],
+      "observed": [
+        3,
+        0
+      ],
+      "counts": [
+        67850106,
+        17961181,
+        14188713
+      ],
+      "topScore": "2–0",
+      "topScoreCount": 9836682
+    },
+    {
+      "date": "2023-11-18",
+      "home": "Belarus",
+      "away": "Andorra",
+      "rates": [
+        1.211693407454074,
+        0.7994168758780614
+      ],
+      "observed": [
+        1,
+        0
+      ],
+      "counts": [
+        45758022,
+        29855230,
+        24386748
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 16216841
+    },
+    {
+      "date": "2023-11-21",
+      "home": "Bahreyn",
+      "away": "Birleşik Arap Emirlikleri",
+      "rates": [
+        1.110539899590938,
+        1.058174912244378
+      ],
+      "observed": [
+        0,
+        2
+      ],
+      "counts": [
+        36639729,
+        29370770,
+        33989501
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 13438274
+    },
+    {
+      "date": "2024-01-08",
+      "home": "Suriye",
+      "away": "Malezya",
+      "rates": [
+        0.7793216618173228,
+        2.264186845301746
+      ],
+      "observed": [
+        2,
+        2
+      ],
+      "counts": [
+        11315051,
+        17702983,
+        70981966
+      ],
+      "topScore": "0–2",
+      "topScoreCount": 12214132
+    },
+    {
+      "date": "2024-01-21",
+      "home": "Fas",
+      "away": "Kongo Demokratik Cumhuriyeti",
+      "rates": [
+        1.0592280589472585,
+        0.6231435756733075
+      ],
+      "observed": [
+        1,
+        1
+      ],
+      "counts": [
+        45592992,
+        33047487,
+        21359521
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 19694990
+    },
+    {
+      "date": "2024-03-21",
+      "home": "Güney Afrika",
+      "away": "Andorra",
+      "rates": [
+        1.1930350478235925,
+        0.4245946301271468
+      ],
+      "observed": [
+        1,
+        1
+      ],
+      "counts": [
+        55600189,
+        31228706,
+        13171105
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 23666802
+    },
+    {
+      "date": "2024-03-22",
+      "home": "Çad",
+      "away": "Mauritius",
+      "rates": [
+        0.668252877281917,
+        1.2656557945372562
+      ],
+      "observed": [
+        1,
+        0
+      ],
+      "counts": [
+        19646253,
+        29527745,
+        50826002
+      ],
+      "topScore": "0–1",
+      "topScoreCount": 18304608
+    },
+    {
+      "date": "2024-03-26",
+      "home": "Fransa",
+      "away": "Şili",
+      "rates": [
+        3.16015976298836,
+        0.4093267423698781
+      ],
+      "observed": [
+        3,
+        2
+      ],
+      "counts": [
+        89690671,
+        7826807,
+        2482522
+      ],
+      "topScore": "3–0",
+      "topScoreCount": 14820332
+    },
+    {
+      "date": "2024-06-06",
+      "home": "Libya",
+      "away": "Mauritius",
+      "rates": [
+        1.4994094844317347,
+        0.5736606493729597
+      ],
+      "observed": [
+        2,
+        1
+      ],
+      "counts": [
+        59943005,
+        25965097,
+        14091898
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 18863871
+    },
+    {
+      "date": "2024-06-08",
+      "home": "Britanya Virjin Adaları",
+      "away": "Guatemala",
+      "rates": [
+        1.1830305552495248,
+        1.348392388815869
+      ],
+      "observed": [
+        0,
+        3
+      ],
+      "counts": [
+        32737919,
+        26695799,
+        40566282
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 12689292
+    },
+    {
+      "date": "2024-06-11",
+      "home": "Suudi Arabistan",
+      "away": "Ürdün",
+      "rates": [
+        1.7490882904572023,
+        1.0567952904655773
+      ],
+      "observed": [
+        1,
+        2
+      ],
+      "counts": [
+        53593552,
+        23576630,
+        22829818
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 11176943
+    },
+    {
+      "date": "2024-06-25",
+      "home": "Şili",
+      "away": "Arjantin",
+      "rates": [
+        0.6981796434305021,
+        1.4978787140630863
+      ],
+      "observed": [
+        0,
+        1
+      ],
+      "counts": [
+        17355356,
+        26185348,
+        56459296
+      ],
+      "topScore": "0–1",
+      "topScoreCount": 16661747
+    },
+    {
+      "date": "2024-09-05",
+      "home": "Timor-Leste",
+      "away": "Moğolistan",
+      "rates": [
+        1.1005982669789427,
+        1.3984946383317334
+      ],
+      "observed": [
+        4,
+        1
+      ],
+      "counts": [
+        29600479,
+        26647032,
+        43752489
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 12646014
+    },
+    {
+      "date": "2024-09-07",
+      "home": "Nijerya",
+      "away": "Benin",
+      "rates": [
+        1.7743207388631184,
+        0.8358707680788864
+      ],
+      "observed": [
+        3,
+        0
+      ],
+      "counts": [
+        59629662,
+        23029924,
+        17340414
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 13045374
+    },
+    {
+      "date": "2024-09-10",
+      "home": "Benin",
+      "away": "Libya",
+      "rates": [
+        0.9170310944985237,
+        1.4797005860491403
+      ],
+      "observed": [
+        2,
+        1
+      ],
+      "counts": [
+        23367549,
+        26336352,
+        50296099
+      ],
+      "topScore": "0–1",
+      "topScoreCount": 13468945
+    },
+    {
+      "date": "2024-10-10",
+      "home": "Moldova",
+      "away": "Andorra",
+      "rates": [
+        1.8891239287892927,
+        0.4935049021079951
+      ],
+      "observed": [
+        2,
+        0
+      ],
+      "counts": [
+        71116261,
+        20073567,
+        8810172
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 17437598
+    },
+    {
+      "date": "2024-10-12",
+      "home": "Bulgaristan",
+      "away": "Lüksemburg",
+      "rates": [
+        1.5626800405079,
+        0.5354199733001915
+      ],
+      "observed": [
+        0,
+        0
+      ],
+      "counts": [
+        62631935,
+        24897486,
+        12470579
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 19173876
+    },
+    {
+      "date": "2024-10-15",
+      "home": "Saint Kitts and Nevis",
+      "away": "Cayman Adaları",
+      "rates": [
+        2.5181428305618674,
+        0.7667097434098584
+      ],
+      "observed": [
+        1,
+        1
+      ],
+      "counts": [
+        75460580,
+        15302218,
+        9237202
+      ],
+      "topScore": "2–0",
+      "topScoreCount": 11873982
+    },
+    {
+      "date": "2024-11-14",
+      "home": "Güney Sudan",
+      "away": "Congo",
+      "rates": [
+        1.9945453954400207,
+        0.9504993511344204
+      ],
+      "observed": [
+        3,
+        2
+      ],
+      "counts": [
+        61644040,
+        21082491,
+        17273469
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 10491728
+    },
+    {
+      "date": "2024-11-18",
+      "home": "Hırvatistan",
+      "away": "Portekiz",
+      "rates": [
+        1.101565063475736,
+        1.1631255309898054
+      ],
+      "observed": [
+        1,
+        1
+      ],
+      "counts": [
+        34162241,
+        28612639,
+        37225120
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 13310210
+    },
+    {
+      "date": "2024-11-19",
+      "home": "Sierra Leone",
+      "away": "Zambiya",
+      "rates": [
+        0.9832641922736381,
+        1.519483727017854
+      ],
+      "observed": [
+        0,
+        2
+      ],
+      "counts": [
+        24469527,
+        25825684,
+        49704789
+      ],
+      "topScore": "0–1",
+      "topScoreCount": 12436672
+    },
+    {
+      "date": "2025-01-22",
+      "home": "Özbekistan",
+      "away": "Ürdün",
+      "rates": [
+        1.1380514175535896,
+        1.1288607169884493
+      ],
+      "observed": [
+        0,
+        0
+      ],
+      "counts": [
+        35915607,
+        28620189,
+        35464204
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 13318135
+    },
+    {
+      "date": "2025-03-21",
+      "home": "Yeni Kaledonya",
+      "away": "Tahiti",
+      "rates": [
+        2.01964473735481,
+        1.491388356439954
+      ],
+      "observed": [
+        3,
+        0
+      ],
+      "counts": [
+        49960529,
+        21504677,
+        28534794
+      ],
+      "topScore": "2–1",
+      "topScoreCount": 9080553
+    },
+    {
+      "date": "2025-03-25",
+      "home": "Tayland",
+      "away": "Sri Lanka",
+      "rates": [
+        1.8359063234195687,
+        0.7461221290804035
+      ],
+      "observed": [
+        1,
+        0
+      ],
+      "counts": [
+        63318125,
+        22059591,
+        14622284
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 13880546
+    },
+    {
+      "date": "2025-06-01",
+      "home": "El Salvador",
+      "away": "Guatemala",
+      "rates": [
+        1.2534012952764297,
+        1.2080318117824935
+      ],
+      "observed": [
+        1,
+        1
+      ],
+      "counts": [
+        37467765,
+        27244681,
+        35287554
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 12917983
+    },
+    {
+      "date": "2025-06-07",
+      "home": "Meksika",
+      "away": "İsviçre",
+      "rates": [
+        1.4477261331119557,
+        1.0236939330473787
+      ],
+      "observed": [
+        2,
+        4
+      ],
+      "counts": [
+        46858716,
+        26437730,
+        26703554
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 12519677
+    },
+    {
+      "date": "2025-06-10",
+      "home": "İran",
+      "away": "Kuzey Kore",
+      "rates": [
+        2.223429459104696,
+        0.6421463094748633
+      ],
+      "observed": [
+        3,
+        0
+      ],
+      "counts": [
+        73544470,
+        17231221,
+        9224309
+      ],
+      "topScore": "2–0",
+      "topScoreCount": 14075557
+    },
+    {
+      "date": "2025-07-17",
+      "home": "Gozo",
+      "away": "Western Isles",
+      "rates": [
+        1.074858732498372,
+        0.8279209378446628
+      ],
+      "observed": [
+        3,
+        3
+      ],
+      "counts": [
+        40855379,
+        31451939,
+        27692682
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 16027807
+    },
+    {
+      "date": "2025-09-05",
+      "home": "Bermuda",
+      "away": "Jamaika",
+      "rates": [
+        2.3447212748907216,
+        2.020735996799125
+      ],
+      "observed": [
+        0,
+        4
+      ],
+      "counts": [
+        46208996,
+        19540974,
+        34250030
+      ],
+      "topScore": "2–2",
+      "topScoreCount": 7137782
+    },
+    {
+      "date": "2025-09-09",
+      "home": "Togo",
+      "away": "Sudan",
+      "rates": [
+        0.793654361545145,
+        0.6873568791281068
+      ],
+      "observed": [
+        1,
+        0
+      ],
+      "counts": [
+        34658912,
+        36942926,
+        28398162
+      ],
+      "topScore": "0–0",
+      "topScoreCount": 22737688
+    },
+    {
+      "date": "2025-10-09",
+      "home": "Bangladeş",
+      "away": "Hong Kong",
+      "rates": [
+        0.6128016499584826,
+        1.113643543546967
+      ],
+      "observed": [
+        3,
+        4
+      ],
+      "counts": [
+        20177437,
+        32172160,
+        47650403
+      ],
+      "topScore": "0–1",
+      "topScoreCount": 19816719
+    },
+    {
+      "date": "2025-10-12",
+      "home": "Hırvatistan",
+      "away": "Cebelitarık",
+      "rates": [
+        3.8025770716999903,
+        0.3565787258643466
+      ],
+      "observed": [
+        3,
+        0
+      ],
+      "counts": [
+        94285409,
+        4514476,
+        1200115
+      ],
+      "topScore": "3–0",
+      "topScoreCount": 14311211
+    },
+    {
+      "date": "2025-10-14",
+      "home": "Jamaika",
+      "away": "Bermuda",
+      "rates": [
+        2.62029039328091,
+        0.7755669785089789
+      ],
+      "observed": [
+        4,
+        0
+      ],
+      "counts": [
+        76787941,
+        14505677,
+        8706382
+      ],
+      "topScore": "2–0",
+      "topScoreCount": 11502831
+    },
+    {
+      "date": "2025-11-15",
+      "home": "Danimarka",
+      "away": "Belarus",
+      "rates": [
+        2.4909289466459046,
+        0.735774296293341
+      ],
+      "observed": [
+        2,
+        2
+      ],
+      "counts": [
+        75724905,
+        15334974,
+        8940121
+      ],
+      "topScore": "2–0",
+      "topScoreCount": 12314021
+    },
+    {
+      "date": "2025-11-18",
+      "home": "Güney Kore",
+      "away": "Gana",
+      "rates": [
+        1.485714169754159,
+        1.0307067834892945
+      ],
+      "observed": [
+        1,
+        0
+      ],
+      "counts": [
+        47689692,
+        26060358,
+        26249950
+      ],
+      "topScore": "1–1",
+      "topScoreCount": 12368196
+    },
+    {
+      "date": "2025-12-22",
+      "home": "Güney Afrika",
+      "away": "Angola",
+      "rates": [
+        1.3904135976471448,
+        0.7893886416601198
+      ],
+      "observed": [
+        2,
+        1
+      ],
+      "counts": [
+        51148710,
+        27568504,
+        21282786
+      ],
+      "topScore": "1–0",
+      "topScoreCount": 15718649
+    }
+  ]
+}
