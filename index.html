@@ -357,33 +357,36 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       <button id="eventCancel" type="button" disabled>İptal et</button>
     </div>
     <p class="muted tiny" id="eventStatus" role="status"></p>
-    <div class="hidden" id="eventOutput">
-      <div class="event-headline">
-        <p class="muted tiny" id="eventFixture"></p>
-        <h3 id="eventAnswer"></h3>
-        <p id="eventPickCount" class="muted"></p>
+    <details id="eventComparison" open>
+      <summary id="eventComparisonTitle" class="hidden">Simülasyon modeliyle karşılaştır</summary>
+      <div class="hidden" id="eventOutput">
+        <div class="event-headline">
+          <p class="muted tiny" id="eventFixture"></p>
+          <h3 id="eventAnswer"></h3>
+          <p id="eventPickCount" class="muted"></p>
+        </div>
+        <div class="event-breakdown">
+          <section class="event-data" aria-labelledby="eventOutcomesTitle">
+            <h3 id="eventOutcomesTitle">Maç nasıl biter?</h3>
+            <ul class="event-probabilities" id="eventOutcomes"></ul>
+          </section>
+          <section class="event-data" aria-labelledby="eventScoresTitle">
+            <h3 id="eventScoresTitle">En olası 3 skor</h3>
+            <p class="muted tiny">Kazanan tahmininden bağımsız sıralanır.</p>
+            <ol class="event-probabilities" id="eventScores"></ol>
+            <p id="eventCombined" class="event-combined"></p>
+          </section>
+        </div>
+        <details class="event-history" id="eventHistoryDetails"><summary>Geçmişte ne kadar tuttu?</summary>
+          <div id="eventHistory"></div>
+          <p class="muted tiny"><a href="https://github.com/adws555434/gagagsaerhdse/blob/main/EVENT_CALIBRATION.md">Tam test raporu ve güven aralıkları</a></p>
+        </details>
+        <details class="event-history" id="eventTechnical"><summary>Simülasyon ayrıntıları</summary>
+          <p class="muted tiny" id="eventMethod"></p>
+          <ul class="event-probabilities" id="eventCounts"></ul>
+        </details>
       </div>
-      <div class="event-breakdown">
-        <section class="event-data" aria-labelledby="eventOutcomesTitle">
-          <h3 id="eventOutcomesTitle">Maç nasıl biter?</h3>
-          <ul class="event-probabilities" id="eventOutcomes"></ul>
-        </section>
-        <section class="event-data" aria-labelledby="eventScoresTitle">
-          <h3 id="eventScoresTitle">En olası 3 skor</h3>
-          <p class="muted tiny">Kazanan tahmininden bağımsız sıralanır.</p>
-          <ol class="event-probabilities" id="eventScores"></ol>
-          <p id="eventCombined" class="event-combined"></p>
-        </section>
-      </div>
-      <details class="event-history" id="eventHistoryDetails"><summary>Geçmişte ne kadar tuttu?</summary>
-        <div id="eventHistory"></div>
-        <p class="muted tiny"><a href="https://github.com/adws555434/gagagsaerhdse/blob/main/EVENT_CALIBRATION.md">Tam test raporu ve güven aralıkları</a></p>
-      </details>
-      <details class="event-history" id="eventTechnical"><summary>Simülasyon ayrıntıları</summary>
-        <p class="muted tiny" id="eventMethod"></p>
-        <ul class="event-probabilities" id="eventCounts"></ul>
-      </details>
-    </div>
+    </details>
   </section>
   <div id="err" role="alert" class="card hidden"><div id="errText" class="err"></div></div>
   <div id="out" class="grid hidden">
@@ -403,7 +406,7 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
       <h3 id="forecastTitle">Ana maç tahmini</h3>
       <details id="forecastComparison" open>
         <summary id="forecastComparisonTitle" class="hidden">Diğer modelle karşılaştır</summary>
-        <p id="forecastComparisonNote" class="muted tiny hidden">Yayın modeli farklı bir skor verebilir. <a href="#eventPanel">Ana maç tahminine dön</a></p>
+        <p id="forecastComparisonNote" class="muted tiny hidden">Bu, yayın modelinin tahmini. <a href="https://github.com/adws555434/gagagsaerhdse/blob/main/EVENT_CALIBRATION.md#ana-tahmin-nasıl-seçiliyor">İki modelin geçmiş testi</a></p>
         <div id="forecast" class="metrics"></div>
         <p id="forecastNote" class="muted"></p>
         <p id="activeForecastMethod" class="muted tiny"></p>
@@ -2895,6 +2898,14 @@ function render(R){const {a,b,results,fixtures,national}=R,A=summary(a,results),
 }
 let eventMode;
 
+async function primarySimulation(match){
+ if(match.folder!=='TUR_1_super-lig'||match.national)return false;
+ try{
+  const report=JSON.parse(await getText('./primary-score-report.json'));
+  if(report.version===1&&report.scope===match.folder&&report.releaseModel===MODEL_VERSION&&report.selected==='release')return false;
+ }catch{/* Use the existing primary model if its comparison report is unavailable. */}
+ return true;
+}
 function setPredictionView(useSimulation){
  $('forecastComparison').open=!useSimulation;
  $('forecastComparisonTitle').classList.toggle('hidden',!useSimulation);
@@ -2905,10 +2916,10 @@ function setPredictionView(useSimulation){
  $('forecastJump').href=target;
  $('resultJump').href=target;
 }
-async function runMatchSimulation(match){
+async function runMatchSimulation(match,isPrimary){
  if(match.folder!=='TUR_1_super-lig'||match.national)return;
  $('eventPanel').classList.remove('hidden');
- $('eventTitle').textContent='Ana maç tahmini';
+ $('eventTitle').textContent=isPrimary?'Ana maç tahmini':'Maç simülasyonu';
  $('eventStatus').textContent='Simülasyon hazırlanıyor…';
  $('eventProgress').value=0;
  const run=await eventMode;
@@ -2933,12 +2944,14 @@ async function analyze(){
   setStatus('Analiz ediliyor…','warn');
   setStep(4,'Takımlar aranıyor…');
   const match=await resolve(qa,qb,$('nationalOnly').checked);
-  const usesSimulation=match.folder==='TUR_1_super-lig'&&!match.national;
-  setPredictionView(usesSimulation);
+  const simulationIsPrimary=await primarySimulation(match);
+  setPredictionView(simulationIsPrimary);
+  $('eventComparison').open=simulationIsPrimary;
+  $('eventComparisonTitle').classList.toggle('hidden',simulationIsPrimary);
   setStep(75,'İstatistikler hesaplanıyor…');
   const cutoff=new Date().toISOString().slice(0,10);
   $('longForecast').replaceChildren();
-  const simulation=runMatchSimulation(match);
+  const simulation=runMatchSimulation(match,simulationIsPrimary);
   try{
    const [[forecast],archive]=await Promise.all([
     render(match),match.national?renderNationalArchive(match,cutoff):renderArchive(match,cutoff)
@@ -2948,7 +2961,7 @@ async function analyze(){
    setStep(100,'Maç analizi hazır.');
   }finally{
    await simulation;
-   if(usesSimulation&&$('eventOutput').classList.contains('hidden')){
+   if(simulationIsPrimary&&$('eventOutput').classList.contains('hidden')){
     $('eventTitle').textContent='Maç simülasyonu';
     setPredictionView(false);
    }

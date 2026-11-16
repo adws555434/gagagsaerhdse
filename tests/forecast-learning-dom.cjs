@@ -15,6 +15,7 @@ const marketSnapshot=fs.readFileSync(path.join(root,'market-snapshot.json'),'utf
 const phase1Summary=JSON.parse(fs.readFileSync(path.join(root,'phase1-summary.json'),'utf8'));
 const scoreCalibration=fs.readFileSync(path.join(root,'score-calibration.json'),'utf8');
 const eventValidation=fs.readFileSync(path.join(root,'event-validation.json'),'utf8');
+const primaryScoreReport=JSON.parse(fs.readFileSync(path.join(root,'primary-score-report.json'),'utf8'));
 const lineupArchive=fs.readFileSync(path.join(root,'lineup-samples.json'),'utf8');
 const errors=[];
 const consoleSink=new VirtualConsole();
@@ -34,6 +35,7 @@ const archive=JSON.stringify({matches:Array.from({length:6},(_,i)=>({date:'2025-
 const response=(text,ok=true)=>({ok,status:ok?200:404,text:async()=>text});
 let feedMode='primary';
 let oddsMode='unconfigured';
+let primaryScoreModel=primaryScoreReport.selected;
 const feedCalls=new Map();
 async function mock(url){
  feedCalls.set(url,(feedCalls.get(url)||0)+1);
@@ -52,6 +54,7 @@ async function mock(url){
  if(url.includes('phase1-summary.json'))return response(JSON.stringify(phase1Summary));
  if(url.includes('score-calibration.json'))return response(scoreCalibration);
  if(url.includes('event-validation.json'))return response(eventValidation);
+ if(url.includes('primary-score-report.json'))return response(JSON.stringify({...primaryScoreReport,selected:primaryScoreModel}));
  if(url.includes('lineup-samples.json'))return response(lineupArchive);
  if(url.includes('super-lig-data/results'))return response(JSON.stringify(signalAudit));
  if(url.includes('super-lig-research/results'))return response(JSON.stringify(turkeyReport));
@@ -127,6 +130,7 @@ async function run(){
    assert.deepEqual([simulationCalls[0].a,simulationCalls[0].b],['Besiktas','Galatasaray']);
    assert.equal($('forecastComparison').open,false);
    assert.equal($('forecastTitle').classList.contains('hidden'),true);
+   assert.equal($('eventComparison').open,true);
    assert.equal($('forecastJump').hash,'#eventPanel');
    assert.equal($('resultJump').hash,'#eventPanel');
    $('forecastComparisonTitle').click();
@@ -297,6 +301,14 @@ async function run(){
    assert.equal($('forecastTitle').classList.contains('hidden'),false);
    assert.equal($('resultJump').hash,'#forecastPanel');
    assert.match($('activeForecastMethod').textContent,/Ana 1X2 · Yayın modeli/);
+   simulationAvailable=true;
+   primaryScoreModel='release';
+   clearNetworkCache();
+   await submit('Beşiktaş','Galatasaray');
+   assert.equal($('forecastComparison').open,true);
+   assert.equal($('eventComparison').open,false);
+   assert.equal($('eventComparisonTitle').classList.contains('hidden'),false);
+   assert.equal($('resultJump').hash,'#forecastPanel');
    oddsMode='unconfigured';
    clearNetworkCache();
    feedMode='offline';

@@ -269,3 +269,16 @@ node tests/event-study.mjs turkey.csv forecast-data tff-results.json exposure.pr
 node tests/event-samples.mjs turkey.csv forecast-data tff-results.json samples.json
 node tests/event-study-report.mjs study.json samples.json event-validation.json EVENT_CALIBRATION.md
 ```
+
+## Ana tahmin nasıl seçiliyor
+
+23 Eylül 2023–8 Kasım 2026 arasında iki modelin de tahmin üretebildiği 865 Süper Lig maçı karşılaştırıldı. Her maç için yalnızca önceki tarihlerin sonuçları kullanıldı. Simülasyon modelinin skor dağılımı analitik olarak hesaplandı. Yayın modelinde ekranda gösterilen genel en olası skor, simülasyonda ise ana kartta gösterilen maç sonucuyla uyumlu skor ölçüldü.
+
+| Model | Ana tek skor | İlk üç skor | Tam skor log loss |
+| --- | ---: | ---: | ---: |
+| Simülasyon | 95/865 (%10,98) | 292/865 (%33,76) | 2,95283 |
+| Yayın modeli | 103/865 (%11,91) | 274/865 (%31,68) | 3,00016 |
+
+Düşük log loss daha iyi. Tam skor log loss farkının eşleştirilmiş %95 aralığı −0,06710 ile −0,02541 arasındaydı. İki modelin farklı skor gösterdiği 621 maçta tek skor isabeti simülasyonda 67, yayın modelinde 75 oldu. Farkın %95 aralığı −4,82 ile +2,32 yüzde puan arasındaydı. Dolayısıyla farklı skor geldiğinde tek skor isabetinde hangi modelin üstün olduğu kesinleşmedi. Olasılık puanı daha iyi olan simülasyon, Süper Lig'de ana tahmin olarak kullanılıyor. Yayın modeli açılır karşılaştırmada ve simülasyonun tamamlanamadığı durumda gösteriliyor.
+
+Bu kıyas maç önü piyasa oranları olmadan yapıldı. Piyasa destekli tarihsel karşılaştırma çalıştırılmadı. [Ölçüm çıktısı](primary-score-report.json) · [Tekrar çalıştırma betiği](tests/primary-score-replay.mjs)
