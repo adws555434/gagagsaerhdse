@@ -1,0 +1,43 @@
+[
+  {
+    "file": "turkey.csv",
+    "sha256": "cb1d8d58a99213d4b6bcb44a54f5f0f4de0127771171e7969043b59837993a54",
+    "url": "https://raw.githubusercontent.com/jalapic/engsoccerdata/6a99aed7ecf5949008f6276512b1248cf53d6701/data-raw/turkey.csv"
+  },
+  {
+    "file": "2018-19-tr.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2018-19/tr.1.json",
+    "sha256": "407a582676db6d428d386e9c8c111c28fb20f3680fd257f55262cb3da6b317db"
+  },
+  {
+    "file": "2019-20-tr.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2019-20/tr.1.json",
+    "sha256": "c3a614f624716930f46df0f32b535c2de0576a3c6dca8e0c9b817097aadf641e"
+  },
+  {
+    "file": "2020-21-tr.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2020-21/tr.1.json",
+    "sha256": "d866888f862353a6858321c03159f9b84e880608c716cf8a29700acad1804ec9"
+  },
+  {
+    "file": "2024-25-tr.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2024-25/tr.1.json",
+    "sha256": "6bfa0c16f87ea59ab79c60873ad3d3c0288e3198e4d6d0f56a2ebcb117e708c4"
+  },
+  {
+    "file": "2025-26-tr.1.json",
+    "url": "https://raw.githubusercontent.com/openfootball/football.json/e6744429ee395bc86f247348c6184bb08d4eb361/2025-26/tr.1.json",
+    "sha256": "31236abf06ccb59fdcdd7105138810157e3312faa29070ec9fbebf6f87c29ea2"
+  },
+  {
+    "file": "tr.1.csv",
+    "url": "https://raw.githubusercontent.com/oladeeayo/open-matchday/3a3ac5075ad614d94e0f908f9e0752f937a10cd9/data/TUR_1_super-lig/results_2627.csv",
+    "sha256": "4db63d5ff891afc83e44349974139cfac275f5671a1e5b217bc869903cfbef83"
+  },
+  {
+    "file": "tff-results.json",
+    "sha256": "86db50af8c1f409db836a8d6fdaa2917320976d0f048342d0412d7d4636ca961",
+    "url": "https://www.tff.org/default.aspx?pageID=1768",
+    "derived": true
+  }
+]

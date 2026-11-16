@@ -1,0 +1,348 @@
+{
+  "source_matches_per_season": {
+    "2010": 306,
+    "2011": 306,
+    "2012": 306,
+    "2013": 306,
+    "2014": 306,
+    "2015": 306,
+    "2016": 306,
+    "2017": 306,
+    "2018": 306,
+    "2019": 306,
+    "2020": 420,
+    "2021": 380,
+    "2022": 342,
+    "2023": 380,
+    "2024": 342,
+    "2025": 306,
+    "2026": 99
+  },
+  "source_overlap": {
+    "2018": {
+      "archive": 306,
+      "common": 239,
+      "agree": 238
+    },
+    "2019": {
+      "archive": 306,
+      "common": 266,
+      "agree": 266
+    },
+    "2020": {
+      "archive": 420,
+      "common": 380,
+      "agree": 380
+    },
+    "2024": {
+      "archive": 338,
+      "common": 303,
+      "agree": 303
+    },
+    "2025": {
+      "archive": 99,
+      "common": 99,
+      "agree": 99
+    }
+  },
+  "fit_matches": 2782,
+  "validation_matches": 619,
+  "test_matches": 606,
+  "configurations_tried": 752,
+  "validation_no_regression_count": 236,
+  "target_count_thresholds": {
+    "result": 432,
+    "exact": 91,
+    "top3": 254
+  },
+  "individual_target_passes": {
+    "result": 0,
+    "exact": 0,
+    "top3": 0
+  },
+  "all_target_passes": 0,
+  "configuration": {
+    "ana": {
+      "kind": "live"
+    },
+    "arsiv": {
+      "kind": "past"
+    },
+    "dengeli": {
+      "kind": "balanced"
+    },
+    "secili_aday": {
+      "kind": "correlated",
+      "weight": 0.4,
+      "shared": 0.25,
+      "scale": 1.08
+    },
+    "en_dusuk_log_loss": {
+      "kind": "correlated",
+      "weight": 0.4,
+      "shared": 0.25,
+      "scale": 1.08
+    }
+  },
+  "results": {
+    "validation": {
+      "ana": {
+        "n": 619,
+        "result": 332,
+        "exact": 74,
+        "top3": 174,
+        "logLoss": 0.9670472406716707,
+        "brier": 0.5737018943014209,
+        "scoreLoss": 3.0305228524694634
+      },
+      "arsiv": {
+        "n": 619,
+        "result": 333,
+        "exact": 81,
+        "top3": 179,
+        "logLoss": 0.9739958959418485,
+        "brier": 0.57775463510451,
+        "scoreLoss": 3.0158894840254025
+      },
+      "dengeli": {
+        "n": 619,
+        "result": 336,
+        "exact": 76,
+        "top3": 181,
+        "logLoss": 0.966163058156601,
+        "brier": 0.5725739449985335,
+        "scoreLoss": 3.0095651619381503
+      },
+      "secili_aday": {
+        "n": 619,
+        "result": 334,
+        "exact": 75,
+        "top3": 182,
+        "logLoss": 0.9618136062159297,
+        "brier": 0.5699420337152283,
+        "scoreLoss": 3.029249282616034
+      },
+      "en_dusuk_log_loss": {
+        "n": 619,
+        "result": 334,
+        "exact": 75,
+        "top3": 182,
+        "logLoss": 0.9618136062159297,
+        "brier": 0.5699420337152283,
+        "scoreLoss": 3.029249282616034
+      }
+    },
+    "final": {
+      "ana": {
+        "n": 606,
+        "result": 332,
+        "exact": 70,
+        "top3": 195,
+        "logLoss": 0.9768845303081866,
+        "brier": 0.5791832266178026,
+        "scoreLoss": 2.994200269290044
+      },
+      "arsiv": {
+        "n": 606,
+        "result": 331,
+        "exact": 69,
+        "top3": 197,
+        "logLoss": 0.976264012278159,
+        "brier": 0.5803738613402953,
+        "scoreLoss": 2.9550534385661824
+      },
+      "dengeli": {
+        "n": 606,
+        "result": 334,
+        "exact": 69,
+        "top3": 192,
+        "logLoss": 0.9686553255889676,
+        "brier": 0.5744599625448147,
+        "scoreLoss": 2.958701685920009
+      },
+      "secili_aday": {
+        "n": 606,
+        "result": 331,
+        "exact": 71,
+        "top3": 204,
+        "logLoss": 0.970888659503788,
+        "brier": 0.5754192618647784,
+        "scoreLoss": 2.97040369476959
+      },
+      "en_dusuk_log_loss": {
+        "n": 606,
+        "result": 331,
+        "exact": 71,
+        "top3": 204,
+        "logLoss": 0.970888659503788,
+        "brier": 0.5754192618647784,
+        "scoreLoss": 2.97040369476959
+      }
+    },
+    "2024": {
+      "ana": {
+        "n": 294,
+        "result": 167,
+        "exact": 34,
+        "top3": 101,
+        "logLoss": 0.9525255952602435,
+        "brier": 0.5602894497237287,
+        "scoreLoss": 3.0317440463778365
+      },
+      "arsiv": {
+        "n": 294,
+        "result": 161,
+        "exact": 32,
+        "top3": 100,
+        "logLoss": 0.9624104743547138,
+        "brier": 0.5699259852714377,
+        "scoreLoss": 3.0078804901415923
+      },
+      "dengeli": {
+        "n": 294,
+        "result": 165,
+        "exact": 34,
+        "top3": 96,
+        "logLoss": 0.9496840913426624,
+        "brier": 0.5598733514723174,
+        "scoreLoss": 3.007464453734251
+      },
+      "secili_aday": {
+        "n": 294,
+        "result": 165,
+        "exact": 33,
+        "top3": 107,
+        "logLoss": 0.9513264178658881,
+        "brier": 0.55989137306355,
+        "scoreLoss": 3.0006364511362213
+      },
+      "en_dusuk_log_loss": {
+        "n": 294,
+        "result": 165,
+        "exact": 33,
+        "top3": 107,
+        "logLoss": 0.9513264178658881,
+        "brier": 0.55989137306355,
+        "scoreLoss": 3.0006364511362213
+      }
+    },
+    "2025": {
+      "ana": {
+        "n": 258,
+        "result": 131,
+        "exact": 33,
+        "top3": 79,
+        "logLoss": 1.0253028082399456,
+        "brier": 0.6144868960145591,
+        "scoreLoss": 2.905201158537654
+      },
+      "arsiv": {
+        "n": 258,
+        "result": 135,
+        "exact": 35,
+        "top3": 86,
+        "logLoss": 1.0109071736091648,
+        "brier": 0.6054986321689882,
+        "scoreLoss": 2.847393317865167
+      },
+      "dengeli": {
+        "n": 258,
+        "result": 133,
+        "exact": 32,
+        "top3": 84,
+        "logLoss": 1.009280812831103,
+        "brier": 0.604323203401447,
+        "scoreLoss": 2.8517706035127017
+      },
+      "secili_aday": {
+        "n": 258,
+        "result": 131,
+        "exact": 34,
+        "top3": 85,
+        "logLoss": 1.0143124337265048,
+        "brier": 0.6075251425671084,
+        "scoreLoss": 2.8795889113687907
+      },
+      "en_dusuk_log_loss": {
+        "n": 258,
+        "result": 131,
+        "exact": 34,
+        "top3": 85,
+        "logLoss": 1.0143124337265048,
+        "brier": 0.6075251425671084,
+        "scoreLoss": 2.8795889113687907
+      }
+    },
+    "2026": {
+      "ana": {
+        "n": 54,
+        "result": 34,
+        "exact": 3,
+        "top3": 15,
+        "logLoss": 0.8781736265619136,
+        "brier": 0.5133762581454794,
+        "scoreLoss": 3.2150132342957187
+      },
+      "arsiv": {
+        "n": 54,
+        "result": 35,
+        "exact": 2,
+        "top3": 11,
+        "logLoss": 0.8861715035020995,
+        "brier": 0.5172161704225429,
+        "scoreLoss": 3.1818156233382475
+      },
+      "dengeli": {
+        "n": 54,
+        "result": 36,
+        "exact": 3,
+        "top3": 12,
+        "logLoss": 0.8778436063286563,
+        "brier": 0.5111960276245003,
+        "scoreLoss": 3.2041084548773764
+      },
+      "secili_aday": {
+        "n": 54,
+        "result": 35,
+        "exact": 4,
+        "top3": 12,
+        "logLoss": 0.8699250538016075,
+        "brier": 0.5065652264269999,
+        "scoreLoss": 3.239695986355115
+      },
+      "en_dusuk_log_loss": {
+        "n": 54,
+        "result": 35,
+        "exact": 4,
+        "top3": 12,
+        "logLoss": 0.8699250538016075,
+        "brier": 0.5065652264269999,
+        "scoreLoss": 3.239695986355115
+      }
+    }
+  },
+  "checks": {
+    "secili_aday": {
+      "overall_plus30": false,
+      "no_regression_by_season": false
+    },
+    "en_dusuk_log_loss": {
+      "overall_plus30": false,
+      "no_regression_by_season": false
+    }
+  },
+  "selected_gain_interval_95": [
+    [
+      -0.013213938924468399,
+      0.010303895736440945
+    ],
+    [
+      -0.018258031547687917,
+      0.022897467440430013
+    ],
+    [
+      -0.008217989575174873,
+      0.03728813559322034
+    ]
+  ]
+}

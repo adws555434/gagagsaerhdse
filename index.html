@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="referrer" content="no-referrer">
-<meta name="app-version" content="2026.11-forecast-learning">
+<meta name="app-version" content="2026.11-super-lig-audit">
 <title>Football Intelligence</title>
 <style>
 :root{--bg:#071019;--p:#0d1a27;--p2:#142433;--line:#294157;--t:#eef6ff;--m:#9eb1c3;--b:#4d8dff;--g:#3ac878;--r:#ef6e78}
@@ -42,6 +42,12 @@
     <h3>Lig bazında geçmiş test</h3>
     <p id="leagueAuditStatus" class="muted tiny"></p>
     <div id="leagueAudit" class="tablewrap"></div>
+    <details id="turkeyAudit">
+      <summary>Süper Lig doğruluk testi</summary>
+      <p id="turkeyAuditStatus" class="muted tiny" role="status"></p>
+      <div id="turkeyAuditContent" class="tablewrap"></div>
+      <p class="muted tiny"><a style="color:inherit" href="https://github.com/adws555434/gagagsaerhdse/blob/main/tests/super-lig-research/README.md">Kaynak ve test yöntemi</a></p>
+    </details>
     <details id="shotAudit"><summary>İsabetli şut modelinin testi</summary><p id="shotAuditStatus" class="muted tiny"></p><div id="shotAuditContent" class="tablewrap"></div></details>
     <h3>Otomatik maç önü kayıtları</h3>
     <p id="autoForecastStatus" class="muted tiny"></p>
@@ -1347,6 +1353,26 @@ async function renderLeagueAudit(){
   status.textContent='Test raporuna şu anda ulaşılamadı. Yeniden açarak tekrar deneyebilirsin.';
  }
 }
+async function renderTurkeyAudit(){
+ const status=$('turkeyAuditStatus');
+ const output=$('turkeyAuditContent');
+ if(output.childElementCount)return;
+ status.textContent='Süper Lig testi yükleniyor…';
+ try{
+  const {results}=JSON.parse(await getText('./tests/super-lig-research/results.json'));
+  const metrics=['result','exact','top3'];
+  const periods=[['2024','2024/25'],['2025','2025/26'],['2026','2026/27 başı'],['final','Toplam']];
+  const rows=periods.flatMap(([key,period])=>[['ana','Ana model'],['secili_aday','Araştırma adayı']].map(([model,label])=>{
+   const row=results[key][model];
+   if(!Number.isInteger(row.n)||row.n<=0||metrics.some(metric=>!Number.isInteger(row[metric])||row[metric]<0||row[metric]>row.n)){
+    throw Error('Geçersiz test sonucu.');
+   }
+   return [period,label,row.n,...metrics.map(metric=>row[metric]+'/'+row.n+' · '+probabilityLabel(row[metric]/row.n))];
+  }));
+  output.replaceChildren(dataTable(['Dönem','Model','Maç','Maç sonucu','Tam skor','İlk üç skor'],rows));
+  status.textContent=results.final.ana.n+' maçlık tarihsel test. 2026/27 verisi sezon başını kapsar. Araştırma adayı varsayılan tahmin için seçilmedi.';
+ }catch{status.textContent='Süper Lig testine şu anda ulaşılamadı. Yeniden açarak tekrar deneyebilirsin.';}
+}
 async function renderShotAudit(){
  const status=$('shotAuditStatus');
  try{
@@ -1421,7 +1447,7 @@ function render(R){const {a,b,results,fixtures,national}=R,A=summary(a,results),
 }
 async function analyze(){const btn=$('go');if(btn.disabled)return;scenarioController?.abort();$('err').classList.add('hidden');$('out').classList.add('hidden');const qa=$('a').value.trim(),qb=$('b').value.trim();if(qa.length<2||qb.length<2||qnorm(qa)===qnorm(qb)){$('errText').textContent='İki farklı takımın adını yaz.';$('err').classList.remove('hidden');setStatus('Motor hazır ✓','ok');setStep(0,'Takım adlarını kontrol et.');return}btn.disabled=true;try{setStatus('Analiz ediliyor…','warn');setStep(4,'Takımlar aranıyor…');const R=await resolve(qa,qb,$('nationalOnly').checked);setStep(75,'İstatistikler hesaplanıyor…');const [[forecast],archive]=await Promise.all([render(R),R.national?renderNationalArchive(R):renderArchive(R)]);renderArchiveModel(R,forecast,archive);setStep(100,'Analiz tamamlandı.');setStatus('Tamamlandı ✓','ok')}catch(e){console.error(e);$('errText').textContent=e.message||String(e);$('err').classList.remove('hidden');setStatus('Hata','bad');setStep(0,'Analiz tamamlanamadı.')}finally{btn.disabled=false}}
 function selfTest(){try{const t=csv('date,home,away,ft_home,ft_away\n2026-01-01,Besiktas,Galatasaray,1,0\n');if(t.length!==1||findTeam('Beşiktaş',t)!=='Besiktas')throw new Error('motor testi');setStatus('Motor hazır ✓','ok');setStep(0,'Motor hazır. İki takım yazıp butona bas.')}catch(e){setStatus('Motor hatası','bad');setStep(0,'Motor başlatılamadı: '+e.message)}}
-$('go').addEventListener('click',analyze);$('a').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});$('b').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('historyPanel').open){void refreshHistory();void renderAutoForecasts();}});$('historyPanel').addEventListener('toggle',()=>{if($('historyPanel').open){void renderLeagueAudit();void renderAutoForecasts();if(readHistory().rows.some(row=>!row.actual))void refreshHistory();}});window.addEventListener('error',e=>{setStatus('JavaScript hatası','bad');$('step').textContent=e.message});$('refreshHistory').addEventListener('click',refreshHistory);$('shotAudit').addEventListener('toggle',()=>{if($('shotAudit').open)void renderShotAudit();});selfTest();renderHistory();void renderAutoForecasts();
+$('go').addEventListener('click',analyze);$('a').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});$('b').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('historyPanel').open){void refreshHistory();void renderAutoForecasts();}});$('historyPanel').addEventListener('toggle',()=>{if($('historyPanel').open){void renderLeagueAudit();void renderAutoForecasts();if(readHistory().rows.some(row=>!row.actual))void refreshHistory();}});window.addEventListener('error',e=>{setStatus('JavaScript hatası','bad');$('step').textContent=e.message});$('refreshHistory').addEventListener('click',refreshHistory);$('turkeyAudit').addEventListener('toggle',()=>{if($('turkeyAudit').open)void renderTurkeyAudit();});$('shotAudit').addEventListener('toggle',()=>{if($('shotAudit').open)void renderShotAudit();});selfTest();renderHistory();void renderAutoForecasts();
 </script>
 </body>
 </html>
