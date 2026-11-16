@@ -2,10 +2,11 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const {createHash}=require('node:crypto');
+const {evaluateMarketLedger}=require('./market-validation.cjs');
 const root=fs.existsSync(path.join(__dirname,'index.html'))?__dirname:path.resolve(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const core=html.match(/<script>([\s\S]*?)<\/script>/)[1].split("$('go').addEventListener")[0];
-const model=new Function(core+';return {BASES,NATIONAL_RESULTS,NATIONAL_MIRROR,LEAGUES,ARCHIVE_LEAGUES,MODEL_VERSION,ENGINE_VERSION,LEARNING_VERSION,parseClubFeed,cleanRows,knownKickoff,rowKey,estimateGoals,forecastModel,shotEstimate,shotCandidates,settleHistory,validForecastRecord,nationalRows,nationalFixtures,forecastInputPayload,prepareForecastDistribution,forecastDecision,leagueScoreReference,eloScoreReference,findMarketQuote,marketScoreDistribution,marketBlend,marketWeight,marketTotalsDistribution,marketMixedScores,MARKET_VERSION,MARKET_SCORE_VERSION};')();
+const model=new Function(core+';return {BASES,NATIONAL_RESULTS,NATIONAL_MIRROR,LEAGUES,ARCHIVE_LEAGUES,MODEL_VERSION,ENGINE_VERSION,LEARNING_VERSION,parseClubFeed,cleanRows,knownKickoff,rowKey,estimateGoals,forecastModel,shotEstimate,shotCandidates,settleHistory,validForecastRecord,nationalRows,nationalFixtures,forecastInputPayload,prepareForecastDistribution,forecastDecision,leagueScoreReference,eloScoreReference,findMarketQuote,frozenMarketComparison,marketTotalsDistribution,createSimulationRandom,matchOutcome,strongestOutcome,confidenceTier,marketBlend,MARKET_VERSION,LIVE_MARKET_VERSION};')();
 const ledgerPath=path.join(root,'forecast-ledger.json');
 const competitions=model.LEAGUES.filter(([folder])=>model.ARCHIVE_LEAGUES[folder]);
 const measurementVersion='2026.11-phase-1';
@@ -61,37 +62,39 @@ function readNational(name,now,fetchSource){
   return rows;
  },fetchSource);
 }
-function ledgerMarket(snapshot,report,scope,fixture,base,now){
- if(snapshot?.version!==model.MARKET_VERSION||!Array.isArray(snapshot.events)||!/^[a-f0-9]{64}$/.test(snapshot.dataSha256??''))return null;
- const quote=model.findMarketQuote(snapshot,scope,fixture,now.getTime());
- if(!quote)return null;
- const record=distribution=>{
-  const decision=model.forecastDecision(distribution);
-  return {probabilities:distribution.outcomes,consistentScore:decision.score[0],scores:decision.top.slice(0,3).map(([key])=>key)};
- };
- const structural=model.marketTotalsDistribution(quote.power,quote.over25);
- const fromOdds=p=>model.marketScoreDistribution(base,p);
- const weight=model.marketWeight(report,scope,now.getTime());
- const power=structural??fromOdds(quote.power);
- const blend=weight==null?null:structural?model.marketMixedScores(base,structural,weight):
-  fromOdds(model.marketBlend(base.outcomes,quote.power,weight));
- return {version:model.MARKET_VERSION,scoreVersion:model.MARKET_SCORE_VERSION,capturedAt:snapshot.capturedAt,quotedAt:quote.quotedAt,
-  dataSha256:snapshot.dataSha256,simulationCount:0,proportional:record(fromOdds(quote.proportional)),power:record(power),
-  ...(structural?{over25:quote.over25,totalQuotedAt:quote.totalQuotedAt}:{}),
-  ...(blend?{weight,weightDataSha256:report.dataSha256??null,blend:record(blend)}:{})};
+function freezeMarket(record,snapshot,fixture,now){
+ if(record.liveMarket?.marketScore||record.actual||!record.rates||
+  !/^[a-f0-9]{64}$/.test(record.dataSha256??'')||snapshot?.version!==model.MARKET_VERSION||
+  record.kickoff!==model.knownKickoff(fixture)||!(record.savedAt<=now&&now<record.kickoff))return record;
+ const quote=model.findMarketQuote(snapshot,record.scope,fixture,now);
+ if(!quote)return record;
+ const dataSha256=quote.dataSha256??snapshot.dataSha256;
+ if(!/^[a-f0-9]{64}$/.test(dataSha256??''))return record;
+ const previous=record.liveMarket?.version===model.LIVE_MARKET_VERSION?record.liveMarket:{};
+ const market=model.frozenMarketComparison(model.prepareForecastDistribution(...record.rates),quote);
+ const metadata={dataSha256,savedAt:now,simulationCount:0,modelVersion:model.LIVE_MARKET_VERSION};
+ return {...record,liveMarket:{version:model.LIVE_MARKET_VERSION,
+  market:previous.market??{...market.market,...metadata},
+  marketScore:previous.marketScore??(market.marketScore?{...market.marketScore,...metadata}:null)}};
 }
-function buildLeague(saved,folder,league,results,fixtures,now,marketSnapshot,marketReport){
+function buildLeague(saved,folder,league,results,fixtures,now,marketSnapshot){
  const national=folder==='national';
  const today=now.toISOString().slice(0,10);
  const eligible=results.filter(row=>row.date<today);
- const updated=model.settleHistory(saved,folder,eligible);
- const known=new Set(updated.map(row=>row.id)),played=new Set(results.map(model.rowKey));
+ const updated=model.settleHistory(saved,folder,eligible).map((row,i)=>
+  row!==saved[i]&&!saved[i].actual&&row.actual?{...row,settledAt:now.getTime()}:row);
+ const known=new Map(updated.map((row,index)=>[row.id,index])),played=new Set(results.map(model.rowKey));
  const limit=now.getTime()+48*60*60*1000;
  for(const fixture of fixtures){
   const kickoff=model.knownKickoff(fixture);
   const key=model.rowKey(fixture);
   const id=folder+'|'+key;
-  if(kickoff==null||kickoff<=now.getTime()||kickoff>limit||known.has(id)||played.has(key))continue;
+  if(kickoff==null||kickoff<=now.getTime()||kickoff>limit||played.has(key))continue;
+  if(known.has(id)){
+   const index=known.get(id);
+   updated[index]=freezeMarket(updated[index],marketSnapshot,fixture,now.getTime());
+   continue;
+  }
   const neutral=fixture.neutral===true;
   const base=model.estimateGoals(fixture.home,fixture.away,eligible,neutral);
   if(!base)continue;
@@ -102,18 +105,18 @@ function buildLeague(saved,folder,league,results,fixtures,now,marketSnapshot,mar
   const distribution=model.prepareForecastDistribution(...rates);
   const decision=model.forecastDecision(distribution);
   const comparison=national?null:comparisonSnapshots(base,forecast,eligible);
-  const market=comparison?ledgerMarket(marketSnapshot,marketReport,folder,fixture,distribution,now):null;
   const inputs=model.forecastInputPayload(eligible,fixture.home,fixture.away,fixture,folder,today);
   const dataSha256=createHash('sha256').update(inputs).digest('hex');
-  updated.push({id,scope:folder,league,date:fixture.date,home:fixture.home,away:fixture.away,savedAt:now.getTime(),kickoff,
+  const entry={id,scope:folder,league,date:fixture.date,home:fixture.home,away:fixture.away,savedAt:now.getTime(),kickoff,
    model:forecast.name+' · '+model.MODEL_VERSION,...candidates[0],rates,candidates,learningVersion:model.LEARNING_VERSION,
    modelVersion:model.MODEL_VERSION,engineVersion:model.ENGINE_VERSION,dataSha256,simulationCount:0,consistentScore:decision.score[0],actual:null,
-   ...(comparison?{measurementVersion,comparison}:{}),...(market?{market}:{})});
-  known.add(id);
+   ...(comparison?{measurementVersion,comparison}:{})};
+  known.set(id,updated.length);
+  updated.push(freezeMarket(entry,marketSnapshot,fixture,now.getTime()));
  }
  return updated;
 }
-async function collectLedger(prior,{clock=()=>new Date(),fetchSource=fetch,marketSnapshot,marketReport}={}){
+async function collectLedger(prior,{clock=()=>new Date(),fetchSource=fetch,marketSnapshot,marketValidation}={}){
  if(!Array.isArray(prior)||!prior.every(model.validForecastRecord))throw Error('Existing ledger failed validation');
  const started=clock();
  const leagues=[...competitions,nationalCompetition];
@@ -128,7 +131,7 @@ async function collectLedger(prior,{clock=()=>new Date(),fetchSource=fetch,marke
   const scores=results.value;
   const upcoming=fixtures.value;
   if(scores){
-   updated=buildLeague(updated,folder,league,scores.rows,upcoming?.rows??[],checked,marketSnapshot,marketReport);
+   updated=buildLeague(updated,folder,league,scores.rows,upcoming?.rows??[],checked,marketSnapshot);
    coverage++;
   }
   const details={scope:folder,results:scores?.state??'unavailable',fixtures:upcoming?.state??'unavailable'};
@@ -138,10 +141,11 @@ async function collectLedger(prior,{clock=()=>new Date(),fetchSource=fetch,marke
  });
  if(!coverage)throw Error('No result sources available. Existing ledger preserved.');
  if(!updated.every(model.validForecastRecord))throw Error('New ledger failed validation');
- return {checked:checked.toISOString(),source:'open-matchday / Mart Jürisoo / UEFA',coverage,feeds:status,records:updated};
+ return {checked:checked.toISOString(),source:'open-matchday / Mart Jürisoo / UEFA',coverage,feeds:status,records:updated,
+  marketValidation:evaluateMarketLedger(updated,model,marketValidation,checked)};
 }
 async function run(){
- const prior=fs.existsSync(ledgerPath)?JSON.parse(fs.readFileSync(ledgerPath,'utf8')).records:[];
+ const prior=fs.existsSync(ledgerPath)?JSON.parse(fs.readFileSync(ledgerPath,'utf8')):{records:[]};
  const optional=file=>{
   try{return JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));}
   catch(error){
@@ -149,13 +153,13 @@ async function run(){
    return null;
   }
  };
- const snapshot=await collectLedger(prior,{marketSnapshot:optional('market-snapshot.json'),marketReport:optional('phase2-market-report.json')});
+ const snapshot=await collectLedger(prior.records,{marketSnapshot:optional('market-snapshot.json'),marketValidation:prior.marketValidation});
  if(!process.argv.includes('--dry-run')){
   fs.writeFileSync(ledgerPath+'.tmp',JSON.stringify(snapshot,null,2)+'\n');
   fs.renameSync(ledgerPath+'.tmp',ledgerPath);
  }
  console.log(JSON.stringify({coverage:snapshot.coverage,feeds:snapshot.feeds,records:snapshot.records.length,
-  settled:snapshot.records.filter(row=>row.actual).length},null,2));
+  settled:snapshot.records.filter(row=>row.actual).length,marketValidation:snapshot.marketValidation.counts},null,2));
 }
 if(require.main===module)run().catch(error=>{console.error(error.message);process.exitCode=1});
 module.exports={buildLeague,collectLedger};

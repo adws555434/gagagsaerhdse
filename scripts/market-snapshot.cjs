@@ -15,6 +15,17 @@ const SPORTS={
  'FRA_1_ligue-1':'soccer_france_ligue_one'
 };
 const markets=['h2h','totals'];
+const freeMonthlyCredits=500;
+const utcHours=[1,7,13,19];
+
+function quotaPlan(scopeCount){
+ if(!Number.isInteger(scopeCount)||scopeCount<1||scopeCount>Object.keys(SPORTS).length)throw Error('Geçersiz oran lig sayısı');
+ const runs=utcHours.length*scopeCount*markets.length*31<=freeMonthlyCredits?utcHours:
+  2*scopeCount*markets.length*31<=freeMonthlyCredits?[1,13]:[13];
+ const callsPerDay=scopeCount*runs.length;
+ const creditsPerDay=callsPerDay*markets.length;
+ return {scopeCount,utcHours:runs,callsPerDay,creditsPerDay,credits31Days:31*creditsPerDay,freeMonthlyCredits};
+}
 const source='https://the-odds-api.com/';
 const digest=text=>createHash('sha256').update(text).digest('hex');
 const time=text=>typeof text==='string'&&/^\d{4}-\d\d-\d\dT/.test(text)?Date.parse(text):NaN;
@@ -58,7 +69,7 @@ function summarizeEvent(event,scope,captured){
  const average=values=>values.reduce((a,b)=>a+b,0)/values.length;
  const averageModel=key=>[0,1,2].map(i=>average(samples.map(row=>row[key][i])));
  const totals=samples.filter(x=>x.totals);
- return {scope,home,away,kickoff:iso(kickoff),
+ return {scope,home,away,kickoff:iso(kickoff),capturedAt:iso(captured),
   quotedAt:iso(Math.min(...samples.map(x=>x.quoted))),
   latestQuotedAt:iso(Math.max(...samples.map(x=>x.quoted))),
   books:samples.length,power:averageModel('power'),proportional:averageModel('proportional'),
@@ -102,13 +113,14 @@ async function buildSnapshot({key,scopes=['TUR_1_super-lig'],clock=Date.now,fetc
  }
  if(!successes.length)throw Error('Oran kaynağı başarısız ('+failures[0]?.reason+')');
  const captured=clock();
- const events=successes.flatMap(({scope,data,captured:received})=>{
+ const events=successes.flatMap(({scope,data,sha256,captured:received})=>{
   const ids=new Set();
   for(const event of data){
    if(ids.has(event.id))throw Error('Tekrarlanan oran fikstürü');
    ids.add(event.id);
   }
-  return data.map(event=>summarizeEvent(event,scope,received)).filter(result=>result&&time(result.kickoff)>captured);
+  return data.map(event=>summarizeEvent(event,scope,received)).filter(result=>result&&time(result.kickoff)>captured)
+   .map(result=>({...result,dataSha256:sha256}));
  }).sort((a,b)=>a.kickoff.localeCompare(b.kickoff)||a.scope.localeCompare(b.scope)||a.home.localeCompare(b.home));
  const sources=successes.map(({scope,sha256,captured:received})=>({scope,sha256,capturedAt:iso(received)}));
  return {version:model.MARKET_VERSION,source,state:failures.length?'partial':'ready',capturedAt:iso(captured),
@@ -118,14 +130,30 @@ async function buildSnapshot({key,scopes=['TUR_1_super-lig'],clock=Date.now,fetc
 
 async function run(){
  const config=process.env.ODDS_API_SCOPES?.split(',').map(x=>x.trim()).filter(Boolean);
- const snapshot=await buildSnapshot({key:process.env.ODDS_API_KEY,scopes:config?.length?config:undefined});
+ const scopes=config?.length?config:['TUR_1_super-lig'];
+ if(scopes.some(scope=>!Object.hasOwn(SPORTS,scope))||new Set(scopes).size!==scopes.length)throw Error('Geçersiz oran lig listesi');
+ const plan=quotaPlan(scopes.length);
+ if(process.argv.includes('--quota')){
+  console.log(JSON.stringify(Object.keys(SPORTS).map((_,i)=>quotaPlan(i+1)),null,2));
+  return;
+ }
+ const scheduled=process.env.ODDS_API_SCHEDULE;
+ if(scheduled){
+  const hours=scheduled.trim().split(/\s+/)[1];
+  if(!utcHours.includes(Number(hours)))throw Error('Geçersiz oran toplama saati');
+  if(!plan.utcHours.includes(Number(hours))){
+   console.log(JSON.stringify({skipped:true,plan}));
+   return;
+  }
+ }
+ const snapshot=await buildSnapshot({key:process.env.ODDS_API_KEY,scopes});
  const output=path.join(root,'market-snapshot.json');
  if(snapshot.state==='unconfigured'&&fs.existsSync(output)){console.log('Oran kaynağı bağlı değil. Var olan dosya korundu.');return;}
  const data=JSON.stringify(snapshot,null,2)+'\n';
  fs.writeFileSync(output+'.tmp',data);
  fs.renameSync(output+'.tmp',output);
- console.log(JSON.stringify({state:snapshot.state,events:snapshot.events.length,capturedAt:snapshot.capturedAt}));
+ console.log(JSON.stringify({state:snapshot.state,events:snapshot.events.length,capturedAt:snapshot.capturedAt,plan}));
 }
 
-module.exports={buildSnapshot,summarizeEvent,SPORTS};
+module.exports={buildSnapshot,summarizeEvent,quotaPlan,SPORTS};
 if(require.main===module)run().catch(error=>{console.error(error.message);process.exitCode=1;});

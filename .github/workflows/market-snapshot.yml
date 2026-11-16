@@ -1,13 +1,11 @@
 name: Market probability snapshot
 on:
   schedule:
-    - cron: '23 1,7,13,19 * * *'
+    - cron: '23 1 * * *'
+    - cron: '23 7 * * *'
+    - cron: '23 13 * * *'
+    - cron: '23 19 * * *'
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/market-snapshot.yml'
-      - 'scripts/market-snapshot.cjs'
 permissions:
   contents: write
 concurrency:
@@ -25,6 +23,7 @@ jobs:
       - run: node tests/phase2-market-test.cjs
       - name: Calculate market probabilities
         env:
+          ODDS_API_SCHEDULE: ${{ github.event.schedule }}
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           ODDS_API_SCOPES: ${{ vars.ODDS_API_SCOPES }}
         run: node scripts/market-snapshot.cjs

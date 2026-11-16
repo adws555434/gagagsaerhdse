@@ -10,7 +10,7 @@
 | Maç başına oran yayın saati | **Kısmi.** İlk fiyatın saati bir alt örneklemde doğrulandı. Başlangıca yakın tarihsel saat dilimleri ve kapanışın dakika damgası eksik. |
 | Lig bazında erken harman ve güven kademeleri | **Çalışıyor.** Ağırlık her ay öncesi lig içindeki verilerle öğrenildi. Tarihsel test ve güven kademeleri yayımlandı. |
 | Altı ligde üç tam sezon ve bağımsız maç önü ölçümü | **Kısmi.** Ortak tam sezon sayısı 0. Sonuçlanmış bağımsız harman karşılaştırması 0/500. Çok sezonlu yayın koşulu sağlanmadı. |
-| Güncel oran API’si ve varsayılan tahmin | **Kısmi.** Canlı sağlayıcı testi çalıştırılmadı. Ana kart hangi modelin kullanıldığını gösteriyor. Yayın modeli varsayılan. |
+| Güncel oran API’si ve varsayılan tahmin | **Kısmi.** Canlı sağlayıcı testi çalıştırılmadı. Ana 1X2 için geçerli fiyat varsa piyasa, diğer maçlarda yayın modeli kullanılıyor. |
 
 Skor ve değerlendirme sürümü `2026.11-phase-2-archive`. Yayın modeli `2026.11-club-balance`. Birleşik veri SHA-256 `ed20e601d25dbde785a093473853ec2953080c2e662d522e93973ed394ecf0ab`. Analitik tahmin başına 0 çekiliş. 2.000 lig–sezon katmanlı haftalık eşleştirilmiş bootstrap. Ham oran tabloları yerine özetler yayımlanır.
 
@@ -448,3 +448,29 @@ Güncel maç sonuçları ve fikstür için [open-matchday](https://github.com/ol
 
 - [GDPR, EUR-Lex](https://eur-lex.europa.eu/eli/reg/2016/679/oj)
 - [Avusturya DSG](https://www.ris.bka.gv.at/GeltendeFassung.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10001597)
+
+
+## Faz 2 · Güncel piyasa kararı ve ileriye dönük ölçüm
+
+**Ana 1X2 kuralı çalışıyor.** Aynı ligde, aynı ev/deplasman eşleşmesinde ve aynı UTC başlama saatinde geçerli piyasa fiyatı varsa ana 1X2 ve en yüksek olasılıklı sonuç marjı power yöntemiyle çıkarılmış piyasa uzlaşısından gelir. Fiyat veya fikstür doğrulanamazsa yayın modeli kullanılır. Alım ve sağlayıcı fiyat saatleri gösterilir. Yayın modeli karşılaştırma için görünür. Skor önceliği yayın modelinde kalır ve skoru hangi modelin verdiği ayrıca yazılır. Bu durumda piyasanın öngördüğü kazanan ile yayın skorunun kazananı farklı olabilir.
+
+**Kararın tarihsel dayanağı.** Tek kısmi sezonda, aynı 368 Pinnacle kapanış maçında, piyasa eksi yayın modeli log loss farkı -0,03108 ve eşleştirilmiş %95 aralık [-0,05178, -0,00947]. Aralık sıfırı kapsamıyor. 186 doğrulanmış erken fiyatlı maçta erken harmanın yayın modeline göre log loss fark aralığı [-0,06000, 0,00392] ve sıfırı kapsıyor. Yeni güncel akışta erken fiyat üstünlüğü henüz kanıtlanmadı. Çok sezonlu doğrulama çalıştırılmadı. Kapanış sonucu güncel sağlayıcının farklı saatlerdeki fiyatlarına genellenmedi. Football-Data.co.uk açık izin gelene kadar kapalıdır.
+
+**Piyasa skoru kısmi.** GitHub Actions tek API isteğinde 1X2 ve alt/üstü alır. Tam 2,5 hattı ve aynı alımda geçerli 1X2 bulunduğunda skor matrisi iki piyasayı aynı anda karşılayacak şekilde normalleştirilir. Beklenen toplam gol ve ev sahibi eksi deplasman gol farkı bu matristen hesaplanır. Piyasa skoru bağımsız maç önü sonuçları birikene kadar test edilmedi etiketiyle ayrı gösterilir. Piyasa 1X2 tek başına bulunduğunda karşılaştırma skorları yayın modelinin sonuç içi gol dağılımı ile birleştirilir.
+
+**Kayıt ve puanlama çalışıyor.** Yayın tahmini ile ilk uygun piyasa ve ilk uygun piyasa skoru ayrı ayrı maç öncesinde dondurulur. 1X2 ile 2,5 üst verisi farklı zamanda ilk kez uygun olursa iki alım ve kayıt saati ayrı saklanır. Her tahminin kaynak SHA-256 özeti ve sürümü saklanır. Otomatik kayıt analitiktir ve simülasyon sayısı 0. Sonuçlar 1X2, tutarlı tam skor ve ilk üç skor (Wilson %95), log loss, RPS ve güven kademesi kapsam/isabetiyle puanlanır. Eşleşmiş üçlü ortak örneklem ayrı verilir. 200 maçta ilk rapor dondurulur. 500 maçta ilk dönemde log loss ve RPS ile harman ağırlıkları öğrenilir, sonraki UTC günleri ayrılmış testte ölçülür. Lig başına küçük eğitim grubunda havuz ağırlığı kullanılır. Varsayılan tam skor ancak sonraki dönemde piyasa skoru eksi yayın skoru log loss farkının haftalık bloklarla eşleştirilmiş %95 aralığının tamamı sıfırın altındaysa değişir. Harman ağırlığı ana 1X2 kararını otomatik değiştirmez. Testte yeterli hafta yoksa varsayılan korunur.
+
+**Gerçek veri durumu.** Yayın akışında 7/7 kapsamdan maç sonuç kaynağı yanıt verdi. 18 donmuş maç önü kaydı var. Sonuçlanmış yayın kaydı 0, piyasa kaydı 0, üçlü kaydı 0. Güncel API yayını `unconfigured`. Gerçek anahtarla API testi ve canlı ileriye dönük iş sonuçları çalıştırılmadı. 200 ve 500 eşiği sentetik veride sınandı. Bu testteki isabet gerçek maç başarısı değildir.
+
+**Ücretsiz kota.** The Odds API ücretsiz paketi aylık 500 kredi, tek bölge ve iki piyasa istek başına iki kredi tüketir. Aşağıda yeniden çalıştırılabilir `node scripts/market-snapshot.cjs --quota` çıktısındaki 31 günlük üst sınırlar var. Planlanan sıklık lig sayısına göre düşer. GitHub Actions gecikebilir. Elle çalıştırmalar ve aynı anahtarın başka uygulamalardaki kullanımı tabloya dahil değildir. Sağlayıcının kalan kredi başlığında yeterli bakiye görünmediğinde ek lig isteği atlanır. API anahtarı GitHub Actions `ODDS_API_KEY` secret'ından okunur. Tarihsel ücretli akış tetiklenmedi ve ham oranlar tarayıcıya gönderilmez.
+
+| Lig sayısı | Lig başına günlük alım | Günlük HTTP isteği | Günlük kredi | 31 günlük kredi |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 4 | 4 | 8 | 248 |
+| 2 | 4 | 8 | 16 | 496 |
+| 3 | 2 | 6 | 12 | 372 |
+| 4 | 2 | 8 | 16 | 496 |
+| 5 | 1 | 5 | 10 | 310 |
+| 6 | 1 | 6 | 12 | 372 |
+
+[Sağlayıcının fiyatlandırması](https://the-odds-api.com/#pricing) · [Kota ve piyasalar](https://the-odds-api.com/liveapi/guides/v4/)

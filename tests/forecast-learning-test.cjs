@@ -145,15 +145,22 @@ test('scheduled ledger deduplicates and settles, rejects unknown or late kickoff
   scope,home:'Beşiktaş JK',away:'Galatasaray',kickoff:'2026-11-16T17:00:00Z',quotedAt:'2026-11-16T11:40:00Z',
   power:[.60,.25,.15],proportional:[.55,.27,.18]
  }]};
- const weights={version:odds.version,cutoff:'2026-11-16',experimentalWeights:{byLeague:{'tr.1':{early:{weight:.4}}}}};
- const withMarket=buildLeague([],scope,'Süper Lig',covered,fixtures,now,odds,weights);
- assert.equal(withMarket[0].market.weight,.4);
- assert.equal(withMarket[0].market.simulationCount,0);
- assert.deepEqual(withMarket[0].comparison.release.probabilities,rows[0].comparison.release.probabilities);
- assert.equal(buildLeague(rows,scope,'Süper Lig',covered,fixtures,now,odds,weights)[0].market,undefined);
- assert.deepEqual(buildLeague(withMarket,scope,'Süper Lig',covered,fixtures,now)[0].market,withMarket[0].market);
- const futureWeights={...weights,cutoff:'2026-11-17'};
- assert.equal(buildLeague([],scope,'Süper Lig',covered,fixtures,now,odds,futureWeights)[0].market.blend,undefined);
+ const withMarket=buildLeague([],scope,'Süper Lig',covered,fixtures,now,odds);
+ const quote=withMarket[0].liveMarket.market;
+ assert.equal(quote.simulationCount,0);
+ assert.equal(quote.dataSha256,odds.dataSha256);
+ assert.deepEqual(quote.probabilities,odds.events[0].power);
+ assert.equal(withMarket[0].liveMarket.marketScore,null);
+ assert.deepEqual(withMarket[0].comparison.release,rows[0].comparison.release);
+ assert.deepEqual(buildLeague(rows,scope,'Süper Lig',covered,fixtures,now,odds)[0].liveMarket,withMarket[0].liveMarket);
+ const totals={...odds,events:[{...odds.events[0],power:[.15,.25,.60],over25:.49,totalQuotedAt:odds.events[0].quotedAt}]};
+ const later=new Date('2026-11-16T13:00:00Z');
+ const completed=buildLeague(withMarket,scope,'Süper Lig',covered,fixtures,later,totals)[0];
+ assert.deepEqual(completed.liveMarket.market,quote);
+ assert.ok(completed.liveMarket.marketScore.probabilities.every((p,i)=>Math.abs(p-totals.events[0].power[i])<1e-12));
+ assert.equal(completed.liveMarket.marketScore.savedAt,later.getTime());
+ assert.deepEqual(buildLeague([completed],scope,'Süper Lig',covered,fixtures,later,odds)[0].liveMarket,completed.liveMarket);
+ assert.equal(buildLeague(rows,scope,'Süper Lig',covered,fixtures,new Date('2026-11-16T17:00:00Z'),odds)[0].liveMarket,undefined);
 
  assert.equal(buildLeague(rows,scope,'Süper Lig',history,fixtures,now).length,1);
  const result=[...history,{...fixtures[0],ft_home:'2',ft_away:'0'}];

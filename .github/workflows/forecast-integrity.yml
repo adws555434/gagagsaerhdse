@@ -6,6 +6,7 @@ on:
     paths:
       - index.html
       - scripts/forecast-ledger.cjs
+      - scripts/market-validation.cjs
       - tests/phase0-forecast-test.cjs
       - tests/phase1-backtest.cjs
       - tests/phase1-inputs.json
@@ -36,3 +37,4 @@ jobs:
       - run: node tests/phase2-backtest.cjs --self-test
       - run: node tests/phase2-market-test.cjs
       - run: node tests/phase2-timing-test.cjs
+      - run: node tests/phase2-live-test.cjs

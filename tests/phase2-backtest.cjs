@@ -402,7 +402,7 @@ async function run(){
   all:compact(rows.all.models),bands:rows.bands.map(({from,to,models})=>({from,to,models:compact(models)}))
  }])):null;
  const written={version:report.version,timingRows,scoreVersion:report.scoreVersion,dataSha256:report.dataSha256,cutoff:report.cutoff,source:report.source,leagueLabels:report.leagueLabels,
-  experimentalWeights:report.experimentalWeights,extension:publicExtension,closing:compact(report.closing),blend:compact(report.blend),
+  experimentalWeights:report.experimentalWeights,closingEvidence:report.closing[6]?.versusRelease?.logLoss??null,extension:publicExtension,closing:compact(report.closing),blend:compact(report.blend),
   leagues:Object.fromEntries(Object.entries(groups).map(([k,v])=>[k,{closing:compact(v.closing),blend:compact(v.blend)}]))};
  fs.mkdirSync(outputDir,{recursive:true});
  for(const [file,data] of [['phase2-results.json',report],['phase2-market-report.json',written],['phase2-missing.json',{counts,missing,archive:extra.exclusions}]]){

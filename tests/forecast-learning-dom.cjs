@@ -44,7 +44,7 @@ async function mock(url){
     scope:'TUR_1_super-lig',home:'Beşiktaş JK',away:'Galatasaray',
     kickoff:fixDate+'T18:00:00Z',quotedAt:new Date(captured-1000).toISOString(),
     totalQuotedAt:new Date(captured-1000).toISOString(),books:2,
-    power:[.52,.27,.21],proportional:[.50,.27,.23],over25:.55
+    power:[.21,.27,.52],proportional:[.23,.27,.50],over25:.55
    }]}));
  }
  if(url.includes('phase1-summary.json'))return response(JSON.stringify(phase1Summary));
@@ -231,9 +231,15 @@ async function run(){
    clearNetworkCache();oddsMode='ready';
    await submit('Beşiktaş','Galatasaray');
    assert.equal($('marketComparison').querySelectorAll('tbody tr').length,3);
-   assert.match($('marketComparison').textContent,/Harman · deney/);
+   assert.match($('marketComparison').textContent,/Piyasa skoru · test edilmedi/);
    assert.match($('marketTotals').textContent,/Piyasanın beklenen toplam golü/);
-   assert.match($('activeForecastMethod').textContent,/Ana tahmin · Yayın modeli/);
+   assert.match($('activeForecastMethod').textContent,/Ana 1X2 · Piyasa · Alınma/);
+   assert.match($('forecast').textContent,/Maç sonucu · PiyasaGalatasaray/);
+   assert.match($('forecast').textContent,/Yayın modeli skoru/);
+   oddsMode='unconfigured';
+   clearNetworkCache();
+   await submit('Beşiktaş','Galatasaray');
+   assert.match($('activeForecastMethod').textContent,/Ana 1X2 · Yayın modeli/);
    oddsMode='unconfigured';
    clearNetworkCache();
    feedMode='offline';

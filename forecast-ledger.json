@@ -1,5 +1,5 @@
 {
-  "checked": "2026-11-16T13:55:38.561Z",
+  "checked": "2026-11-16T14:46:47.862Z",
   "source": "open-matchday / Mart Jürisoo / UEFA",
   "coverage": 7,
   "feeds": [
@@ -778,5 +778,529 @@
       "learningVersion": "2026.11-shots-v1",
       "actual": null
     }
-  ]
+  ],
+  "marketValidation": {
+    "version": "2026.11-phase-2-live",
+    "counts": {
+      "release": 0,
+      "market": 0,
+      "marketScore": 0
+    },
+    "metrics": {
+      "release": {
+        "n": 0,
+        "logLoss": null,
+        "rps": null,
+        "result": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "score": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "top3": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "tiers": [
+          {
+            "label": "%45 altı",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%45–55",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%55–65",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%65+",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          }
+        ]
+      },
+      "market": {
+        "n": 0,
+        "logLoss": null,
+        "rps": null,
+        "result": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "score": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "top3": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "tiers": [
+          {
+            "label": "%45 altı",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%45–55",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%55–65",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%65+",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          }
+        ]
+      },
+      "marketScore": {
+        "n": 0,
+        "logLoss": null,
+        "rps": null,
+        "result": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "score": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "top3": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "tiers": [
+          {
+            "label": "%45 altı",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%45–55",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%55–65",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%65+",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          }
+        ]
+      }
+    },
+    "common": {
+      "release": {
+        "n": 0,
+        "logLoss": null,
+        "rps": null,
+        "result": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "score": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "top3": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "tiers": [
+          {
+            "label": "%45 altı",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%45–55",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%55–65",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%65+",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          }
+        ]
+      },
+      "market": {
+        "n": 0,
+        "logLoss": null,
+        "rps": null,
+        "result": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "score": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "top3": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "tiers": [
+          {
+            "label": "%45 altı",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%45–55",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%55–65",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%65+",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          }
+        ]
+      },
+      "marketScore": {
+        "n": 0,
+        "logLoss": null,
+        "rps": null,
+        "result": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "score": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "top3": {
+          "hits": 0,
+          "n": 0,
+          "rate": null,
+          "interval95": null
+        },
+        "tiers": [
+          {
+            "label": "%45 altı",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%45–55",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%55–65",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          },
+          {
+            "label": "%65+",
+            "coverage": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            },
+            "accuracy": {
+              "hits": 0,
+              "n": 0,
+              "rate": null,
+              "interval95": null
+            }
+          }
+        ]
+      }
+    },
+    "milestone200": null,
+    "milestone500": null
+  }
 }

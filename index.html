@@ -361,6 +361,7 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
         <p id="marketStatus" class="muted tiny" role="status"></p>
         <div id="marketComparison" class="tablewrap"></div>
         <p id="marketTotals" class="muted tiny"></p>
+        <div id="marketScorelines"></div>
       </details>
       <details id="modelPanel" class="hidden">
         <summary>Tahminin gerekçesi ve model karşılaştırması</summary>
@@ -497,6 +498,12 @@ input::file-selector-button { margin-right: 8px; font: inherit; color: var(--t);
     <h3>Otomatik maç önü kayıtları</h3>
     <p id="autoForecastStatus" class="muted tiny"></p>
     <div id="autoForecastList"></div>
+    <details id="marketLiveAudit">
+      <summary>Maç önü piyasa doğrulaması</summary>
+      <p id="marketLiveAuditStatus" class="muted tiny" role="status"></p>
+      <div id="marketLiveScores" class="tablewrap"></div>
+      <div id="marketLiveTiers" class="tablewrap"></div>
+    </details>
   </details>
 </main>
 <footer class="site-footer"><div class="wrap"><span>Football Intelligence</span><a href="#matchSearch">Takım seçimine dön ↑</a></div></footer>
@@ -918,6 +925,31 @@ function marketMixedScores(base,market,weight){
  });
  return {...scoreGridDistribution(grid,size),grid,size,tail:(1-weight)*base.tail+weight*market.tail};
 }
+const LIVE_MARKET_VERSION='2026.11-phase-2-live';
+function forecastSnapshotForLedger(distribution){
+ const choice=forecastDecision(distribution);
+ return {probabilities:distribution.outcomes,consistentScore:choice.score[0],
+  scores:choice.top.slice(0,3).map(([score])=>score)};
+}
+function marketComparisonForMatch(release,quote){
+ const market=marketScoreDistribution(release,quote.power);
+ const structural=marketTotalsDistribution(quote.power,quote.over25);
+ return {market,structural};
+}
+function primaryForecast(release,comparison,scorePolicy){
+ if(!comparison)return {probabilities:release.outcomes,method:'release',score:release,scoreMethod:'release'};
+ const useMarketScore=scorePolicy==='marketScore'&&comparison.structural;
+ return {probabilities:comparison.market.outcomes,method:'market',
+  score:useMarketScore?comparison.structural:release,scoreMethod:useMarketScore?'marketScore':'release'};
+}
+function frozenMarketComparison(release,quote){
+ const {market,structural}=marketComparisonForMatch(release,quote);
+ return {version:LIVE_MARKET_VERSION,
+  market:{...forecastSnapshotForLedger(market),capturedAt:quote.capturedAt,quotedAt:quote.quotedAt},
+  marketScore:structural?{...forecastSnapshotForLedger(structural),capturedAt:quote.capturedAt,
+   quotedAt:quote.quotedAt,totalQuotedAt:quote.totalQuotedAt,over25:quote.over25,
+   expectedTotal:structural.expectedTotal,expectedDifference:structural.expectedDifference}:null};
+}
 const marketAliases={
  besiktasjk:'besiktas',galatasaraysk:'galatasaray',fenerbahcesk:'fenerbahce',rizespor:'caykurrizespor',corumfk:'corum',eyup:'eyupspor',amed:'amedspor',erzurumsporfk:'erzurumspor',
  parisstgermain:'parissaintgermain',psg:'parissaintgermain',
@@ -954,18 +986,19 @@ function validMarketProbabilities(values,length=3){
 }
 function findMarketQuote(feed,scope,fixture,now){
  const kickoff=knownKickoff(fixture);
- const captured=Date.parse(feed?.capturedAt);
- if(!['ready','partial'].includes(feed?.state)||!Number.isFinite(captured)||kickoff==null||!(captured<=now&&now<kickoff)||now-captured>MARKET_MAX_QUOTE_AGE)return null;
- const matched=(feed.events??[]).filter(row=>row?.scope===scope&&marketTeamKey(row.home)===marketTeamKey(fixture.home)&&
+ if(!['ready','partial'].includes(feed?.state)||kickoff==null||!(now<kickoff)||!Array.isArray(feed.events))return null;
+ const matched=feed.events.filter(row=>row?.scope===scope&&marketTeamKey(row.home)===marketTeamKey(fixture.home)&&
   marketTeamKey(row.away)===marketTeamKey(fixture.away)&&Date.parse(row.kickoff)===kickoff);
  if(matched.length!==1)return null;
- const row=matched[0],quoted=Date.parse(row.quotedAt);
- if(!(quoted<=captured&&captured<kickoff&&now-quoted<=MARKET_MAX_QUOTE_AGE)||
+ const row=matched[0],quoted=Date.parse(row.quotedAt),capturedAt=row.capturedAt??feed.capturedAt;
+ const captured=Date.parse(capturedAt);
+ if(!(quoted<=captured&&captured<=now&&captured<kickoff&&now-quoted<=MARKET_MAX_QUOTE_AGE)||
     !validMarketProbabilities(row.power)||!validMarketProbabilities(row.proportional))return null;
  const totalQuoted=Date.parse(row.totalQuotedAt);
  const totalUsable=Number.isFinite(row.over25)&&row.over25>0&&row.over25<1&&
   totalQuoted<=captured&&now-totalQuoted<=MARKET_MAX_QUOTE_AGE;
- return totalUsable?row:{...row,over25:null,totalQuotedAt:null};
+ if(totalUsable&&row.capturedAt===capturedAt)return row;
+ return {...row,capturedAt,...(totalUsable?{}:{over25:null,totalQuotedAt:null})};
 }
 function poissonTerms(rate,size){
  const values=[Math.exp(-rate)];
@@ -1262,7 +1295,7 @@ function showScenarios(home,away,rates){
 }
 async function renderForecast(home,away,results,fixture,contextData){
  const panel=$('forecast'),note=$('forecastNote'),scores=$('scorelines');
- void renderMarketForecast(null,null,null,Date.now());
+ renderMarketForecast(null,null);
  panel.textContent='';
  scores.textContent='';
  $('simulationAudit').textContent='';
@@ -1282,7 +1315,7 @@ async function renderForecast(home,away,results,fixture,contextData){
  showScenarios(home,away,null);
  setupEvidence(home,away,fixture,new Date().toISOString().slice(0,10),null);
  if(!base||contextData.cached||contextData.partial){note.textContent='Veri yetersiz. Tahmin için güncel sonuç ve fikstür kaynakları ile iki takımın da en az '+MIN_TEAM_MATCHES+' geçmiş maçı gerekiyor.';return}
- $('activeForecastMethod').textContent='Ana tahmin · Yayın modeli';
+ $('activeForecastMethod').textContent='Ana 1X2 · Yayın modeli';
  const model=forecastModel(home,away,base,results,contextData,fixture);
  const forecastDate=new Date().toISOString().slice(0,10);
  const {rates,name}=model;
@@ -1294,22 +1327,30 @@ async function renderForecast(home,away,results,fixture,contextData){
   setStep(78+Math.round(progress*.19),simulationLabel+' · %'+progress);
  }});
  const agreement=simulationAgreement(uncertain,sim);
+ const marketData=await loadMatchMarket(historyScope(contextData),fixture,fixed);
+ const chosen=primaryForecast(fixed,marketData.comparison,marketData.scorePolicy);
  showScenarios(home,away,rates);
  const decision=forecastDecision(fixed),probabilities=fixed.outcomes;
- const [score,prob]=decision.score;
- const resultCard=metric('1X2 ile tutarlı skor',score,'Bu skorun olasılığı '+probabilityLabel(prob));
+ const resultDecision=strongestOutcome(chosen.probabilities);
+ const [score,prob]=forecastDecision(chosen.score).score;
+ const resultCard=chosen.method==='market'?
+  metric('Maç sonucu · Piyasa',[home,'Beraberlik',away][resultDecision],probabilityLabel(chosen.probabilities[resultDecision])+
+   ' · '+confidenceTier(chosen.probabilities)):
+  metric('1X2 ile tutarlı skor',score,'Bu skorun olasılığı '+probabilityLabel(prob));
  resultCard.classList.add('score-primary');
  const scoreValue=resultCard.querySelector('b');
  scoreValue.className='score-value';
  const winner=document.createElement('div');
  winner.className='score-winner';
- winner.textContent=describeScore(score,home,away).slice(score.length+1);
+ winner.textContent=chosen.method==='market'?
+  (chosen.scoreMethod==='marketScore'?'Piyasa skoru ':'Yayın modeli skoru ')+describeScore(score,home,away):
+  describeScore(score,home,away).slice(score.length+1);
  scoreValue.after(winner);
  panel.append(resultCard,
-  outcomeMetric(home+' kazanır',probabilities[0],neutral?'Tarafsız saha':'Ev sahibi'),
-  outcomeMetric('Beraberlik',probabilities[1]),
-  outcomeMetric(away+' kazanır',probabilities[2],neutral?'Tarafsız saha':'Deplasman'));
- $('simulationAudit').textContent='Güven kademesi '+confidenceTier(probabilities)+
+  ...[home+' kazanır','Beraberlik',away+' kazanır'].map((label,i)=>
+   outcomeMetric(label,chosen.probabilities[i],chosen.method==='market'?'Yayın modeli '+probabilityLabel(probabilities[i]):
+    i===1?'':neutral?'Tarafsız saha':i===0?'Ev sahibi':'Deplasman')));
+ $('simulationAudit').textContent='Yayın modeli güven kademesi '+confidenceTier(probabilities)+
   ' · Bağımsız kademe isabeti henüz ölçülmedi. Belirsizlik adayı 1X2 '+uncertain.outcomes.map(probabilityLabel).join(' / ')+
   ' · '+simulationLabel+' · Adayda analitik matristen en büyük fark '+
   fmt(100*agreement.outcomeDelta,3)+' yüzde puan (1X2), '+fmt(100*agreement.scoreDelta,3)+' yüzde puan (ilk beş skor). '+
@@ -1329,13 +1370,13 @@ async function renderForecast(home,away,results,fixture,contextData){
  const share=probabilityLabel;
  $('firstGoal').textContent='İlk gol modeli (sabit gol hızı varsayımı) · '+home+' '+share((1-noGoal)*homeGoals/totalRate)+
   ' · '+away+' '+share((1-noGoal)*awayGoals/totalRate)+' · golsüz '+share(noGoal);
- list(scores,decision.top.slice(0,3).map(([scoreline,p],i)=>({t:(i===0?'Genel en olası skor · ':'')+describeScore(scoreline,home,away)+' · '+probabilityLabel(p)})));
+ list(scores,forecastDecision(chosen.score).top.slice(0,3).map(([scoreline,p],i)=>({t:(i===0?(chosen.scoreMethod==='marketScore'?'Piyasa':'Yayın modeli')+' · Genel en olası skor · ':'')+describeScore(scoreline,home,away)+' · '+probabilityLabel(p)})));
  renderModel(home,away,base,model,neutral,probabilities);
  renderHalves(home,away,rates,results);
  const shots=shotEstimate(home,away,results.filter(row=>row.date<forecastDate),neutral,forecastDate);
  const candidates=shotCandidates([homeGoals,awayGoals],shots);
  renderLearningForecast(home,away,fixture,contextData,forecastDate,probabilities,shots,candidates,[homeGoals,awayGoals]);
- renderScoreGrid(home,away,fixed);
+ renderScoreGrid(home,away,chosen.score);
  setupLineupScenario(home,away,[homeGoals,awayGoals],probabilities);
  setupEvidence(home,away,fixture,forecastDate,rates,contextData);
  const versionPayload=forecastInputPayload(results,home,away,fixture,historyScope(contextData),forecastDate);
@@ -1345,9 +1386,9 @@ async function renderForecast(home,away,results,fixture,contextData){
  if(dataSha256){
   $('simulationAudit').append(' Sürüm '+ENGINE_VERSION+' · Veri SHA-256 '+dataSha256+'.');
   saveForecast(fixture,contextData,probabilities,decision.top.slice(0,3).map(([value])=>value),name,candidates,[homeGoals,awayGoals],
-   {engineVersion:ENGINE_VERSION,modelVersion:MODEL_VERSION,dataSha256,simulationCount:SIMULATIONS,seed:SIMULATION_SEED,consistentScore:score});
+   {engineVersion:ENGINE_VERSION,modelVersion:MODEL_VERSION,dataSha256,simulationCount:SIMULATIONS,seed:SIMULATION_SEED,consistentScore:decision.score[0]});
  }
- await renderMarketForecast(historyScope(contextData),fixture,fixed,Date.now());
+ renderMarketForecast(fixture,fixed,marketData);
  return {home,away,base,rates,fixture};
 }
 async function getText(url){
@@ -2218,54 +2259,62 @@ function loadMarketReport(){
  }).catch(error=>{marketReportRequest=null;throw error;});
  return marketReportRequest;
 }
-async function renderMarketForecast(scope,fixture,base,started){
- const panel=$('marketPanel'),status=$('marketStatus'),table=$('marketComparison'),totals=$('marketTotals');
- panel.open=false;
- table.replaceChildren();totals.textContent='';
- $('activeForecastMethod').textContent=base?'Ana tahmin · Yayın modeli':'Ana tahmin · Veri yetersiz';
- if(!base){status.textContent='Veri yetersiz. Önce takım verilerinin tamamlanması gerekiyor.';return;}
- if(!ARCHIVE_LEAGUES[scope]||!fixture||!(knownKickoff(fixture)>started)){
-  status.textContent='Veri yetersiz. Piyasa karşılaştırması için kapsamdaki bir sonraki maçın saatli fikstürü gerekli.';return;
+const MARKET_SNAPSHOT_URLS=[
+ 'https://raw.githubusercontent.com/adws555434/gagagsaerhdse/main/market-snapshot.json',
+ 'https://cdn.jsdelivr.net/gh/adws555434/gagagsaerhdse@main/market-snapshot.json',
+ './market-snapshot.json'
+];
+async function loadMatchMarket(scope,fixture,base){
+ if(!ARCHIVE_LEAGUES[scope]||!(knownKickoff(fixture)>Date.now())){
+  return {note:'Piyasa karşılaştırması için kapsamdaki bir sonraki maçın saatli fikstürü gerekli.'};
  }
- status.textContent='Maç önü piyasa kaydı kontrol ediliyor…';
  try{
-  const feed=JSON.parse(await getText('./market-snapshot.json'));
-  if(feed.version!==MARKET_VERSION||!Array.isArray(feed.events))throw Error('Geçersiz piyasa kaydı');
-  if(feed.state==='unconfigured'){status.textContent='Güncel piyasa kaynağı bağlı değil. Tarihsel karşılaştırma Tahmin geçmişi bölümünde.';return;}
-  const now=Date.now();
-  const row=findMarketQuote(feed,scope,fixture,now);
-  if(!row){status.textContent='Veri yetersiz. Bu fikstür için zaman doğrulamasından geçen güncel piyasa kaydı yok.';return;}
-  let weight;
-  try{weight=marketWeight(await loadMarketReport(),scope,now);}
-  catch{/* Piyasa karşılaştırması ağırlık olmadan da gösterilebilir. */}
-  const totalsScore=marketTotalsDistribution(row.power,row.over25);
-  const result=totalsScore??marketScoreDistribution(base,row.power), p=base.outcomes;
-  const kickoff=knownKickoff(fixture);
-  if(!(kickoff>Date.now())||!findMarketQuote(feed,scope,fixture,Date.now())){
-   status.textContent='Veri yetersiz. Maç saati veya piyasa kaydının geçerliliği doldu.';return;
-  }
-  const headers=['Yöntem',fixture.home,'Beraberlik',fixture.away,'Tutarlı skor','Güven kademesi'];
-  const item=(name,d,delta)=>[name,...d.outcomes.map((x,i)=>probabilityLabel(x)+(delta?' ('+formatDelta(x-p[i])+')':'')),
-   describeScore(forecastDecision(d).score[0],fixture.home,fixture.away),confidenceTier(d.outcomes)];
-  const entries=[item('Yayın modeli',base,false),item('Piyasa · power',result,true)];
-  if(weight!=null){
-   const blend=totalsScore?marketMixedScores(base,totalsScore,weight):
-    marketScoreDistribution(base,marketBlend(p,row.power,weight));
-   entries.push(item('Harman · deney, piyasa ağırlığı '+probabilityLabel(weight),blend,true));
-  }else entries.push(['Harman · veri yetersiz','—','—','—','—','—']);
-  table.replaceChildren(dataTable(headers,entries,true));
-  status.textContent='The Odds API · '+row.books+' kaynak · Yakalama '+new Date(feed.capturedAt).toLocaleString('tr-TR')+
-   ' · Başlama saatine '+fmt((kickoff-Date.parse(feed.capturedAt))/3600000,1)+' saat kala' +
-   ' · En eski kullanılan oran '+new Date(row.quotedAt).toLocaleString('tr-TR')+
-   ' · Parantezler yayın modeline göre fark. '+(totalsScore?
-    'Piyasa skoru 1X2 ve 2,5 alt/üstten hesaplandı.':'Piyasa skoru yayın modelinin koşullu skor dağılımını kullanıyor.');
-  $('activeForecastMethod').textContent='Ana tahmin · Yayın modeli. Piyasa karşılaştırması deneme aşamasında.';
-  totals.textContent=totalsScore?'2,5 üst '+probabilityLabel(row.over25)+' · Piyasanın beklenen toplam golü '+fmt(totalsScore.expectedTotal)+
-   ' · Beklenen ev eksi deplasman gol farkı '+fmt(totalsScore.expectedDifference)+'.':
-   '2,5 alt/üst için veri yetersiz.';
- }catch{
-  status.textContent='Piyasa kaydı yüklenemedi. Skor tahmini önceki yöntemle devam ediyor.';
- }
+  const loaded=await Promise.allSettled(MARKET_SNAPSHOT_URLS.map(async url=>{
+   const feed=JSON.parse(await getText(url));
+   if(feed.version!==MARKET_VERSION||!Array.isArray(feed.events))throw Error('Geçersiz piyasa kaydı');
+   return feed;
+  }));
+  const feeds=loaded.flatMap(result=>result.status==='fulfilled'?[result.value]:[]);
+  if(!feeds.length)throw Error('Piyasa kaydı yüklenemedi');
+  if(feeds.every(feed=>feed.state==='unconfigured'))return {note:'Güncel piyasa kaynağı bağlı değil.'};
+  const latestQuote=()=>feeds.map(feed=>findMarketQuote(feed,scope,fixture,Date.now())).filter(Boolean)
+   .sort((a,b)=>Date.parse(b.capturedAt)-Date.parse(a.capturedAt))[0];
+  if(!latestQuote())return {note:'Bu fikstür için zaman doğrulamasından geçen güncel piyasa oranı yok.'};
+  const ledger=await loadPublicLedger().catch(()=>null);
+  const row=latestQuote();
+  if(!row)return {note:'Bu fikstür için zaman doğrulamasından geçen güncel piyasa oranı yok.'};
+  const validation=ledger?.marketValidation;
+  const scorePolicy=validation?.version===LIVE_MARKET_VERSION&&validation.milestone500?.scoreDecision==='marketScore'?
+   'marketScore':'release';
+  return {row,comparison:marketComparisonForMatch(base,row),scorePolicy,measured:Boolean(validation?.milestone200)};
+ }catch{return {note:'Piyasa kaydı yüklenemedi.'};}
+}
+function renderMarketForecast(fixture,base,data={}){
+ const panel=$('marketPanel'),status=$('marketStatus'),table=$('marketComparison'),totals=$('marketTotals'),scores=$('marketScorelines');
+ panel.open=false;
+ table.replaceChildren();totals.textContent='';scores.replaceChildren();
+ const {row,comparison,scorePolicy}=data;
+ const captured=row?new Date(row.capturedAt).toLocaleString('tr-TR'):'';
+ $('activeForecastMethod').textContent=row?'Ana 1X2 · Piyasa · Alınma '+captured:
+  base?'Ana 1X2 · Yayın modeli':'Ana tahmin · Veri yetersiz';
+ status.textContent=data.note??'Veri yetersiz. Önce takım verilerinin tamamlanması gerekiyor.';
+ if(!row)return;
+ const {market,structural}=comparison;
+ const headers=['Yöntem',fixture.home,'Beraberlik',fixture.away,'Tutarlı skor','Güven kademesi'];
+ const item=(name,d)=>[name,...d.outcomes.map((p,i)=>probabilityLabel(p)+(d===base?'':' ('+formatDelta(p-base.outcomes[i])+')')),
+  describeScore(forecastDecision(d).score[0],fixture.home,fixture.away),confidenceTier(d.outcomes)];
+ const scoreLabel=scorePolicy==='marketScore'?'Piyasa skoru · doğrulama geçti':data.measured?'Piyasa skoru · deney':'Piyasa skoru · test edilmedi';
+ const entries=[item('Yayın modeli',base),item('Piyasa · yayın modeli skor dağılımıyla',market)];
+ if(structural)entries.push(item(scoreLabel,structural));
+ table.replaceChildren(dataTable(headers,entries,true));
+ status.textContent='The Odds API · '+row.books+' kaynak · Alınma '+captured+
+  ' · Kullanılan en eski fiyat '+new Date(row.quotedAt).toLocaleString('tr-TR')+' · Parantezlerde yayın modeline göre fark.';
+ totals.textContent=structural?scoreLabel+' · 2,5 üst '+probabilityLabel(row.over25)+
+  ' · Piyasanın beklenen toplam golü '+fmt(structural.expectedTotal)+' · Ev eksi deplasman gol farkı '+fmt(structural.expectedDifference)+'.':
+  'Piyasa skoru için 2,5 alt/üst verisi yetersiz.';
+ if(structural)list(scores,forecastDecision(structural).top.slice(0,3).map(([score,p],i)=>({
+  t:(i===0?'Piyasanın en olası skoru · ':'')+describeScore(score,fixture.home,fixture.away),s:probabilityLabel(p)
+ })));
 }
 async function renderMarketAudit(){
  const status=$('marketAuditStatus'),select=$('marketAuditLeague');
@@ -2298,8 +2347,12 @@ async function renderMarketAudit(){
   const tierRows=tiers.flatMap(model=>model.tiers.map((tier,i)=>[model.name,labels[i],
    accuracyLabel(tier.coverage.hits,tier.coverage.n),accuracyLabel(tier.accuracy.hits,tier.accuracy.n)]));
   $('marketAuditTiers').replaceChildren(dataTable(['Model','Kademe','Kapsam','1X2 isabeti'],tierRows));
+  const historical=report.closingEvidence;
   status.textContent=(rows?.closing?.[0]?.n??0)+' ortak Pinnacle kapanış kaydı. Alt/üst karşılaştırması ayrı örneklemde. '+
-   'Yayın zamanı doğrulanan ilk fiyatlar ayrı tabloda. Canlı ana tahmin yayın modeli.'+
+   'Ana 1X2 kararının dayanağı tek kısmi sezon, '+report.closing[0].n+' maç. Piyasa eksi yayın modeli log loss %95 aralığı '+
+   (historical?historical.ci95.map(x=>fmt(x,5)).join(' ile '):'ölçüm yok')+
+   '. Güncel erken oranlarla üstünlük kanıtlanmadı. Çok sezonlu doğrulama çalıştırılmadı. '+
+   'Yayın zamanı doğrulanan ilk fiyatlar ayrı tabloda. Uygun güncel oran varsa ana 1X2 piyasadan gelir.'+
    (!extension?.totals&&extension?.closingResearch?' Alt/üst tablosu kısa, ticari olmayan araştırma örnekleminden.':'');
  }catch{status.textContent='Piyasa test raporu yüklenemedi.';}
 }
@@ -2528,15 +2581,52 @@ function parsePublicLedger(text){
   ['live','mirror','unavailable'].includes(feed.results)&&['live','mirror','local','unavailable'].includes(feed.fixtures))))throw Error('Invalid feed status');
  return ledger;
 }
+function renderMarketLiveAudit(validation){
+ const status=$('marketLiveAuditStatus'),scores=$('marketLiveScores'),tiers=$('marketLiveTiers');
+ scores.replaceChildren();tiers.replaceChildren();
+ if(validation?.version!==LIVE_MARKET_VERSION){
+  status.textContent='Yeni piyasa ölçümü yayımlanmadı.';
+  return;
+ }
+ const names={release:'Yayın modeli',market:'Piyasa · yayın modeli skoruyla',marketScore:'Piyasa skoru'};
+ const accuracy=value=>accuracyLabel(value.hits,value.n);
+ const rows=Object.entries(names).flatMap(([method,name])=>['metrics','common'].map(group=>{
+  const values=validation[group][method];
+  return [name,group==='common'?'Ortak maçlar':'Tüm kayıtlar',values];
+ }));
+ scores.replaceChildren(dataTable(['Model','Örneklem','Maç','Log loss','RPS','1X2','Tam skor','İlk üç'],
+  rows.map(([name,sample,row])=>[name,sample,row.n,fmt(row.logLoss,5),fmt(row.rps,5),
+   ...[row.result,row.score,row.top3].map(accuracy)])));
+ tiers.replaceChildren(dataTable(['Model · ortak maçlar','Kademe','Kapsam','1X2 isabeti'],
+  rows.filter(([,sample])=>sample==='Ortak maçlar').flatMap(([name,,row])=>
+   row.tiers.map(tier=>[name,tier.label,accuracy(tier.coverage),accuracy(tier.accuracy)]))));
+ const {milestone200, milestone500}=validation;
+ status.textContent='Üç tahmini de bulunan ve sonuçlanan '+validation.counts.marketScore+' maç. '+
+  (milestone200?'200 maç ara raporu '+new Date(milestone200.checked).toLocaleDateString('tr-TR')+' tarihinde donduruldu. ':
+   'Ara rapor için 200 maç bekleniyor. ')+
+  (milestone500?'500 maç raporu · Sonraki dönem '+milestone500.holdout+' maç · Varsayılan skor '+
+   (milestone500.scoreDecision==='marketScore'?'piyasa skoru.':'yayın modeli.'):
+   'Harman ağırlığı ve skor kararı için 500 maç bekleniyor.');
+ const link=document.createElement('a');
+ link.textContent='Dondurulan ölçümler ve ağırlıklar';
+ link.href='./forecast-ledger.json';
+ link.style.color='inherit';
+ status.append(' ',link);
+}
+async function loadPublicLedger(){
+ const loaded=await Promise.allSettled(PUBLIC_LEDGER_URLS.map(async url=>parsePublicLedger(await getText(url))));
+ const ledger=loaded.flatMap(item=>item.status==='fulfilled'?[item.value]:[]).sort((a,b)=>Date.parse(b.checked)-Date.parse(a.checked))[0];
+ if(!ledger)throw Error('Invalid ledger');
+ return ledger;
+}
 async function renderAutoForecasts(){
  const status=$('autoForecastStatus');
  const output=$('autoForecastList');
  try{
-  const loaded=await Promise.allSettled(PUBLIC_LEDGER_URLS.map(async url=>parsePublicLedger(await getText(url))));
-  const ledger=loaded.flatMap(item=>item.status==='fulfilled'?[item.value]:[]).sort((a,b)=>Date.parse(b.checked)-Date.parse(a.checked))[0];
-  if(!ledger)throw Error('Invalid ledger');
+  const ledger=await loadPublicLedger();
   const {checked,records,feeds}=ledger;
   publicForecastRecords=records;
+  renderMarketLiveAudit(ledger.marketValidation);
   const totals=historyMetrics(publicForecastRecords);
   const report=totals.n?' · Sonuçlanan '+totals.n+' · Maç sonucu '+accuracyLabel(totals.result,totals.n)+
    ' · Tam skor '+accuracyLabel(totals.score,totals.n)+' · İlk üç skor '+accuracyLabel(totals.top3,totals.n):' · Sonuçlanan kayıt henüz yok';
@@ -2544,7 +2634,10 @@ async function renderAutoForecasts(){
   status.textContent='Son güncelleme '+new Date(checked).toLocaleString('tr-TR')+complete+' · '+publicForecastRecords.length+' maç önü kaydı'+report+'.';
   list(output,publicForecastRecords.slice().sort((a,b)=>b.savedAt-a.savedAt).slice(0,12).map(row=>({
    t:row.date+' · '+row.home+' — '+row.away,
-   s:describeScore(row.consistentScore??row.scores[0],row.home,row.away)+' · '+(row.actual?'Gerçek '+row.actual.join('–'):'Sonuç bekleniyor')+' · '+row.league
+   s:'Yayın modeli '+describeScore(row.consistentScore??row.scores[0],row.home,row.away)+
+    (row.liveMarket?.market?' · Piyasa '+row.liveMarket.market.probabilities.map(probabilityLabel).join(' / '):'')+
+    (row.liveMarket?.marketScore?' · Piyasa skoru '+describeScore(row.liveMarket.marketScore.consistentScore,row.home,row.away):'')+
+    ' · '+(row.actual?'Gerçek '+row.actual.join('–'):'Sonuç bekleniyor')+' · '+row.league
   })),'Kayıt oluşturmak için yeterli geçmişi olan yaklaşan maç bekleniyor.');
  }catch{status.textContent='Otomatik maç önü kayıtlarına şu anda ulaşılamadı.';}
 }
