@@ -4,7 +4,29 @@
 
 [Uygulamayı aç](https://adws555434.github.io/gagagsaerhdse/)
 
-## Rakip gücüne göre model seçimi
+## Kulüp maç sonucu düzeltmesi
+
+1.427 maçlık 2025/26 grubunda maç sonucu isabeti 768'den 775'e çıkarıldı. Kolonlardaki “Poisson + Elo” düşüşten önceki referanstır. “Önceki rakip modeli” 100 aday arasından önceki turda seçilen sürümdür.
+
+| 2025/26 · 1.427 maç | Poisson + Elo | Önceki rakip modeli | Yayındaki model |
+|---|---:|---:|---:|
+| Maç sonucu | %54,24 | %53,82 | %54,31 |
+| Tam skor | %11,63 | %11,70 | %12,40 |
+| İlk üç skor | %30,90 | %32,94 | %32,10 |
+| Log loss | 0,99727 | 0,98939 | 0,99104 |
+| Brier | 0,59456 | 0,58919 | 0,59024 |
+
+Toplam 10.127 tahmin, 2020/21 (1.937), 2021/22–2024/25 (6.450), 2025/26 (1.427) ve 2026/27 sezon başı (313) olmak üzere dört dönemde incelendi. Yeni ana model beş ölçütün her birinde bu dört dönem toplamlarında düşüşten önceki referansa eşit veya daha iyi. Bu kontrol, her ligde her ölçütün iyileştiği anlamına gelmez. Ayar taramasında bu dönemlerin ölçümleri kullanıldı, dolayısıyla bunlar yeni sürümün bağımsız testi sayılmaz.
+
+2026/27 grubunda maç sonucu isabeti referansta %53,35, önceki rakip modelinde %55,59, yeni ana modelde %53,67. Bu grupta yeni model tam skorda %10,22; önceki rakip modeli %11,18. İki grubun da bütün ölçütlerinde iki eski sürümü birden geçen aday bulunmadı. Öncelik 2025/26 grubundaki maç sonucu düşüşünü düzeltmek ve dört test döneminde düşüşten önceki referansın beş ölçütünü korumaktı. Uygulamada önceki rakip modeli olasılıkları ve en olası skoru görülebilir. Milli takım modeli değiştirilmedi.
+
+Yayındaki kulüp modeli rakip gücüne %45, gol paylaşımında Elo'ya %37,5 ağırlık verir. Ev sahibi gol oranı exp(0,035), deplasman oranı exp(−0,035) ile ölçeklenir. Tarafsız sahada bu ek düzeltme uygulanmaz. Beş ölçüt için yayın karşılaştırması doğrudan Poisson hesabıdır. Tarayıcı maç başına 100 milyon simülasyon yapmaya devam eder.
+
+[Ham sonuçlar](tests/club-balance-results.json) · [Sabit veri listesi](tests/club-balance-data.json) · [Doğrulama kodu](tests/club-balance-evaluation.cjs)
+
+Daha önceki arşivi `audit-data` klasörüne aşağıdaki “Geçmiş testi yeniden çalıştırma” bölümündeki adımlarla indir. Sabit veri listesindeki `url` dosyalarını `guard-data` klasörüne `file` alanındaki adla kaydet ve SHA-256 değerlerini denetle. Repo kökünde `node tests/club-balance-evaluation.cjs guard-data audit-data` çalıştır.
+
+## Önceki sürüm · Rakip gücüne göre model seçimi
 
 [300 fikir ve 100 öncelik](FORECAST_ROADMAP.md) · [Değerlendirme kodu](tests/candidate-evaluation.cjs) · [Ham sonuçlar](tests/candidate-results.json)
 
