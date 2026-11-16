@@ -1,0 +1,425 @@
+{
+  "snapshot_coverage": {
+    "2015": {
+      "fixtures": 306,
+      "match": 269,
+      "sot": 268,
+      "box": 268,
+      "proxy": 268,
+      "formations": 0
+    },
+    "2016": {
+      "fixtures": 306,
+      "match": 240,
+      "sot": 239,
+      "box": 240,
+      "proxy": 240,
+      "formations": 240
+    },
+    "2017": {
+      "fixtures": 306,
+      "match": 276,
+      "sot": 276,
+      "box": 210,
+      "proxy": 210,
+      "formations": 209
+    },
+    "2018": {
+      "fixtures": 306,
+      "match": 274,
+      "sot": 274,
+      "box": 238,
+      "proxy": 239,
+      "formations": 233
+    },
+    "2019": {
+      "fixtures": 306,
+      "match": 272,
+      "sot": 272,
+      "box": 272,
+      "proxy": 272,
+      "formations": 265
+    },
+    "2020": {
+      "fixtures": 420,
+      "match": 380,
+      "sot": 379,
+      "box": 379,
+      "proxy": 380,
+      "formations": 365
+    },
+    "2021": {
+      "fixtures": 380,
+      "match": 342,
+      "sot": 342,
+      "box": 342,
+      "proxy": 342,
+      "formations": 338
+    },
+    "2022": {
+      "fixtures": 342,
+      "match": 340,
+      "sot": 313,
+      "box": 313,
+      "proxy": 313,
+      "formations": 313
+    },
+    "2023": {
+      "fixtures": 380,
+      "match": 379,
+      "sot": 379,
+      "box": 379,
+      "proxy": 379,
+      "formations": 378
+    },
+    "2024": {
+      "fixtures": 342,
+      "match": 271,
+      "sot": 270,
+      "box": 269,
+      "proxy": 269,
+      "formations": 271
+    },
+    "2025": {
+      "fixtures": 306,
+      "match": 279,
+      "sot": 279,
+      "box": 273,
+      "proxy": 273,
+      "formations": 268
+    }
+  },
+  "train": 1738,
+  "validation": 619,
+  "test": 606,
+  "test_matches_with_signal": 492,
+  "trials": 150,
+  "validation_passes": 60,
+  "parameters": {
+    "ana": {
+      "kind": "ana"
+    },
+    "secili": {
+      "kind": "uyarlanmis",
+      "channels": [
+        0,
+        1,
+        2
+      ],
+      "window": 1,
+      "penalty": 0.02,
+      "rho": -0.04,
+      "coeff": [
+        -0.07343117003650479,
+        0.011876569408982504,
+        0.3294874106229752,
+        0.2601063437967572,
+        0.38220678694707627,
+        0.28256478584777367
+      ]
+    },
+    "isabetli_sut": {
+      "kind": "uyarlanmis",
+      "channels": [
+        0
+      ],
+      "window": 2,
+      "penalty": 0.02,
+      "rho": -0.04,
+      "coeff": [
+        -0.0002923503455868368,
+        -0.023815759886859415,
+        0.3888866794626654,
+        0.7008876080123868
+      ]
+    },
+    "ceza_sahasi_ici_sut": {
+      "kind": "uyarlanmis",
+      "channels": [
+        1
+      ],
+      "window": 1,
+      "penalty": 0.02,
+      "rho": -0.04,
+      "coeff": [
+        -0.026630719128992793,
+        -0.0013878026134149354,
+        0.38140194159848984,
+        0.7561240937885132
+      ]
+    },
+    "bolge_gol_tahmini": {
+      "kind": "uyarlanmis",
+      "channels": [
+        2
+      ],
+      "window": 1,
+      "penalty": 0.02,
+      "rho": -0.04,
+      "coeff": [
+        -0.023485773190258432,
+        -0.006067180964905984,
+        0.39787128568667407,
+        0.7344401205494787
+      ]
+    }
+  },
+  "holdout_30_percent_passes": 0,
+  "holdout_no_regression_by_season": {
+    "secili": false,
+    "isabetli_sut": false,
+    "ceza_sahasi_ici_sut": false,
+    "bolge_gol_tahmini": false
+  },
+  "results": {
+    "validation": {
+      "ana": {
+        "n": 619,
+        "result": 332,
+        "exact": 74,
+        "top3": 174,
+        "logLoss": 0.9670472406716707,
+        "brier": 0.5737018943014209,
+        "scoreLoss": 3.0305228524694634
+      },
+      "secili": {
+        "n": 619,
+        "result": 345,
+        "exact": 76,
+        "top3": 179,
+        "logLoss": 0.9602748932499592,
+        "brier": 0.5691405666591937,
+        "scoreLoss": 2.992758136735894
+      },
+      "isabetli_sut": {
+        "n": 619,
+        "result": 342,
+        "exact": 75,
+        "top3": 174,
+        "logLoss": 0.9653779297780518,
+        "brier": 0.572006823064464,
+        "scoreLoss": 2.9987479418238068
+      },
+      "ceza_sahasi_ici_sut": {
+        "n": 619,
+        "result": 346,
+        "exact": 78,
+        "top3": 184,
+        "logLoss": 0.9629870329097329,
+        "brier": 0.5710079947072786,
+        "scoreLoss": 2.9964811535545572
+      },
+      "bolge_gol_tahmini": {
+        "n": 619,
+        "result": 344,
+        "exact": 75,
+        "top3": 182,
+        "logLoss": 0.964290208064175,
+        "brier": 0.5718124271102085,
+        "scoreLoss": 2.9980371998169137
+      }
+    },
+    "final": {
+      "ana": {
+        "n": 606,
+        "result": 332,
+        "exact": 70,
+        "top3": 195,
+        "logLoss": 0.9768845303081866,
+        "brier": 0.5791832266178026,
+        "scoreLoss": 2.994200269290044
+      },
+      "secili": {
+        "n": 606,
+        "result": 336,
+        "exact": 74,
+        "top3": 200,
+        "logLoss": 0.9655863427774325,
+        "brier": 0.5733637974418532,
+        "scoreLoss": 2.9518515508261927
+      },
+      "isabetli_sut": {
+        "n": 606,
+        "result": 334,
+        "exact": 63,
+        "top3": 199,
+        "logLoss": 0.9691360317467088,
+        "brier": 0.5757470041620614,
+        "scoreLoss": 2.958073899099011
+      },
+      "ceza_sahasi_ici_sut": {
+        "n": 606,
+        "result": 336,
+        "exact": 72,
+        "top3": 207,
+        "logLoss": 0.9676994848062643,
+        "brier": 0.5745452748785248,
+        "scoreLoss": 2.9551034754908607
+      },
+      "bolge_gol_tahmini": {
+        "n": 606,
+        "result": 333,
+        "exact": 69,
+        "top3": 196,
+        "logLoss": 0.9695472666180519,
+        "brier": 0.575808827446646,
+        "scoreLoss": 2.956566665365623
+      }
+    },
+    "2024": {
+      "ana": {
+        "n": 294,
+        "result": 167,
+        "exact": 34,
+        "top3": 101,
+        "logLoss": 0.9525255952602435,
+        "brier": 0.5602894497237287,
+        "scoreLoss": 3.0317440463778365
+      },
+      "secili": {
+        "n": 294,
+        "result": 173,
+        "exact": 40,
+        "top3": 99,
+        "logLoss": 0.9420565405644746,
+        "brier": 0.5545140775727653,
+        "scoreLoss": 2.9914941323207316
+      },
+      "isabetli_sut": {
+        "n": 294,
+        "result": 170,
+        "exact": 33,
+        "top3": 99,
+        "logLoss": 0.9490956646252589,
+        "brier": 0.5599483890948502,
+        "scoreLoss": 3.0029013067511103
+      },
+      "ceza_sahasi_ici_sut": {
+        "n": 294,
+        "result": 174,
+        "exact": 36,
+        "top3": 106,
+        "logLoss": 0.9435679483730945,
+        "brier": 0.5552278704510225,
+        "scoreLoss": 2.993146274457369
+      },
+      "bolge_gol_tahmini": {
+        "n": 294,
+        "result": 170,
+        "exact": 35,
+        "top3": 99,
+        "logLoss": 0.9483116367340414,
+        "brier": 0.5586144709773654,
+        "scoreLoss": 2.9985962633699232
+      }
+    },
+    "2025": {
+      "ana": {
+        "n": 258,
+        "result": 131,
+        "exact": 33,
+        "top3": 79,
+        "logLoss": 1.0253028082399456,
+        "brier": 0.6144868960145591,
+        "scoreLoss": 2.905201158537654
+      },
+      "secili": {
+        "n": 258,
+        "result": 129,
+        "exact": 33,
+        "top3": 87,
+        "logLoss": 1.0082650690453396,
+        "brier": 0.6058981677515577,
+        "scoreLoss": 2.8588030166538214
+      },
+      "isabetli_sut": {
+        "n": 258,
+        "result": 129,
+        "exact": 29,
+        "top3": 86,
+        "logLoss": 1.007660197135724,
+        "brier": 0.6047301090432826,
+        "scoreLoss": 2.858456457932637
+      },
+      "ceza_sahasi_ici_sut": {
+        "n": 258,
+        "result": 129,
+        "exact": 35,
+        "top3": 89,
+        "logLoss": 1.0110128855333642,
+        "brier": 0.6074406919659956,
+        "scoreLoss": 2.8620618462547984
+      },
+      "bolge_gol_tahmini": {
+        "n": 258,
+        "result": 128,
+        "exact": 33,
+        "top3": 86,
+        "logLoss": 1.0107104431989489,
+        "brier": 0.6071323685048603,
+        "scoreLoss": 2.8609896341310885
+      }
+    },
+    "2026": {
+      "ana": {
+        "n": 54,
+        "result": 34,
+        "exact": 3,
+        "top3": 15,
+        "logLoss": 0.8781736265619136,
+        "brier": 0.5133762581454794,
+        "scoreLoss": 3.2150132342957187
+      },
+      "secili": {
+        "n": 54,
+        "result": 34,
+        "exact": 1,
+        "top3": 14,
+        "logLoss": 0.889783573767974,
+        "brier": 0.5205480585827443,
+        "scoreLoss": 3.180584937068315
+      },
+      "isabetli_sut": {
+        "n": 54,
+        "result": 35,
+        "exact": 1,
+        "top3": 14,
+        "logLoss": 0.8941847958826485,
+        "brier": 0.5232868517621608,
+        "scoreLoss": 3.1899635652325493
+      },
+      "ceza_sahasi_ici_sut": {
+        "n": 54,
+        "result": 33,
+        "exact": 1,
+        "top3": 12,
+        "logLoss": 0.892140490801826,
+        "brier": 0.5225508173436806,
+        "scoreLoss": 3.1925137985788234
+      },
+      "bolge_gol_tahmini": {
+        "n": 54,
+        "result": 35,
+        "exact": 1,
+        "top3": 11,
+        "logLoss": 0.8884949634333941,
+        "brier": 0.5197656276123653,
+        "scoreLoss": 3.1843846699072182
+      }
+    }
+  },
+  "paired_95_delta": [
+    [
+      -0.015025041736227046,
+      0.029679726621756074
+    ],
+    [
+      -0.014390297202797202,
+      0.026191145862631465
+    ],
+    [
+      -0.016614238410596026,
+      0.0348593266189904
+    ]
+  ]
+}

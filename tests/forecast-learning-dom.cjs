@@ -8,6 +8,8 @@ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const truth=JSON.parse(fs.readFileSync(path.join(root,root===__dirname?'balanced-model-results.json':'tests/balanced-model-results.json'),'utf8'));
 const shotReport=JSON.parse(fs.readFileSync(path.join(root,root===__dirname?'shot-backtest-results.json':'tests/shot-backtest-results.json'),'utf8'));
 const turkeyReport=JSON.parse(fs.readFileSync(path.join(root,root===__dirname?'super-lig-research/results.json':'tests/super-lig-research/results.json'),'utf8'));
+const signalPath=root===__dirname?'super-lig-data/results.json':'tests/super-lig-data/results.json';
+const signalAudit=JSON.parse(fs.readFileSync(path.join(root,signalPath),'utf8'));
 const errors=[];
 const consoleSink=new VirtualConsole();
 consoleSink.on('jsdomError',e=>errors.push(e.message));
@@ -25,6 +27,7 @@ const fixture='date,time,home,away\n'+fixDate+',19:00,Besiktas,Galatasaray';
 const archive=JSON.stringify({matches:Array.from({length:6},(_,i)=>({date:'2025-11-0'+(i+1),team1:'Beşiktaş',team2:'Galatasaray',score:[i%3,0]}))});
 const response=(text,ok=true)=>({ok,status:ok?200:404,text:async()=>text});
 async function mock(url){
+ if(url.includes('super-lig-data/results'))return response(JSON.stringify(signalAudit));
  if(url.includes('super-lig-research/results'))return response(JSON.stringify(turkeyReport));
  if(url.includes('forecast-ledger'))return response(JSON.stringify({checked:'2026-11-16T00:00:00Z',records:[]}));
  if(url.includes('balanced-model-results'))return response(JSON.stringify(truth));
@@ -47,7 +50,7 @@ async function until(fn){
 }
 async function run(){
  const app=live?await (await fetch(site)).text():html.replace('const SIMULATIONS=100000000;','const SIMULATIONS=10000;');
- if(live)assert.match(app,/2026\.11-super-lig-audit/);
+ if(live)assert.match(app,/2026\.11-super-lig-signal-audit/);
  const dom=new JSDOM(app,{url:site,runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:consoleSink,beforeParse(w){
   w.fetch=(url,options)=>live?fetch(new URL(url,site),{cache:options?.cache,signal:AbortSignal.timeout(12000)}):mock(String(url));
  }});
@@ -76,6 +79,10 @@ async function run(){
   assert.match($('turkeyAuditStatus').textContent,/606 maçlık/);
   assert.match($('turkeyAuditContent').textContent,/332\/606/);
   assert.match($('turkeyAuditContent').textContent,/204\/606/);
+  await until(()=>$('turkeySignalsContent').querySelectorAll('tbody tr').length===8);
+  assert.match($('turkeySignalsStatus').textContent,/606 maçlık/);
+  assert.ok($('turkeySignalsContent').textContent.includes('336/606'));
+  assert.ok($('turkeySignalsContent').textContent.includes('1/54'));
   $('shotAudit').open=true;
   await until(()=>$('shotAuditContent').querySelectorAll('tbody tr').length>0);
   if(!live){
