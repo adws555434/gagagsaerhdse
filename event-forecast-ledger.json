@@ -1,6 +1,148 @@
 {
   "version": "2026.11-super-lig-events-v1",
-  "records": [],
+  "records": [
+    {
+      "id": "2026-11-21|genclerbirligi|gaziantep",
+      "home": "Gençlerbirligi",
+      "away": "Gaziantep",
+      "kickoff": 1795257000000,
+      "savedAt": 1795099341968,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "540e6bcfd6ab7a325f4db48fe0fe2ea67f3523b1f4c43dfd2e06af1cc6e0ae76",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          42509737,
+          30184250,
+          27306013
+        ],
+        "winner": 0,
+        "pick": {
+          "home": 1,
+          "away": 0,
+          "count": 9909261
+        },
+        "top": [
+          {
+            "home": 1,
+            "away": 1,
+            "count": 14399387
+          },
+          {
+            "home": 1,
+            "away": 0,
+            "count": 9909261
+          },
+          {
+            "home": 2,
+            "away": 1,
+            "count": 9403106
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.00005347175821455996,
+        "maxOutcome": 0.000049137538887134014,
+        "tail": 1.7541523789077473e-14,
+        "proposals": 113104717
+      },
+      "actual": null
+    },
+    {
+      "id": "2026-11-21|amedspor|caykurrizespor",
+      "home": "Amedspor",
+      "away": "Çaykur Rizespor",
+      "kickoff": 1795266000000,
+      "savedAt": 1795099350349,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "72c360f957db3f9c4b2520ec87f8f5cae0880ccadc7325cf75272625b8e2998f",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          61585153,
+          21962308,
+          16452539
+        ],
+        "winner": 0,
+        "pick": {
+          "home": 2,
+          "away": 1,
+          "count": 9947132
+        },
+        "top": [
+          {
+            "home": 2,
+            "away": 1,
+            "count": 9947132
+          },
+          {
+            "home": 1,
+            "away": 1,
+            "count": 9352952
+          },
+          {
+            "home": 2,
+            "away": 0,
+            "count": 7485337
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.000058501782774500466,
+        "maxOutcome": 0.00004153811280316333,
+        "tail": 2.609024107869118e-14,
+        "proposals": 122804567
+      },
+      "actual": null
+    },
+    {
+      "id": "2026-11-21|galatasaray|samsunspor",
+      "home": "Galatasaray",
+      "away": "Samsunspor",
+      "kickoff": 1795266000000,
+      "savedAt": 1795099358113,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "3c2e0394612a81cb54e9f660e46724217031cd5a328970c49410bf90bfbca852",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          73118775,
+          17914803,
+          8966422
+        ],
+        "winner": 0,
+        "pick": {
+          "home": 2,
+          "away": 0,
+          "count": 10426082
+        },
+        "top": [
+          {
+            "home": 2,
+            "away": 0,
+            "count": 10426082
+          },
+          {
+            "home": 2,
+            "away": 1,
+            "count": 9938717
+          },
+          {
+            "home": 3,
+            "away": 0,
+            "count": 8505211
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.000040438046442672904,
+        "maxOutcome": 0.00004096554225840876,
+        "tail": 2.020605904817785e-14,
+        "proposals": 117971505
+      },
+      "actual": null
+    }
+  ],
   "score": {
     "n": 0,
     "winner": 0,
