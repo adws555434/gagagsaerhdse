@@ -141,6 +141,53 @@
         "proposals": 117971505
       },
       "actual": null
+    },
+    {
+      "id": "2026-11-21|kocaelispor|fenerbahce",
+      "home": "Kocaelispor",
+      "away": "Fenerbahçe",
+      "kickoff": 1795276800000,
+      "savedAt": 1795120962234,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "44413ce1c329137f03b324e6bba6ce35ed67e169338719b5f6935d5077b2163a",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          20086949,
+          29418797,
+          50494254
+        ],
+        "winner": 2,
+        "pick": {
+          "home": 0,
+          "away": 1,
+          "count": 12462875
+        },
+        "top": [
+          {
+            "home": 1,
+            "away": 1,
+            "count": 13993719
+          },
+          {
+            "home": 0,
+            "away": 1,
+            "count": 12462875
+          },
+          {
+            "home": 1,
+            "away": 2,
+            "count": 9851689
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.000053410592948471836,
+        "maxOutcome": 0.000057611566999737907,
+        "tail": 1.6764367671839864e-14,
+        "proposals": 111169626
+      },
+      "actual": null
     }
   ],
   "score": {
