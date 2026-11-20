@@ -188,6 +188,147 @@
         "proposals": 111169626
       },
       "actual": null
+    },
+    {
+      "id": "2026-11-22|erzurumspor|goztepe",
+      "home": "Erzurumspor",
+      "away": "Göztepe",
+      "kickoff": 1795343400000,
+      "savedAt": 1795185872588,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "9a83e246f65bd9e2c9ef1fb473966b5c37709dac062407c947851470e31e57c1",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          31815688,
+          30401317,
+          37782995
+        ],
+        "winner": 2,
+        "pick": {
+          "home": 0,
+          "away": 1,
+          "count": 9041260
+        },
+        "top": [
+          {
+            "home": 1,
+            "away": 1,
+            "count": 14425712
+          },
+          {
+            "home": 0,
+            "away": 1,
+            "count": 9041260
+          },
+          {
+            "home": 1,
+            "away": 2,
+            "count": 8795931
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.00006266857121289826,
+        "maxOutcome": 0.000021160361088679025,
+        "tail": 1.787459069646502e-14,
+        "proposals": 113563986
+      },
+      "actual": null
+    },
+    {
+      "id": "2026-11-22|kasimpasa|alanyaspor",
+      "home": "Kasimpasa",
+      "away": "Alanyaspor",
+      "kickoff": 1795352400000,
+      "savedAt": 1795185882407,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "45d5a03e13a7b803150fe9c57d03e4570675085263c01a479c7dfffe9d5fde9b",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          44752431,
+          29559041,
+          25688528
+        ],
+        "winner": 0,
+        "pick": {
+          "home": 1,
+          "away": 0,
+          "count": 9861621
+        },
+        "top": [
+          {
+            "home": 1,
+            "away": 1,
+            "count": 14101488
+          },
+          {
+            "home": 1,
+            "away": 0,
+            "count": 9861621
+          },
+          {
+            "home": 2,
+            "away": 1,
+            "count": 9706974
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.00006515035243601086,
+        "maxOutcome": 0.00013666196777595285,
+        "tail": 1.6431300764452317e-14,
+        "proposals": 113614427
+      },
+      "actual": null
+    },
+    {
+      "id": "2026-11-22|konyaspor|besiktas",
+      "home": "Konyaspor",
+      "away": "Besiktas",
+      "kickoff": 1795352400000,
+      "savedAt": 1795185892019,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "3b37d904841a17e01dbb6ff14bb0288cdaf1b95718b8a91e4d891b33fde6aec6",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          25565857,
+          30292989,
+          44141154
+        ],
+        "winner": 2,
+        "pick": {
+          "home": 0,
+          "away": 1,
+          "count": 10635043
+        },
+        "top": [
+          {
+            "home": 1,
+            "away": 1,
+            "count": 14486499
+          },
+          {
+            "home": 0,
+            "away": 1,
+            "count": 10635043
+          },
+          {
+            "home": 1,
+            "away": 2,
+            "count": 9530817
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.00004282924393219159,
+        "maxOutcome": 0.000045142882500126547,
+        "tail": 1.532107773982716e-14,
+        "proposals": 112419712
+      },
+      "actual": null
     }
   ],
   "score": {
