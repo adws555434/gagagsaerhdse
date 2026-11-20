@@ -329,6 +329,53 @@
         "proposals": 112419712
       },
       "actual": null
+    },
+    {
+      "id": "2026-11-22|trabzonspor|eyupspor",
+      "home": "Trabzonspor",
+      "away": "Eyüpspor",
+      "kickoff": 1795363200000,
+      "savedAt": 1795207102859,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "ca664c0473da2e15af9ee84c45d8701b1f1b3c98b6aabca9e19a3d94845c9166",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          71470762,
+          19481246,
+          9047992
+        ],
+        "winner": 0,
+        "pick": {
+          "home": 2,
+          "away": 0,
+          "count": 12011455
+        },
+        "top": [
+          {
+            "home": 2,
+            "away": 0,
+            "count": 12011455
+          },
+          {
+            "home": 1,
+            "away": 0,
+            "count": 10245202
+          },
+          {
+            "home": 2,
+            "away": 1,
+            "count": 10142063
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.00003891311210144077,
+        "maxOutcome": 0.000039872345701796874,
+        "tail": 1.9317880628477724e-14,
+        "proposals": 114378130
+      },
+      "actual": null
     }
   ],
   "score": {
