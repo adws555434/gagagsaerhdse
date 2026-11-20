@@ -1,5 +1,5 @@
 {
-  "checked": "2026-11-20T08:41:39.367Z",
+  "checked": "2026-11-20T14:32:41.356Z",
   "source": "open-matchday / Mart Jürisoo / UEFA",
   "coverage": 7,
   "feeds": [
@@ -5795,6 +5795,1506 @@
           "scores": [
             "1–1",
             "1–2",
+            "2–1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "TUR_1_super-lig|2026-11-22|erzurumspor|goztepe",
+      "scope": "TUR_1_super-lig",
+      "league": "Süper Lig",
+      "date": "2026-11-22",
+      "home": "Erzurumspor",
+      "away": "Göztepe",
+      "savedAt": 1795185161356,
+      "kickoff": 1795343400000,
+      "model": "Poisson + Elo · dengeli rakip gücü · 2026.11-club-balance",
+      "probabilities": [
+        0.3192698210033612,
+        0.2370637089642066,
+        0.44366647003243254
+      ],
+      "scores": [
+        "1–1",
+        "1–2",
+        "0–1"
+      ],
+      "rates": [
+        1.3934318873811669,
+        1.6802602712901702
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.3192698210033612,
+            0.2370637089642066,
+            0.44366647003243254
+          ],
+          "scores": [
+            "1–1",
+            "1–2",
+            "0–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.32576232329895854,
+            0.24002685410838345,
+            0.43421082259265853
+          ],
+          "scores": [
+            "1–1",
+            "1–2",
+            "0–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.3323936350948757,
+            0.24299150513141926,
+            0.4246148597737058
+          ],
+          "scores": [
+            "1–1",
+            "1–2",
+            "0–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.3414568994128305,
+            0.2469429823504553,
+            0.41160011823671455
+          ],
+          "scores": [
+            "1–1",
+            "1–2",
+            "0–1"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "modelVersion": "2026.11-club-balance",
+      "engineVersion": "2026.11-phase-0",
+      "dataSha256": "77851ec3636dcada4f4c002fa004aecdd354c51fa0af87ecb614b03092ae5535",
+      "simulationCount": 0,
+      "consistentScore": "1–2",
+      "actual": null,
+      "measurementVersion": "2026.11-phase-1",
+      "comparison": {
+        "release": {
+          "probabilities": [
+            0.3192698210033612,
+            0.2370637089642066,
+            0.44366647003243254
+          ],
+          "consistentScore": "1–2",
+          "scores": [
+            "1–1",
+            "1–2",
+            "0–1"
+          ]
+        },
+        "frequency": {
+          "probabilities": [
+            0.47474747474747475,
+            0.16161616161616163,
+            0.36363636363636365
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "1–2",
+            "2–1",
+            "2–0"
+          ]
+        },
+        "elo": {
+          "probabilities": [
+            0.47611559036711565,
+            0.15880049911843513,
+            0.3650839105144493
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "1–2",
+            "2–1",
+            "2–0"
+          ]
+        },
+        "poisson": {
+          "probabilities": [
+            0.23126046484898685,
+            0.21770930961279655,
+            0.5510302255382168
+          ],
+          "consistentScore": "1–2",
+          "scores": [
+            "1–1",
+            "1–2",
+            "0–1"
+          ]
+        },
+        "uncertainty": {
+          "probabilities": [
+            0.3233976131786602,
+            0.23345522004886204,
+            0.44314716677247823
+          ],
+          "consistentScore": "1–2",
+          "scores": [
+            "1–1",
+            "1–2",
+            "0–1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "TUR_1_super-lig|2026-11-22|kasimpasa|alanyaspor",
+      "scope": "TUR_1_super-lig",
+      "league": "Süper Lig",
+      "date": "2026-11-22",
+      "home": "Kasimpasa",
+      "away": "Alanyaspor",
+      "savedAt": 1795185161356,
+      "kickoff": 1795352400000,
+      "model": "Poisson + Elo · dengeli rakip gücü · 2026.11-club-balance",
+      "probabilities": [
+        0.6342487560959225,
+        0.2111462548582163,
+        0.15460498904586184
+      ],
+      "scores": [
+        "1–0",
+        "2–0",
+        "1–1"
+      ],
+      "rates": [
+        1.9551539879961457,
+        0.8436922847348504
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.6342487560959225,
+            0.2111462548582163,
+            0.15460498904586184
+          ],
+          "scores": [
+            "1–0",
+            "2–0",
+            "1–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.6176099113103203,
+            0.21643658161767254,
+            0.16595350707200762
+          ],
+          "scores": [
+            "1–0",
+            "2–0",
+            "1–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.6007808544119624,
+            0.22149581330825022,
+            0.1777233322797873
+          ],
+          "scores": [
+            "1–0",
+            "2–0",
+            "1–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.5780839299106483,
+            0.22785308990663117,
+            0.19406298018272078
+          ],
+          "scores": [
+            "1–0",
+            "1–1",
+            "2–0"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "modelVersion": "2026.11-club-balance",
+      "engineVersion": "2026.11-phase-0",
+      "dataSha256": "079b4d978a39d96429e6e04a58dabe8546ab0e16634a8af31c5858f55d45d566",
+      "simulationCount": 0,
+      "consistentScore": "1–0",
+      "actual": null,
+      "measurementVersion": "2026.11-phase-1",
+      "comparison": {
+        "release": {
+          "probabilities": [
+            0.6342487560959225,
+            0.2111462548582163,
+            0.15460498904586184
+          ],
+          "consistentScore": "1–0",
+          "scores": [
+            "1–0",
+            "2–0",
+            "1–1"
+          ]
+        },
+        "frequency": {
+          "probabilities": [
+            0.47474747474747475,
+            0.16161616161616163,
+            0.36363636363636365
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "1–2",
+            "2–1",
+            "2–0"
+          ]
+        },
+        "elo": {
+          "probabilities": [
+            0.5868334793839601,
+            0.1400983929291528,
+            0.2730681276868871
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "2–0",
+            "1–0"
+          ]
+        },
+        "poisson": {
+          "probabilities": [
+            0.7193025715665896,
+            0.17661252864703184,
+            0.10408489978637908
+          ],
+          "consistentScore": "2–0",
+          "scores": [
+            "2–0",
+            "1–0",
+            "3–0"
+          ]
+        },
+        "uncertainty": {
+          "probabilities": [
+            0.6261196995880423,
+            0.21260412962692374,
+            0.16127617078503348
+          ],
+          "consistentScore": "1–0",
+          "scores": [
+            "1–0",
+            "2–0",
+            "1–1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "TUR_1_super-lig|2026-11-22|konyaspor|besiktas",
+      "scope": "TUR_1_super-lig",
+      "league": "Süper Lig",
+      "date": "2026-11-22",
+      "home": "Konyaspor",
+      "away": "Besiktas",
+      "savedAt": 1795185161356,
+      "kickoff": 1795352400000,
+      "model": "Poisson + Elo · dengeli rakip gücü · 2026.11-club-balance",
+      "probabilities": [
+        0.23802771324282054,
+        0.2786521231153218,
+        0.4833201636418599
+      ],
+      "scores": [
+        "0–1",
+        "1–1",
+        "0–0"
+      ],
+      "rates": [
+        0.8600939879754749,
+        1.3542831651923433
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.23802771324282054,
+            0.2786521231153218,
+            0.4833201636418599
+          ],
+          "scores": [
+            "0–1",
+            "1–1",
+            "0–0"
+          ]
+        },
+        {
+          "probabilities": [
+            0.25052768305405626,
+            0.2759265292505107,
+            0.473545787695433
+          ],
+          "scores": [
+            "0–1",
+            "1–1",
+            "0–0"
+          ]
+        },
+        {
+          "probabilities": [
+            0.26283322472979237,
+            0.27316130244525416,
+            0.4640054728249529
+          ],
+          "scores": [
+            "0–1",
+            "1–1",
+            "0–0"
+          ]
+        },
+        {
+          "probabilities": [
+            0.2789420817018,
+            0.26942106148944445,
+            0.4516368568087556
+          ],
+          "scores": [
+            "1–1",
+            "0–1",
+            "1–0"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "modelVersion": "2026.11-club-balance",
+      "engineVersion": "2026.11-phase-0",
+      "dataSha256": "8082d790527d845171e8aa63a62a03a43a8fa9b64c2fe3bb44ec6ae34ea663f5",
+      "simulationCount": 0,
+      "consistentScore": "0–1",
+      "actual": null,
+      "measurementVersion": "2026.11-phase-1",
+      "comparison": {
+        "release": {
+          "probabilities": [
+            0.23802771324282054,
+            0.2786521231153218,
+            0.4833201636418599
+          ],
+          "consistentScore": "0–1",
+          "scores": [
+            "0–1",
+            "1–1",
+            "0–0"
+          ]
+        },
+        "frequency": {
+          "probabilities": [
+            0.47474747474747475,
+            0.16161616161616163,
+            0.36363636363636365
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "1–2",
+            "2–1",
+            "2–0"
+          ]
+        },
+        "elo": {
+          "probabilities": [
+            0.38262348752181574,
+            0.16034704711684952,
+            0.4570294653613347
+          ],
+          "consistentScore": "1–2",
+          "scores": [
+            "1–2",
+            "0–1",
+            "0–2"
+          ]
+        },
+        "poisson": {
+          "probabilities": [
+            0.22309933445891225,
+            0.2775908680093116,
+            0.4993097975317771
+          ],
+          "consistentScore": "0–1",
+          "scores": [
+            "0–1",
+            "1–1",
+            "0–0"
+          ]
+        },
+        "uncertainty": {
+          "probabilities": [
+            0.24174388293254406,
+            0.27808654861425397,
+            0.48016956845320213
+          ],
+          "consistentScore": "0–1",
+          "scores": [
+            "0–1",
+            "1–1",
+            "0–0"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ENG_1_premier-league|2026-11-22|hull|brighton",
+      "scope": "ENG_1_premier-league",
+      "league": "Premier League",
+      "date": "2026-11-22",
+      "home": "Hull",
+      "away": "Brighton",
+      "savedAt": 1795185161356,
+      "kickoff": 1795356000000,
+      "model": "Poisson + Elo · dengeli rakip gücü · 2026.11-club-balance",
+      "probabilities": [
+        0.23905266678880902,
+        0.251771877445238,
+        0.509175455765953
+      ],
+      "scores": [
+        "0–1",
+        "1–1",
+        "0–2"
+      ],
+      "rates": [
+        0.9989976347132027,
+        1.5820414086310743
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.23905266678880902,
+            0.251771877445238,
+            0.509175455765953
+          ],
+          "scores": [
+            "0–1",
+            "1–1",
+            "0–2"
+          ]
+        },
+        {
+          "probabilities": [
+            0.24498246529075302,
+            0.25329794434274167,
+            0.5017195903665056
+          ],
+          "scores": [
+            "1–1",
+            "0–1",
+            "1–2"
+          ]
+        },
+        {
+          "probabilities": [
+            0.2509799883767192,
+            0.25476398560604696,
+            0.4942560260172332
+          ],
+          "scores": [
+            "1–1",
+            "0–1",
+            "1–2"
+          ]
+        },
+        {
+          "probabilities": [
+            0.25908056362337284,
+            0.2566235794295524,
+            0.48429585694707444
+          ],
+          "scores": [
+            "1–1",
+            "0–1",
+            "1–2"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "modelVersion": "2026.11-club-balance",
+      "engineVersion": "2026.11-phase-0",
+      "dataSha256": "96c1a10b153af0acdca6a06c9204fc0318d68de123af394c8eeee8abc669dcef",
+      "simulationCount": 0,
+      "consistentScore": "0–1",
+      "actual": null,
+      "measurementVersion": "2026.11-phase-1",
+      "comparison": {
+        "release": {
+          "probabilities": [
+            0.23905266678880902,
+            0.251771877445238,
+            0.509175455765953
+          ],
+          "consistentScore": "0–1",
+          "scores": [
+            "0–1",
+            "1–1",
+            "0–2"
+          ]
+        },
+        "frequency": {
+          "probabilities": [
+            0.42,
+            0.27,
+            0.31
+          ],
+          "consistentScore": "2–0",
+          "scores": [
+            "0–1",
+            "1–1",
+            "2–0"
+          ]
+        },
+        "elo": {
+          "probabilities": [
+            0.3556806160929205,
+            0.2698206686580868,
+            0.37449871524899264
+          ],
+          "consistentScore": "0–1",
+          "scores": [
+            "0–1",
+            "1–1",
+            "2–2"
+          ]
+        },
+        "poisson": {
+          "probabilities": [
+            0.20223403295169548,
+            0.23708741138365716,
+            0.5606785556646474
+          ],
+          "consistentScore": "0–1",
+          "scores": [
+            "0–1",
+            "1–1",
+            "0–2"
+          ]
+        },
+        "uncertainty": {
+          "probabilities": [
+            0.24440489233171184,
+            0.2504039095776074,
+            0.5051911980906812
+          ],
+          "consistentScore": "0–1",
+          "scores": [
+            "0–1",
+            "1–1",
+            "0–2"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ESP_1_la-liga|2026-11-22|fcbarcelona|villarrealcf",
+      "scope": "ESP_1_la-liga",
+      "league": "La Liga",
+      "date": "2026-11-22",
+      "home": "FC Barcelona",
+      "away": "Villarreal CF",
+      "savedAt": 1795185161356,
+      "kickoff": 1795352400000,
+      "model": "Poisson + Elo · dengeli rakip gücü · 2026.11-club-balance",
+      "probabilities": [
+        0.7477092254001555,
+        0.13690362371424278,
+        0.11538715088560127
+      ],
+      "scores": [
+        "3–1",
+        "2–1",
+        "3–0"
+      ],
+      "rates": [
+        3.082109845810876,
+        1.2024178663584644
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.7477092254001555,
+            0.13690362371424278,
+            0.11538715088560127
+          ],
+          "scores": [
+            "3–1",
+            "2–1",
+            "3–0"
+          ]
+        },
+        {
+          "probabilities": [
+            0.7207402990219526,
+            0.14931788675996374,
+            0.12994181421808307
+          ],
+          "scores": [
+            "2–1",
+            "3–1",
+            "2–0"
+          ]
+        },
+        {
+          "probabilities": [
+            0.6913488890765611,
+            0.16243688292828165,
+            0.1462142279951576
+          ],
+          "scores": [
+            "2–1",
+            "3–1",
+            "2–0"
+          ]
+        },
+        {
+          "probabilities": [
+            0.6481657087003853,
+            0.1809364790531193,
+            0.170897812246496
+          ],
+          "scores": [
+            "2–1",
+            "2–0",
+            "1–1"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "modelVersion": "2026.11-club-balance",
+      "engineVersion": "2026.11-phase-0",
+      "dataSha256": "379cddccb98c62bc024bc7a2183361746032ffe327cef712f1cf7a98f143cc2a",
+      "simulationCount": 0,
+      "consistentScore": "3–1",
+      "actual": null,
+      "measurementVersion": "2026.11-phase-1",
+      "comparison": {
+        "release": {
+          "probabilities": [
+            0.7477092254001555,
+            0.13690362371424278,
+            0.11538715088560127
+          ],
+          "consistentScore": "3–1",
+          "scores": [
+            "3–1",
+            "2–1",
+            "3–0"
+          ]
+        },
+        "frequency": {
+          "probabilities": [
+            0.4369747899159664,
+            0.2605042016806723,
+            0.3025210084033613
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "1–1",
+            "0–0",
+            "2–1"
+          ]
+        },
+        "elo": {
+          "probabilities": [
+            0.5925496118761296,
+            0.20009553703814095,
+            0.20735485108572937
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "1–0",
+            "1–1"
+          ]
+        },
+        "poisson": {
+          "probabilities": [
+            0.7347869996895047,
+            0.14321717933731193,
+            0.12199582097318398
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "3–1",
+            "2–0"
+          ]
+        },
+        "uncertainty": {
+          "probabilities": [
+            0.7351496215934817,
+            0.13934038662767623,
+            0.12550999177884312
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "3–1",
+            "2–0"
+          ]
+        }
+      }
+    },
+    {
+      "id": "GER_1_bundesliga|2026-11-22|fcaugsburg|1fsvmainz05",
+      "scope": "GER_1_bundesliga",
+      "league": "Bundesliga",
+      "date": "2026-11-22",
+      "home": "FC Augsburg",
+      "away": "1. FSV Mainz 05",
+      "savedAt": 1795185161356,
+      "kickoff": 1795357800000,
+      "model": "Poisson + Elo · dengeli rakip gücü · 2026.11-club-balance",
+      "probabilities": [
+        0.5081615817048751,
+        0.18913893440101245,
+        0.3026994838941126
+      ],
+      "scores": [
+        "2–1",
+        "2–2",
+        "3–1"
+      ],
+      "rates": [
+        2.5109292376237096,
+        1.945512337824892
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.5081615817048751,
+            0.18913893440101245,
+            0.3026994838941126
+          ],
+          "scores": [
+            "2–1",
+            "2–2",
+            "3–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.5186220777855303,
+            0.19038992792021403,
+            0.2909879942942555
+          ],
+          "scores": [
+            "2–1",
+            "2–2",
+            "3–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.5293454585440659,
+            0.1915420702150717,
+            0.2791124712408622
+          ],
+          "scores": [
+            "2–1",
+            "2–2",
+            "3–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.5440680254402528,
+            0.19290586555193537,
+            0.26302610900781237
+          ],
+          "scores": [
+            "2–1",
+            "2–2",
+            "1–1"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "modelVersion": "2026.11-club-balance",
+      "engineVersion": "2026.11-phase-0",
+      "dataSha256": "53495190edd4dea27bd3dbdfb6abf2e277f62adec6aabc99d39053230e91b442",
+      "simulationCount": 0,
+      "consistentScore": "2–1",
+      "actual": null,
+      "measurementVersion": "2026.11-phase-1",
+      "comparison": {
+        "release": {
+          "probabilities": [
+            0.5081615817048751,
+            0.18913893440101245,
+            0.3026994838941126
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "2–2",
+            "3–1"
+          ]
+        },
+        "frequency": {
+          "probabilities": [
+            0.5061728395061729,
+            0.20987654320987653,
+            0.2839506172839506
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–2",
+            "2–1",
+            "0–0"
+          ]
+        },
+        "elo": {
+          "probabilities": [
+            0.47181964907380836,
+            0.20279526941853504,
+            0.32538508150765655
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–2",
+            "2–1",
+            "0–0"
+          ]
+        },
+        "poisson": {
+          "probabilities": [
+            0.4347633105875699,
+            0.19684396160604684,
+            0.36839272780638405
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–2",
+            "2–1",
+            "1–2"
+          ]
+        },
+        "uncertainty": {
+          "probabilities": [
+            0.5051295142166055,
+            0.1825836069540672,
+            0.3122868788293264
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "2–2",
+            "1–1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ITA_1_serie-a|2026-11-22|juventus|venezia",
+      "scope": "ITA_1_serie-a",
+      "league": "Serie A",
+      "date": "2026-11-22",
+      "home": "Juventus",
+      "away": "Venezia",
+      "savedAt": 1795185161356,
+      "kickoff": 1795347000000,
+      "model": "Poisson + Elo · dengeli rakip gücü · 2026.11-club-balance",
+      "probabilities": [
+        0.5835924697543364,
+        0.24657931229916824,
+        0.16982821794649583
+      ],
+      "scores": [
+        "1–0",
+        "2–0",
+        "1–1"
+      ],
+      "rates": [
+        1.6189738749989273,
+        0.7423074543576947
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.5835924697543364,
+            0.24657931229916824,
+            0.16982821794649583
+          ],
+          "scores": [
+            "1–0",
+            "2–0",
+            "1–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.5754466175284512,
+            0.24543515175435374,
+            0.17911823071719454
+          ],
+          "scores": [
+            "1–0",
+            "2–0",
+            "1–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.5674645679000982,
+            0.24424493951666695,
+            0.18829049258323463
+          ],
+          "scores": [
+            "1–0",
+            "1–1",
+            "2–0"
+          ]
+        },
+        {
+          "probabilities": [
+            0.5570679654828274,
+            0.24259186432159993,
+            0.20034017019557337
+          ],
+          "scores": [
+            "1–0",
+            "1–1",
+            "2–0"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "modelVersion": "2026.11-club-balance",
+      "engineVersion": "2026.11-phase-0",
+      "dataSha256": "2ac62542db70176741c60cb4db623476591c089848d74dd030e2c3bce04bac65",
+      "simulationCount": 0,
+      "consistentScore": "1–0",
+      "actual": null,
+      "measurementVersion": "2026.11-phase-1",
+      "comparison": {
+        "release": {
+          "probabilities": [
+            0.5835924697543364,
+            0.24657931229916824,
+            0.16982821794649583
+          ],
+          "consistentScore": "1–0",
+          "scores": [
+            "1–0",
+            "2–0",
+            "1–1"
+          ]
+        },
+        "frequency": {
+          "probabilities": [
+            0.4636363636363636,
+            0.17272727272727273,
+            0.36363636363636365
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "1–1",
+            "2–0"
+          ]
+        },
+        "elo": {
+          "probabilities": [
+            0.6115869404776308,
+            0.1415487770652635,
+            0.24686428245710565
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "2–0",
+            "1–0"
+          ]
+        },
+        "poisson": {
+          "probabilities": [
+            0.6202687473987009,
+            0.24271608790333535,
+            0.13701516469796385
+          ],
+          "consistentScore": "1–0",
+          "scores": [
+            "1–0",
+            "2–0",
+            "0–0"
+          ]
+        },
+        "uncertainty": {
+          "probabilities": [
+            0.5771855693178509,
+            0.24786738406471215,
+            0.17494704661743626
+          ],
+          "consistentScore": "1–0",
+          "scores": [
+            "1–0",
+            "2–0",
+            "1–1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ITA_1_serie-a|2026-11-22|bologna|udinese",
+      "scope": "ITA_1_serie-a",
+      "league": "Serie A",
+      "date": "2026-11-22",
+      "home": "Bologna",
+      "away": "Udinese",
+      "savedAt": 1795185161356,
+      "kickoff": 1795356000000,
+      "model": "Poisson + Elo · dengeli rakip gücü · 2026.11-club-balance",
+      "probabilities": [
+        0.5882558698170753,
+        0.21102518712077156,
+        0.20071894306215315
+      ],
+      "scores": [
+        "2–1",
+        "1–1",
+        "2–0"
+      ],
+      "rates": [
+        2.0363853223711073,
+        1.1069023045029476
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.5882558698170753,
+            0.21102518712077156,
+            0.20071894306215315
+          ],
+          "scores": [
+            "2–1",
+            "1–1",
+            "2–0"
+          ]
+        },
+        {
+          "probabilities": [
+            0.5761372253559227,
+            0.2146760610276341,
+            0.20918671361644364
+          ],
+          "scores": [
+            "1–1",
+            "2–1",
+            "1–0"
+          ]
+        },
+        {
+          "probabilities": [
+            0.5638795784868766,
+            0.21823803059324728,
+            0.2178823909198761
+          ],
+          "scores": [
+            "1–1",
+            "2–1",
+            "1–0"
+          ]
+        },
+        {
+          "probabilities": [
+            0.5473318473716962,
+            0.22283611258510222,
+            0.22983204004320193
+          ],
+          "scores": [
+            "1–1",
+            "2–1",
+            "1–0"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "modelVersion": "2026.11-club-balance",
+      "engineVersion": "2026.11-phase-0",
+      "dataSha256": "051945404b726fcf8bb732e38164da2505d4c0bc79949ad69647126c1963b975",
+      "simulationCount": 0,
+      "consistentScore": "2–1",
+      "actual": null,
+      "measurementVersion": "2026.11-phase-1",
+      "comparison": {
+        "release": {
+          "probabilities": [
+            0.5882558698170753,
+            0.21102518712077156,
+            0.20071894306215315
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "1–1",
+            "2–0"
+          ]
+        },
+        "frequency": {
+          "probabilities": [
+            0.4636363636363636,
+            0.17272727272727273,
+            0.36363636363636365
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "1–1",
+            "2–0"
+          ]
+        },
+        "elo": {
+          "probabilities": [
+            0.6227795999792619,
+            0.13842006896184653,
+            0.23880033105889154
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "2–0",
+            "1–0"
+          ]
+        },
+        "poisson": {
+          "probabilities": [
+            0.5483405225200828,
+            0.21918116876715713,
+            0.23247830871276035
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "1–1",
+            "2–1",
+            "1–0"
+          ]
+        },
+        "uncertainty": {
+          "probabilities": [
+            0.5818118634278491,
+            0.21013232374528026,
+            0.2080558128268708
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "1–1",
+            "2–1",
+            "1–0"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ITA_1_serie-a|2026-11-22|sassuolo|genoa",
+      "scope": "ITA_1_serie-a",
+      "league": "Serie A",
+      "date": "2026-11-22",
+      "home": "Sassuolo",
+      "away": "Genoa",
+      "savedAt": 1795185161356,
+      "kickoff": 1795356000000,
+      "model": "Poisson + Elo · dengeli rakip gücü · 2026.11-club-balance",
+      "probabilities": [
+        0.35150438024331365,
+        0.22885691839402322,
+        0.4196387013626634
+      ],
+      "scores": [
+        "1–1",
+        "1–2",
+        "2–1"
+      ],
+      "rates": [
+        1.5770286237761018,
+        1.7392552446133551
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.35150438024331365,
+            0.22885691839402322,
+            0.4196387013626634
+          ],
+          "scores": [
+            "1–1",
+            "1–2",
+            "2–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.3524189789599556,
+            0.2320861465710779,
+            0.4154948744689662
+          ],
+          "scores": [
+            "1–1",
+            "1–2",
+            "2–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.3533226277866636,
+            0.23544519466655373,
+            0.4112321775467823
+          ],
+          "scores": [
+            "1–1",
+            "1–2",
+            "2–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.35450695110686753,
+            0.24014181580202087,
+            0.40535123309111154
+          ],
+          "scores": [
+            "1–1",
+            "1–2",
+            "2–1"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "modelVersion": "2026.11-club-balance",
+      "engineVersion": "2026.11-phase-0",
+      "dataSha256": "d6a87f59fe01a856823a7f7b87d3c4b3e4e49942bdc6132360be8d52a12af811",
+      "simulationCount": 0,
+      "consistentScore": "1–2",
+      "actual": null,
+      "measurementVersion": "2026.11-phase-1",
+      "comparison": {
+        "release": {
+          "probabilities": [
+            0.35150438024331365,
+            0.22885691839402322,
+            0.4196387013626634
+          ],
+          "consistentScore": "1–2",
+          "scores": [
+            "1–1",
+            "1–2",
+            "2–1"
+          ]
+        },
+        "frequency": {
+          "probabilities": [
+            0.4636363636363636,
+            0.17272727272727273,
+            0.36363636363636365
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "1–1",
+            "2–0"
+          ]
+        },
+        "elo": {
+          "probabilities": [
+            0.4539381085192916,
+            0.17115679001388553,
+            0.3749051014668229
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "1–1",
+            "2–0"
+          ]
+        },
+        "poisson": {
+          "probabilities": [
+            0.31617975162646156,
+            0.2202040367534923,
+            0.4636162116200472
+          ],
+          "consistentScore": "1–2",
+          "scores": [
+            "1–1",
+            "1–2",
+            "2–1"
+          ]
+        },
+        "uncertainty": {
+          "probabilities": [
+            0.3550442236611047,
+            0.22450458390080952,
+            0.42045119243808665
+          ],
+          "consistentScore": "1–2",
+          "scores": [
+            "1–1",
+            "1–2",
+            "2–1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "FRA_1_ligue-1|2026-11-22|parisfc|angerssco",
+      "scope": "FRA_1_ligue-1",
+      "league": "Ligue 1",
+      "date": "2026-11-22",
+      "home": "Paris FC",
+      "away": "Angers SCO",
+      "savedAt": 1795185161356,
+      "kickoff": 1795356000000,
+      "model": "Poisson + Elo · dengeli rakip gücü · 2026.11-club-balance",
+      "probabilities": [
+        0.6879656545332735,
+        0.18064011841267252,
+        0.13139422705405374
+      ],
+      "scores": [
+        "2–0",
+        "2–1",
+        "1–0"
+      ],
+      "rates": [
+        2.293035131691947,
+        0.8950463777459221
+      ],
+      "candidates": [
+        {
+          "probabilities": [
+            0.6879656545332735,
+            0.18064011841267252,
+            0.13139422705405374
+          ],
+          "scores": [
+            "2–0",
+            "2–1",
+            "1–0"
+          ]
+        },
+        {
+          "probabilities": [
+            0.6767650958966364,
+            0.18611726121879915,
+            0.13711764288456482
+          ],
+          "scores": [
+            "2–0",
+            "2–1",
+            "1–0"
+          ]
+        },
+        {
+          "probabilities": [
+            0.6652332399170324,
+            0.19169460457893422,
+            0.14307215550403402
+          ],
+          "scores": [
+            "2–0",
+            "1–0",
+            "2–1"
+          ]
+        },
+        {
+          "probabilities": [
+            0.6493324523652984,
+            0.1992822254755976,
+            0.15138532215910394
+          ],
+          "scores": [
+            "2–0",
+            "1–0",
+            "2–1"
+          ]
+        }
+      ],
+      "learningVersion": "2026.11-shots-v1",
+      "modelVersion": "2026.11-club-balance",
+      "engineVersion": "2026.11-phase-0",
+      "dataSha256": "375a2dbe4fc102e205b303eb9f8786f8d3ecc36375f54d6a61b93ae3db859ccd",
+      "simulationCount": 0,
+      "consistentScore": "2–0",
+      "actual": null,
+      "measurementVersion": "2026.11-phase-1",
+      "comparison": {
+        "release": {
+          "probabilities": [
+            0.6879656545332735,
+            0.18064011841267252,
+            0.13139422705405374
+          ],
+          "consistentScore": "2–0",
+          "scores": [
+            "2–0",
+            "2–1",
+            "1–0"
+          ]
+        },
+        "frequency": {
+          "probabilities": [
+            0.4666666666666667,
+            0.2222222222222222,
+            0.3111111111111111
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "1–2",
+            "2–0"
+          ]
+        },
+        "elo": {
+          "probabilities": [
+            0.586076528677642,
+            0.180927795336543,
+            0.23299567598581492
+          ],
+          "consistentScore": "2–1",
+          "scores": [
+            "2–1",
+            "2–0",
+            "1–0"
+          ]
+        },
+        "poisson": {
+          "probabilities": [
+            0.7562174343747458,
+            0.15189016166272162,
+            0.09189240396253241
+          ],
+          "consistentScore": "2–0",
+          "scores": [
+            "2–0",
+            "3–0",
+            "1–0"
+          ]
+        },
+        "uncertainty": {
+          "probabilities": [
+            0.6767256684773697,
+            0.18317996263275668,
+            0.14009436888987448
+          ],
+          "consistentScore": "2–0",
+          "scores": [
+            "2–0",
+            "1–0",
             "2–1"
           ]
         }
