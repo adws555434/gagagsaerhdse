@@ -1,5 +1,5 @@
 {
-  "checked": "2026-11-21T02:29:58.779Z",
+  "checked": "2026-11-21T08:28:27.445Z",
   "source": "open-matchday / Mart Jürisoo / UEFA",
   "coverage": 7,
   "feeds": [
@@ -930,7 +930,10 @@
       "dataSha256": "9145593b2600d8e740fdbcbf39e030e5d2712e49c1ceab9e21a48ae2797d6020",
       "simulationCount": 0,
       "consistentScore": "1–0",
-      "actual": null,
+      "actual": [
+        0,
+        1
+      ],
       "measurementVersion": "2026.11-phase-1",
       "comparison": {
         "release": {
@@ -998,7 +1001,8 @@
             "0–0"
           ]
         }
-      }
+      },
+      "settledAt": 1795249707445
     },
     {
       "id": "GER_1_bundesliga|2026-11-20|fcbayernmunchen|1fckoln",
@@ -1080,7 +1084,10 @@
       "dataSha256": "badd6cb7f875a862d0a30d96b4efe71f4f7c9381c558371c6787e69e0c8cfa23",
       "simulationCount": 0,
       "consistentScore": "3–0",
-      "actual": null,
+      "actual": [
+        1,
+        1
+      ],
       "measurementVersion": "2026.11-phase-1",
       "comparison": {
         "release": {
@@ -1148,7 +1155,8 @@
             "2–1"
           ]
         }
-      }
+      },
+      "settledAt": 1795249707445
     },
     {
       "id": "FRA_1_ligue-1|2026-11-20|estactroyes|havreathleticclub",
@@ -1230,7 +1238,10 @@
       "dataSha256": "b2581ceb1fcd9e4eca6cd849a40928c4d1d66000e9a8c8c2f43d1170b6136211",
       "simulationCount": 0,
       "consistentScore": "2–1",
-      "actual": null,
+      "actual": [
+        3,
+        1
+      ],
       "measurementVersion": "2026.11-phase-1",
       "comparison": {
         "release": {
@@ -1298,7 +1309,8 @@
             "2–1"
           ]
         }
-      }
+      },
+      "settledAt": 1795249707445
     },
     {
       "id": "TUR_1_super-lig|2026-11-21|genclerbirligi|gaziantep",
@@ -8804,41 +8816,53 @@
   "marketValidation": {
     "version": "2026.11-phase-2-live",
     "counts": {
-      "release": 0,
+      "release": 3,
       "market": 0,
       "marketScore": 0
     },
     "metrics": {
       "release": {
-        "n": 0,
-        "logLoss": null,
-        "rps": null,
+        "n": 3,
+        "logLoss": 1.4596583506548058,
+        "rps": 0.31108939990899215,
         "result": {
-          "hits": 0,
-          "n": 0,
-          "rate": null,
-          "interval95": null
+          "hits": 1,
+          "n": 3,
+          "rate": 0.3333333333333333,
+          "interval95": [
+            0.06149194472039621,
+            0.7923403991979522
+          ]
         },
         "score": {
           "hits": 0,
-          "n": 0,
-          "rate": null,
-          "interval95": null
+          "n": 3,
+          "rate": 0,
+          "interval95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
         },
         "top3": {
           "hits": 0,
-          "n": 0,
-          "rate": null,
-          "interval95": null
+          "n": 3,
+          "rate": 0,
+          "interval95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
         },
         "tiers": [
           {
             "label": "%45 altı",
             "coverage": {
               "hits": 0,
-              "n": 0,
-              "rate": null,
-              "interval95": null
+              "n": 3,
+              "rate": 0,
+              "interval95": [
+                5.551115123125783e-17,
+                0.5614970317550454
+              ]
             },
             "accuracy": {
               "hits": 0,
@@ -8850,25 +8874,34 @@
           {
             "label": "%45–55",
             "coverage": {
-              "hits": 0,
-              "n": 0,
-              "rate": null,
-              "interval95": null
+              "hits": 2,
+              "n": 3,
+              "rate": 0.6666666666666666,
+              "interval95": [
+                0.2076596008020477,
+                0.9385080552796037
+              ]
             },
             "accuracy": {
-              "hits": 0,
-              "n": 0,
-              "rate": null,
-              "interval95": null
+              "hits": 1,
+              "n": 2,
+              "rate": 0.5,
+              "interval95": [
+                0.09453120573423074,
+                0.9054687942657693
+              ]
             }
           },
           {
             "label": "%55–65",
             "coverage": {
               "hits": 0,
-              "n": 0,
-              "rate": null,
-              "interval95": null
+              "n": 3,
+              "rate": 0,
+              "interval95": [
+                5.551115123125783e-17,
+                0.5614970317550454
+              ]
             },
             "accuracy": {
               "hits": 0,
@@ -8880,16 +8913,22 @@
           {
             "label": "%65+",
             "coverage": {
-              "hits": 0,
-              "n": 0,
-              "rate": null,
-              "interval95": null
+              "hits": 1,
+              "n": 3,
+              "rate": 0.3333333333333333,
+              "interval95": [
+                0.06149194472039621,
+                0.7923403991979522
+              ]
             },
             "accuracy": {
               "hits": 0,
-              "n": 0,
-              "rate": null,
-              "interval95": null
+              "n": 1,
+              "rate": 0,
+              "interval95": [
+                0,
+                0.7934506856227626
+              ]
             }
           }
         ]
