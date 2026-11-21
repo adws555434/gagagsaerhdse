@@ -376,6 +376,53 @@
         "proposals": 114378130
       },
       "actual": null
+    },
+    {
+      "id": "2026-11-23|basaksehir|corum",
+      "home": "Istanbul Basaksehir",
+      "away": "Çorum",
+      "kickoff": 1795453200000,
+      "savedAt": 1795292953432,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "8cd6a0ef63529e2b1bee548d7cb6c22102bb8081864dfa6e70b18c8a0e732fe6",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          54209619,
+          24252776,
+          21537605
+        ],
+        "winner": 0,
+        "pick": {
+          "home": 2,
+          "away": 1,
+          "count": 9940837
+        },
+        "top": [
+          {
+            "home": 1,
+            "away": 1,
+            "count": 10287213
+          },
+          {
+            "home": 2,
+            "away": 1,
+            "count": 9940837
+          },
+          {
+            "home": 2,
+            "away": 2,
+            "count": 7033785
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.00003503552155166567,
+        "maxOutcome": 0.00004317910441242745,
+        "tail": 1.7430501486614958e-14,
+        "proposals": 122634680
+      },
+      "actual": null
     }
   ],
   "score": {
