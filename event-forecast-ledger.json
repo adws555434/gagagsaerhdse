@@ -46,7 +46,10 @@
         "tail": 1.7541523789077473e-14,
         "proposals": 113104717
       },
-      "actual": null
+      "actual": [
+        1,
+        0
+      ]
     },
     {
       "id": "2026-11-21|amedspor|caykurrizespor",
@@ -93,7 +96,10 @@
         "tail": 2.609024107869118e-14,
         "proposals": 122804567
       },
-      "actual": null
+      "actual": [
+        0,
+        2
+      ]
     },
     {
       "id": "2026-11-21|galatasaray|samsunspor",
@@ -140,7 +146,10 @@
         "tail": 2.020605904817785e-14,
         "proposals": 117971505
       },
-      "actual": null
+      "actual": [
+        2,
+        1
+      ]
     },
     {
       "id": "2026-11-21|kocaelispor|fenerbahce",
@@ -187,7 +196,10 @@
         "tail": 1.6764367671839864e-14,
         "proposals": 111169626
       },
-      "actual": null
+      "actual": [
+        2,
+        2
+      ]
     },
     {
       "id": "2026-11-22|erzurumspor|goztepe",
@@ -234,7 +246,10 @@
         "tail": 1.787459069646502e-14,
         "proposals": 113563986
       },
-      "actual": null
+      "actual": [
+        0,
+        1
+      ]
     },
     {
       "id": "2026-11-22|kasimpasa|alanyaspor",
@@ -281,7 +296,10 @@
         "tail": 1.6431300764452317e-14,
         "proposals": 113614427
       },
-      "actual": null
+      "actual": [
+        2,
+        1
+      ]
     },
     {
       "id": "2026-11-22|konyaspor|besiktas",
@@ -328,7 +346,10 @@
         "tail": 1.532107773982716e-14,
         "proposals": 112419712
       },
-      "actual": null
+      "actual": [
+        2,
+        4
+      ]
     },
     {
       "id": "2026-11-22|trabzonspor|eyupspor",
@@ -426,10 +447,10 @@
     }
   ],
   "score": {
-    "n": 0,
-    "winner": 0,
-    "score": 0,
+    "n": 7,
+    "winner": 5,
+    "score": 2,
     "globalScore": 0,
-    "top3": 0
+    "top3": 4
   }
 }
