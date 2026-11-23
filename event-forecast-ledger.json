@@ -396,7 +396,10 @@
         "tail": 1.9317880628477724e-14,
         "proposals": 114378130
       },
-      "actual": null
+      "actual": [
+        1,
+        0
+      ]
     },
     {
       "id": "2026-11-23|basaksehir|corum",
@@ -447,10 +450,10 @@
     }
   ],
   "score": {
-    "n": 7,
-    "winner": 5,
+    "n": 8,
+    "winner": 6,
     "score": 2,
     "globalScore": 0,
-    "top3": 4
+    "top3": 5
   }
 }
