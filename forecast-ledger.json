@@ -1,5 +1,5 @@
 {
-  "checked": "2026-11-23T02:37:09.724Z",
+  "checked": "2026-11-23T08:58:40.177Z",
   "source": "open-matchday / Mart Jürisoo / UEFA",
   "coverage": 7,
   "feeds": [
@@ -7552,7 +7552,10 @@
       "dataSha256": "71e5a7e57c58af3db14fc8be864b6c6c4b6e0235187352de7590c988b7fe9bd9",
       "simulationCount": 0,
       "consistentScore": "3–0",
-      "actual": null,
+      "actual": [
+        1,
+        0
+      ],
       "measurementVersion": "2026.11-phase-1",
       "comparison": {
         "release": {
@@ -7620,7 +7623,8 @@
             "2–0"
           ]
         }
-      }
+      },
+      "settledAt": 1795424320177
     },
     {
       "id": "ENG_1_premier-league|2026-11-22|liverpool|manutd",
@@ -7702,7 +7706,10 @@
       "dataSha256": "63cbdc3a6227ce7c1ca90a5171e62ccda4a79ab0365b875a5bec686696e12032",
       "simulationCount": 0,
       "consistentScore": "1–0",
-      "actual": null,
+      "actual": [
+        4,
+        0
+      ],
       "measurementVersion": "2026.11-phase-1",
       "comparison": {
         "release": {
@@ -7770,7 +7777,8 @@
             "2–0"
           ]
         }
-      }
+      },
+      "settledAt": 1795424320177
     },
     {
       "id": "ESP_1_la-liga|2026-11-22|rracingclub|realsociedad",
@@ -8006,7 +8014,10 @@
       "dataSha256": "71eba44489e9b2c3dfba8187ec3bb2387a33c152ab9bbefe9285469b07ab058c",
       "simulationCount": 0,
       "consistentScore": "1–0",
-      "actual": null,
+      "actual": [
+        1,
+        0
+      ],
       "measurementVersion": "2026.11-phase-1",
       "comparison": {
         "release": {
@@ -8074,7 +8085,8 @@
             "0–0"
           ]
         }
-      }
+      },
+      "settledAt": 1795424320177
     },
     {
       "id": "ESP_1_la-liga|2026-11-22|getafecf|atleticodemadrid",
@@ -8156,7 +8168,10 @@
       "dataSha256": "9a756ec759d6eaf96a6de816ddd51b37341278ee87ded609c73b16c3115abb6e",
       "simulationCount": 0,
       "consistentScore": "0–1",
-      "actual": null,
+      "actual": [
+        0,
+        3
+      ],
       "measurementVersion": "2026.11-phase-1",
       "comparison": {
         "release": {
@@ -8224,7 +8239,8 @@
             "0–0"
           ]
         }
-      }
+      },
+      "settledAt": 1795424320177
     },
     {
       "id": "GER_1_bundesliga|2026-11-22|svwerderbremen|hamburgersv",
@@ -8307,7 +8323,7 @@
       "simulationCount": 0,
       "consistentScore": "2–1",
       "actual": [
-        0,
+        4,
         0
       ],
       "measurementVersion": "2026.11-phase-1",
@@ -8460,7 +8476,10 @@
       "dataSha256": "446270e58e59a1c406f6a387d72725af3642419378e94d558fb640db25892d86",
       "simulationCount": 0,
       "consistentScore": "2–1",
-      "actual": null,
+      "actual": [
+        5,
+        1
+      ],
       "measurementVersion": "2026.11-phase-1",
       "comparison": {
         "release": {
@@ -8528,7 +8547,8 @@
             "2–2"
           ]
         }
-      }
+      },
+      "settledAt": 1795424320177
     },
     {
       "id": "ITA_1_serie-a|2026-11-22|atalanta|internazionale",
@@ -8610,7 +8630,10 @@
       "dataSha256": "85b4e4a03b6f19c9c68c145000181598fa64ebb403d272a5ca06192891398797",
       "simulationCount": 0,
       "consistentScore": "1–2",
-      "actual": null,
+      "actual": [
+        4,
+        4
+      ],
       "measurementVersion": "2026.11-phase-1",
       "comparison": {
         "release": {
@@ -8678,7 +8701,8 @@
             "1–3"
           ]
         }
-      }
+      },
+      "settledAt": 1795424320177
     },
     {
       "id": "FRA_1_ligue-1|2026-11-22|fclorient|staderennaisfc",
@@ -8760,7 +8784,10 @@
       "dataSha256": "2cc64dd08b014b05df1689a0c6deb14e89d24b33d8c1e061a966ab47936ad7bf",
       "simulationCount": 0,
       "consistentScore": "2–1",
-      "actual": null,
+      "actual": [
+        1,
+        1
+      ],
       "measurementVersion": "2026.11-phase-1",
       "comparison": {
         "release": {
@@ -8828,7 +8855,8 @@
             "1–0"
           ]
         }
-      }
+      },
+      "settledAt": 1795424320177
     },
     {
       "id": "FRA_1_ligue-1|2026-11-22|olympiquedemarseille|lemansfc",
@@ -8910,7 +8938,10 @@
       "dataSha256": "9f83c12fd891a72fc11658aad33e6f99521a92abb08fa570f111c22299517e5d",
       "simulationCount": 0,
       "consistentScore": "2–1",
-      "actual": null,
+      "actual": [
+        2,
+        3
+      ],
       "measurementVersion": "2026.11-phase-1",
       "comparison": {
         "release": {
@@ -8978,7 +9009,8 @@
             "1–1"
           ]
         }
-      }
+      },
+      "settledAt": 1795424320177
     },
     {
       "id": "TUR_1_super-lig|2026-11-23|istanbulbasaksehir|corum",
@@ -9584,40 +9616,40 @@
   "marketValidation": {
     "version": "2026.11-phase-2-live",
     "counts": {
-      "release": 45,
+      "release": 53,
       "market": 0,
       "marketScore": 0
     },
     "metrics": {
       "release": {
-        "n": 45,
-        "logLoss": 0.963680283885365,
-        "rps": 0.19368515276675688,
+        "n": 53,
+        "logLoss": 0.9362005542721435,
+        "rps": 0.18946064157979992,
         "result": {
-          "hits": 26,
-          "n": 45,
-          "rate": 0.5777777777777777,
+          "hits": 32,
+          "n": 53,
+          "rate": 0.6037735849056604,
           "interval95": [
-            0.4330078870920313,
-            0.710312975327297
+            0.46941478673205517,
+            0.7241059326199831
           ]
         },
         "score": {
-          "hits": 2,
-          "n": 45,
-          "rate": 0.044444444444444446,
+          "hits": 3,
+          "n": 53,
+          "rate": 0.05660377358490566,
           "interval95": [
-            0.012274126706719846,
-            0.14827510769435623
+            0.019436661484935766,
+            0.15370208310180888
           ]
         },
         "top3": {
-          "hits": 14,
-          "n": 45,
-          "rate": 0.3111111111111111,
+          "hits": 16,
+          "n": 53,
+          "rate": 0.3018867924528302,
           "interval95": [
-            0.1952869926365341,
-            0.45664805577366824
+            0.19518302727578896,
+            0.4353683266885011
           ]
         },
         "tiers": [
@@ -9625,11 +9657,11 @@
             "label": "%45 altı",
             "coverage": {
               "hits": 10,
-              "n": 45,
-              "rate": 0.2222222222222222,
+              "n": 53,
+              "rate": 0.18867924528301888,
               "interval95": [
-                0.12544685532626396,
-                0.36269292174756296
+                0.10585325107685913,
+                0.31358459086702545
               ]
             },
             "accuracy": {
@@ -9645,63 +9677,63 @@
           {
             "label": "%45–55",
             "coverage": {
-              "hits": 20,
-              "n": 45,
-              "rate": 0.4444444444444444,
+              "hits": 25,
+              "n": 53,
+              "rate": 0.4716981132075472,
               "interval95": [
-                0.30938930034997586,
-                0.5882386550647896
+                0.3438224347819615,
+                0.603399187212937
               ]
             },
             "accuracy": {
-              "hits": 12,
-              "n": 20,
-              "rate": 0.6,
+              "hits": 16,
+              "n": 25,
+              "rate": 0.64,
               "interval95": [
-                0.3865815007622531,
-                0.781193467627183
+                0.44518497748164865,
+                0.7975211922554178
               ]
             }
           },
           {
             "label": "%55–65",
             "coverage": {
-              "hits": 7,
-              "n": 45,
-              "rate": 0.15555555555555556,
+              "hits": 8,
+              "n": 53,
+              "rate": 0.1509433962264151,
               "interval95": [
-                0.07745423484758268,
-                0.2878390887239627
+                0.07852417850846262,
+                0.27054249276195336
               ]
             },
             "accuracy": {
               "hits": 3,
-              "n": 7,
-              "rate": 0.42857142857142855,
+              "n": 8,
+              "rate": 0.375,
               "interval95": [
-                0.15821985525146975,
-                0.7495416354723428
+                0.13684428582359742,
+                0.6942576053973727
               ]
             }
           },
           {
             "label": "%65+",
             "coverage": {
-              "hits": 8,
-              "n": 45,
-              "rate": 0.17777777777777778,
+              "hits": 10,
+              "n": 53,
+              "rate": 0.18867924528301888,
               "interval95": [
-                0.09294389514104148,
-                0.3132982462645977
+                0.10585325107685913,
+                0.31358459086702545
               ]
             },
             "accuracy": {
-              "hits": 6,
-              "n": 8,
-              "rate": 0.75,
+              "hits": 8,
+              "n": 10,
+              "rate": 0.8,
               "interval95": [
-                0.40927543031016883,
-                0.9285207872478909
+                0.49016247153664183,
+                0.9433178485456247
               ]
             }
           }
