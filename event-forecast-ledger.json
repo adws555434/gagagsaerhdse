@@ -446,12 +446,15 @@
         "tail": 1.7430501486614958e-14,
         "proposals": 122634680
       },
-      "actual": null
+      "actual": [
+        4,
+        2
+      ]
     }
   ],
   "score": {
-    "n": 8,
-    "winner": 6,
+    "n": 9,
+    "winner": 7,
     "score": 2,
     "globalScore": 0,
     "top3": 5
