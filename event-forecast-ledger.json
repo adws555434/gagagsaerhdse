@@ -450,6 +450,100 @@
         4,
         2
       ]
+    },
+    {
+      "id": "2026-11-27|alanyaspor|konyaspor",
+      "home": "Alanyaspor",
+      "away": "Konyaspor",
+      "kickoff": 1795798800000,
+      "savedAt": 1795639377793,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "10b5eae5857bfd075dfd35d4eb587d82b9b51a0599667aed1d553b50575ce2ee",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          42479550,
+          31214140,
+          26306310
+        ],
+        "winner": 0,
+        "pick": {
+          "home": 1,
+          "away": 0,
+          "count": 11250968
+        },
+        "top": [
+          {
+            "home": 1,
+            "away": 1,
+            "count": 14892690
+          },
+          {
+            "home": 1,
+            "away": 0,
+            "count": 11250968
+          },
+          {
+            "home": 0,
+            "away": 0,
+            "count": 10120886
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.000056217293187846296,
+        "maxOutcome": 0.00009737920145375112,
+        "tail": 1.6986412276764895e-14,
+        "proposals": 111337448
+      },
+      "actual": null
+    },
+    {
+      "id": "2026-11-27|caykurrizespor|kasimpasa",
+      "home": "Çaykur Rizespor",
+      "away": "Kasimpasa",
+      "kickoff": 1795798800000,
+      "savedAt": 1795639389068,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "40a4f16849fb41184a0b0b12dbe0e05d3a6822f4b159df808c5afaff0776a021",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          41290024,
+          28861181,
+          29848795
+        ],
+        "winner": 0,
+        "pick": {
+          "home": 2,
+          "away": 1,
+          "count": 9415656
+        },
+        "top": [
+          {
+            "home": 1,
+            "away": 1,
+            "count": 13499928
+          },
+          {
+            "home": 2,
+            "away": 1,
+            "count": 9415656
+          },
+          {
+            "home": 1,
+            "away": 0,
+            "count": 7893847
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.000050175167102539664,
+        "maxOutcome": 0.0001037517859243664,
+        "tail": 1.9206858326015208e-14,
+        "proposals": 116269698
+      },
+      "actual": null
     }
   ],
   "score": {
