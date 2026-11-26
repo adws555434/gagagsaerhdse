@@ -591,6 +591,53 @@
         "proposals": 113411785
       },
       "actual": null
+    },
+    {
+      "id": "2026-11-28|gaziantep|amedspor",
+      "home": "Gaziantep",
+      "away": "Amedspor",
+      "kickoff": 1795881600000,
+      "savedAt": 1795725679685,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "f07971a054c91eafb15da21f327fb43374266240e84f750761a19000377ee724",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          25396733,
+          26552785,
+          48050482
+        ],
+        "winner": 2,
+        "pick": {
+          "home": 1,
+          "away": 2,
+          "count": 9805111
+        },
+        "top": [
+          {
+            "home": 1,
+            "away": 1,
+            "count": 11885751
+          },
+          {
+            "home": 1,
+            "away": 2,
+            "count": 9805111
+          },
+          {
+            "home": 2,
+            "away": 2,
+            "count": 7000398
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.000053234466472679154,
+        "maxOutcome": 0.000044813739844606904,
+        "tail": 2.0317081350640365e-14,
+        "proposals": 119559203
+      },
+      "actual": null
     }
   ],
   "score": {
