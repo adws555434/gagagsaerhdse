@@ -544,6 +544,53 @@
         "proposals": 116269698
       },
       "actual": null
+    },
+    {
+      "id": "2026-11-28|samsunspor|genclerbirligi",
+      "home": "Samsunspor",
+      "away": "Gençlerbirligi",
+      "kickoff": 1795870800000,
+      "savedAt": 1795704560716,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "27a2f74c34b6ce9f43cb4459b4dfb869c99e35515f57854c10f14591c23d120c",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          44946102,
+          29601545,
+          25452353
+        ],
+        "winner": 0,
+        "pick": {
+          "home": 1,
+          "away": 0,
+          "count": 10054238
+        },
+        "top": [
+          {
+            "home": 1,
+            "away": 1,
+            "count": 14114946
+          },
+          {
+            "home": 1,
+            "away": 0,
+            "count": 10054238
+          },
+          {
+            "home": 2,
+            "away": 1,
+            "count": 9682459
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.00004521555995168347,
+        "maxOutcome": 0.00008581306822558199,
+        "tail": 1.4876988529977098e-14,
+        "proposals": 113411785
+      },
+      "actual": null
     }
   ],
   "score": {
