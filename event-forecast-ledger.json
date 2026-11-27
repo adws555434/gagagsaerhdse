@@ -638,6 +638,100 @@
         "proposals": 119559203
       },
       "actual": null
+    },
+    {
+      "id": "2026-11-29|corum|kocaelispor",
+      "home": "Çorum",
+      "away": "Kocaelispor",
+      "kickoff": 1795948200000,
+      "savedAt": 1795790645616,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "a61260cc92b867f037585c680b507f30966b991924f92821723bd6dd174336cb",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          42406807,
+          29733014,
+          27860179
+        ],
+        "winner": 0,
+        "pick": {
+          "home": 1,
+          "away": 0,
+          "count": 9368687
+        },
+        "top": [
+          {
+            "home": 1,
+            "away": 1,
+            "count": 14077500
+          },
+          {
+            "home": 1,
+            "away": 0,
+            "count": 9368687
+          },
+          {
+            "home": 2,
+            "away": 1,
+            "count": 9346371
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.000057159193913025597,
+        "maxOutcome": 0.00007828145215038607,
+        "tail": 1.6986412276764895e-14,
+        "proposals": 113909111
+      },
+      "actual": null
+    },
+    {
+      "id": "2026-11-29|eyupspor|basaksehir",
+      "home": "Eyüpspor",
+      "away": "Istanbul Basaksehir",
+      "kickoff": 1795957200000,
+      "savedAt": 1795790654110,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "bfba73a7c97416df422a7db29412579504e394df4e685fe192dfd764dd1840d3",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          20836275,
+          27619656,
+          51544069
+        ],
+        "winner": 2,
+        "pick": {
+          "home": 1,
+          "away": 2,
+          "count": 10287760
+        },
+        "top": [
+          {
+            "home": 1,
+            "away": 1,
+            "count": 13124662
+          },
+          {
+            "home": 1,
+            "away": 2,
+            "count": 10287760
+          },
+          {
+            "home": 0,
+            "away": 1,
+            "count": 10051914
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.0000587301990626482,
+        "maxOutcome": 0.000049758638820673884,
+        "tail": 2.0317081350640365e-14,
+        "proposals": 114339151
+      },
+      "actual": null
     }
   ],
   "score": {
