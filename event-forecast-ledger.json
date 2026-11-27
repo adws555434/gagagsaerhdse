@@ -732,6 +732,53 @@
         "proposals": 114339151
       },
       "actual": null
+    },
+    {
+      "id": "2026-11-29|fenerbahce|erzurumspor",
+      "home": "Fenerbahçe",
+      "away": "Erzurumspor",
+      "kickoff": 1795968000000,
+      "savedAt": 1795812195445,
+      "version": "2026.11-super-lig-events-v1",
+      "dataSha256": "37e7a13d61fda2bfbe1823110dc5b8f2ae78c7641ccbd2fc7e7a21a927d10452",
+      "market": false,
+      "result": {
+        "n": 100000000,
+        "outcomes": [
+          73856756,
+          17829809,
+          8313435
+        ],
+        "winner": 0,
+        "pick": {
+          "home": 2,
+          "away": 0,
+          "count": 11408734
+        },
+        "top": [
+          {
+            "home": 2,
+            "away": 0,
+            "count": 11408734
+          },
+          {
+            "home": 2,
+            "away": 1,
+            "count": 9853800
+          },
+          {
+            "home": 3,
+            "away": 0,
+            "count": 9124655
+          }
+        ],
+        "overflow": 0,
+        "maxScore": 0.0000604344492130815,
+        "maxOutcome": 0.00005995535820083053,
+        "tail": 2.1760371282653068e-14,
+        "proposals": 116107828
+      },
+      "actual": null
     }
   ],
   "score": {
