@@ -496,7 +496,10 @@
         "tail": 1.6986412276764895e-14,
         "proposals": 111337448
       },
-      "actual": null
+      "actual": [
+        1,
+        2
+      ]
     },
     {
       "id": "2026-11-27|caykurrizespor|kasimpasa",
@@ -543,7 +546,10 @@
         "tail": 1.9206858326015208e-14,
         "proposals": 116269698
       },
-      "actual": null
+      "actual": [
+        3,
+        2
+      ]
     },
     {
       "id": "2026-11-28|samsunspor|genclerbirligi",
@@ -782,8 +788,8 @@
     }
   ],
   "score": {
-    "n": 9,
-    "winner": 7,
+    "n": 11,
+    "winner": 8,
     "score": 2,
     "globalScore": 0,
     "top3": 5
